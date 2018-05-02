@@ -1,0 +1,456 @@
+check linux distro:
+  uname -a - returns info about kernel and stuff
+  cat /etc/*-release - return info about distro
+  lsb_release - command that returns info about distro
+  cat /proc/version - file with linux version info
+
+man:
+  man [section] <command>
+  man sections:
+   1. General commands
+   2. System calls
+   3. C library functions
+   4. Special files (usually devices, those found in /dev) and drivers
+   5. File formats and conventions
+   6. Games and screensavers
+   7. Miscellanea
+   8. System administration commands and daemons
+
+find:
+  find <path> <params> <name mask>
+  ex:  find / -type f -name "one.txt" <-ls>
+   type:
+	d - dir
+	f - file
+	l - sym link
+	-ls - will output results as in 'ls -l'
+   could search by date 
+	https://www.cyberciti.biz/faq/linux-unix-osxfind-files-by-date/
+	date:
+	  -m\a\ctime - modification\acces\creatioin? time <+\ \-days> 
+	  - m\a\cmin - minutes i.e.:
+	  find . -mtime -1 -ls - find files modified less than day ago
+	  find . -mtime +1 -ls - all filed modified more than 1 day ago
+	  find . -amin 1 -ls - all files accessed exactly 1 minute ago
+	  -newerXY ; where XY could be:
+	    a – The access time of the file reference
+	    B – The birth time of the file reference
+	    c – The inode status change time of reference
+	    m – The modification time of the file reference
+	    t – reference is interpreted directly as a time
+	   i.e.:
+	   find . -type f -newermt 2017-09-24 -ls
+	    will find all files modified on 24/sep/2017
+	   
+   	by type
+	 f - file
+	 d - directory
+	 l - symlink and others
+	by user
+   
+  could execute commands on what found:
+   find ~ -iname test.txt -exec du -h {} \;
+    search in home dir for test.txt, case Insensitive, execute du -h for each
+    found file. SEE '-exec' in man
+    {} - is where the each find result will be piped.
+    find and copy:
+    !use with caution!  find . -name "*.pdf" -type f -exec cp {} ./pdfsfolder \;
+  !see man for lots of details
+  NOTE: with Permission denied erros, and probably others
+   clear output of found stuff could be redirected to file. probably STDOUT
+   while STDERR will keep appear on terminal window
+
+  -perm - find by permission like Read\Write\Execute
+   it seems to be pretty similar to just '-executable' flag(switch?)
+    find /usr -type f -executable  - like this
+  details here http://www.tutonics.com/2012/12/find-files-based-on-their-permissions.html
+  i.e.:
+    find / -perm 644 - will match EXACT permission files, only that have 644
+    find / -perm -644 - will match files with at least 644 permission
+     -perm -u+rw,g+r,o+r - same as above, will match 654 and dont 634
+    find / -perm /644 - will match all files that have at least one of 3 sets
+     /222 - match will occur if either the owner, the group, or other have their            "write" bit set.
+     -perm /u+w,g+w,o+w - same as above, where u-user, g-group, o-owner
+     -perm /a+w - same as above where a-all + or = is same so: /a=w 
+
+locate:
+  find files by name.
+  call 'updatedb' before use, to update database used by locate
+  locate <filename> - will return path to file if found
+
+update files:
+ touch <filename> - will update access time of a file, or create new if none
+ echo "" > <filename> - create\rewrite filename with blank line
+ echo "text" >> <filename> - append existing file with line 'text'
+
+cat:
+  concatenate, return file contents on screen
+  cat <filename> <filename> - will return contents of both to screen
+  cat <file1> <file2> >> <file3> - create new\append old file with joined
+   contents of file1 and 2
+
+df:
+  display all mounted devices with size\free\used\paths etc
+  df -h - human readable sizes
+
+sed:
+  stream editor, mostly used for substitution of text in files
+
+nl:
+  number lines in text file. only numbering not empty lines
+
+cp:
+  copy stuff
+  cp <params> <source1 src2 src3> <destination>
+  cp -rf ../source/* .
+   -r - recursive copy
+   -f - overwrite everything 
+   . - current directory with saving all the names and paths from source
+
+rm:
+  remove stuff, does not delete dirs and not empty dirs w/o additinal params
+  rm <params> <source>
+  rm -r <dirname>
+   -r - recursive, also deletes directory at the end
+   -d - deletes EMPTY directory
+
+du:
+  disk usage
+  du <params> <file/dir name>
+  dy -hs dirname
+   -h - human readable
+   -s - summary
+
+tar:
+  tape archive - collects all files in archive, with savin all permissions
+   and user's ownership
+  tar <params> <archive> <another_params> <source>
+  tar -cvf name.tar directory
+   -c - create
+   -v - verify\verbose
+   -f - files
+   -t - view archive , or something like that
+   -r - append retular file to the end of an archive i.e:
+     tar -rvf uncompressed.tar mybkup/mytest.txt
+   -z - zip. tells tar that working with zips and not archives; 
+        used for zipping, unzipping, viewing zip,
+          if 'czvf' - creates .gz archive, compress same as 'gzip'
+          if 'tzvf' - lists zip contents
+          if 'zxvf' - extracts zip contents
+   -p - preserve permissions
+   another params:
+    !! could be anywhere in the command, before or after other params
+    --exclude=filename - excludes filename/dir/type from adding to archive
+      i.e. tar -czvf arch.tar.gz --exclude=file.txt source_dir/
+      !! use relative path of tar archive itself! not system file path !!
+      !! use path like 'folder/folder/file' w/ or w/o quotas, optional
+      !! DO NOT use path like './folder/folder/file' - this will fail silently
+  params could be used w/o dash, like 'tar tvf archive.tar'
+  Unzip:
+    tar zxvf <archive.tar.gz> <path>
+   -z - unzips contents
+   -x - eXtract it
+   -v - verbose
+   -f - files
+   <path> - cold be empty for current location
+  Could pass view output to grep to search for particular file
+
+gzip:
+  compress files. it looks for a file it can compress by default even w/o
+   specifying its name
+  gzip <filename>
+  gzil archive.tar
+   will substitute 'archive.tar' by 'archive.tar.gz'
+  Could be called by 'tar' command using 'z' key, will works the same
+
+root access:
+  should be disabled for remote login in sshd for security reasons
+su:
+  log in as super user(root), need to provide root password i.e.: 
+  su -
+  !!!!
+  in case root pasword is lost here is how to recover it from recovery mode
+  https://askubuntu.com/questions/24006/how-do-i-reset-a-lost-administrative-password
+
+passwd: 
+  change password for current user
+   or for given user
+  passwd [username]
+  located in /usr/bin/passwd - ubuntu
+             /bin/passwd - centos/red hat
+  has 'setuid' thing..
+
+setuid and setgid:
+ setuid:
+  Attribute of a file that allows unprivileged user to have level of permission
+  of original owner of the file. 
+  For example passwd executable is owned by Root user. But unprivileged user 
+  could execute it and the passwd binary will made the changes into /etc/passwd 
+  and /etc/shadow file(contains some related to passwords stuff too), and those 
+  both files also are owned by root user.
+  In the same time passwd used by unprivileged user accepts no params - means
+  user can not change other users passwords
+ setgid:
+  Attribute of file\directory inherited byu sub dirs\files, so subdirs inherit 
+  parent's attributes. 
+  Gives access  equal to group owning the file to unprivileged user executing 
+  the file.
+  Unprivileged user executes file Under the privileges granted to the user group  owner of that file.
+
+whoami:
+ returns username of currently logged user
+
+mount:
+  mount drive (disk, usb, floppy etc)
+  mount -o rw,remount /
+   -o - dunno.. TODO
+   rw - seems to be read\write
+   remount - pretty clear at first glance
+   / - what to remount
+
+adduser:
+  adding user
+  shell around perl written useradd command, which is hard to use
+  adduser <username>
+  
+lsattr:
+  lists extra attributes of files on linux file system
+  lsattr file1 - display attributes of the file1
+
+chattr:
+  changes extra attributes, lots of them, here some:
+  i - immutable (can not be changed)
+  a - appendable (can be opened only in append mode)
+  u - undeletable
+  syntax: 
+  + - adds attribute
+  - - removes attribute
+  = - does something .... dunno
+  i.e. chattr +u file1 - adds undeletable attr to file1
+
+scp:
+  secure copy using ssh protocol
+   could copy to or copy from remote location.
+  copy to remote:
+  scp <params> <file_path> <receiving_username>@<address>:<receiving_file_path>
+  copy from remote:
+  scp <params> <remote_username>@<address(ip\name)>:<remote_local_path> <path>
+  params:
+  -v - verbose  
+
+sshd(openssh)
+  daemon config location:
+   /etc/ssh/sshd_config
+  sftp enable switch is located there, could be commented out and sshd restart
+  to disable it
+   /etc/ssh/ssh_config
+  some another config
+  ==
+  RSA keys for ssh authentication generation process:
+  https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7
+  ssh-keygen [-b 4096] - generates key pair into given path
+  ssh-copy-id user@34.250.25.207 - copy pub rsa from local machine to remote
+   for the user given further access will be w/o password(could ask passphrese)
+  
+
+sftp:
+  secure file transfer protocol, allows to list dir contents
+  built-in into OpenSSH server, which workks as sshd service(daemon) together
+  with scp
+  sftp <remote_username>@<remote_ipaddress_or_name>
+ sftp has its own set of directory related commands:
+ pwd - print work dir, returns current remote_dir
+ lpwd - current local_dir
+ cd - change dir, changes remote_dir
+ lcd - local change dir, changes local_dir from sftp via OpenSSH daemon
+ get - copy file to current local_dir
+  get <remote_filename> <new_local_name>
+ ls also works, ALIASES from bashrc do not work
+
+chown:
+  changes owner and group of a file\directory\link
+  chown <params> [user][:group] <file/dir>
+		 -reference=R_FILE FILE
+  !!!! links could change owner of targeting file only!!!!!!!!!!
+  -h \ -H - for changing owner of LINK not referenced location, see MANUAL
+  -R - recursively change owners of nested directories
+  -v - verbose, could be redirected to a file for future use, just in case
+   in case of fucked up links
+  could change only owner(<owner>), only group(<:group>), or both(<owner:group>)  could take ownership schema like owner:group from a file:
+   chown --from=:user :otheruser file.txt
+
+top: htop:
+  gives a list of processes and resources used by the OS
+  Process could has a priority:
+   20 - is the LOWEST priority
+   -20 - is the HIGHEST priority
+  PID number 1 is always 'init' command or 'systemd' in my case on ubuntu 16 and
+  centos 7
+
+general processes:
+  all processes are spawned from process with ID 1, 'init' in manual or systemd
+  in my case, for some reason
+  so there is a PID which is Process ID
+  and PPID which is Parent Process ID, so every process has parent, except PID 1  it seems
+
+ps:
+  by default returns processes run by my current user and current terminal 
+  session
+  ps aux - returns all processes run by all users from all terminals
+  ps axjf - formatted method of processes with partens in tree view
+
+pgrep:
+  process grep , could find process id (PID) by process name, like
+  pgrep bash - will return PID of the bash process running somewhere locally
+
+kill:
+  for terminating the processes
+  kill <param> <PID>
+  each kills param has its number equialent
+  -TERM\-15-  sends a Signal to a process (Term[inate] Signal), in other words
+   it asks the application to call its Dispose method, to gracefully stop. i.e.
+   kill 1292 or kill -15 1292 or kill -TERM 1292
+  -KILL\-9 ask OS's Kernel to shut down the process even if the process(app) 
+   does not respond for 
+  -HUP - restarts process if possible
+  -l - lists all the signals available with their names and numbers(minus SIG
+   prefix)
+  NOTE: only owner of the process(or root) could kill the process
+
+nice: renice:
+  changes priority of the process
+  nice is for new processes
+  
+  renice is for already running processes
+
+  renice <priority> <PID> i.e.
+  renice 10 1292 - will change priority of process 1292 to 10, and will display
+   previous value of the priority 
+  
+  nice <param> <priority> <binary_path> i.e.:
+  nice -n 20 /bin/bash - will start New(-n) process from /bin/bash binary, with
+   priority of 20(the lowest one)
+   
+service: daemon:
+  RHEL-like - systemd
+  Debian-like - upstart service
+  for Debian-like and RHEL-like systems its two different ways
+   for Ubuntu since 15.xx it seems it is even more different..
+  Debian-like:
+  status <service> 
+  start <service>
+  stop <service>
+  restart <service>
+   where service could be like 'ssh' or 'cron'
+  to disable\enable services in upstart services the .override file need to be
+  created in the /etc/init directory. For instance to disable cron:
+   ensure cron exists:
+   /etc/init/cron.conf - should exist
+   echo "manual" > /etc/init/cron.override - will create text file with word
+    'manual' as its only contents
+   now cron will not be loaded on boot
+   to enable cron back - simply delete 'cron.override' file from /etc/init dir
+
+  RHEL-like:
+  systemctl start <systemd>
+  systemctl status <systemd>
+  -- restart\stop 
+   where systemd could be like 'sshd' or 'crond' where d means daemon
+  systemctl disable <systemd> - disable system daemon from starting on boot
+   basically it will delete soft link from /etc/systemd/... directory which it 
+   seems is monitored on Init and everything there is executed
+  systemctl enable <systemd> - enable datemon to start on boot
+   basically it creates soft link from real binary location of daemon file into
+   /etc/systemd/.... directory where all the links for boot are stored
+
+  Ubuntu since 15.xx
+  service <service> status
+  -- stop\start\restart
+   where service could be like 'ssh' or 'cron'
+  service --status-all - will return statuses of all the services
+!!  TODO: 
+   check how to enable/disable services on boot for this new stuff and check how
+  it exactly called now
+  it seems it also supports systemctl and disable\enable with same commands,
+   but creating .override file in the Debian way
+
+==========Package management
+==========Debian\Ubuntu
+
+.deb - packages format
+
+dpkg:
+  dpackage - debian packages manager, fully console, installs only package
+  -i - install a package
+     only package , no dependencies - generate error with dependencies required
+  -l - list of all installed packages(use grep for specific packages)
+  -L <package> - list of all the files that were created during package 
+		 installation
+
+aptitude:
+  frontend of dpkg, GUI in commandline
+   categories of packages, local, available etc, then all the packages by 
+  categories. also displays info about each package
+  Enter key to open\close category.
+  g or u - install selected package
+
+apt-get:
+  main apt tool used to install or download packages
+  reads dependencies, and could install all of them
+  apt-get update - reads all the repos and updates the local packages cache
+  apt-get install - installs package(s), list delimited by space
+       or install <package-2.3.5-3ubuntu1> - installs particular version if
+		    it is compatible with distro and stuff   
+  apt-get upgrade - made after Update, upgrades all the packages installed to
+		    latest updates
+  .. dist-upgrade - updates to next available supported distro, 14.04 to 14.10 
+		    if 14.10 is not supported already then to 15.04 etc
+  apt-get autoclean - cleans cache, which means freeing space on hdd
+   uninstallation:
+  apt-get remove <package> - removes package binaries, lives configs in the 
+		             system for future use by other version or another
+			     reason
+  .. remove --purge <package> - removes package and all the stuff package 
+  .. purge <package> ^same^     created during install(SYSTEMWIDE configs, link
+				etc)
+		it will not remove:
+		 -dependence packages , to delete orphanes use
+			apt-get autoremove
+			  or
+			.. --purge autoremove (same - will remove configs also)
+		 -NOT SYSTEMWIDE config files - user-specific files
+			files in user's home dir, or .config subdirectory of 
+			home, those could be hidde (starts with .)
+  		 -doesn't reverse changes in already existing user-specific
+		  config files
+		 -doesn't remove 'gconf' and 'dconf' files or reverse any
+		  configuration d\gconf changes
+	existing SYSTEMWIDE configs also are not affected by neither purge or
+	remove commands, those ones created by user or other packages. but 
+	uninstalling package could sometimes affect such files and undone 
+	something
+  apt-get autoremove - removes all orphaned packages
+  .. purge --auto-remove <package> is similar to autoremove
+  apt-get check - what dependencies may be broken
+  apt-get build-dep - exact build dependencies for particular app (it seems it 
+		is not necessery to download them all for work though...)
+
+  apt-get download <package> - downloads package(probably to current dir
+			       or /etc/apt?) - but only package w/o dependencies
+  apt-get changelog - package changelog, like version history
+
+  /etc/apt/ - apt configs
+   sources.list - config of the repositories, which are re-read during 'update'
+   		  command execution
+  /var/cache/apt - cache folder of apt
+  ./archives - contain all the archives, could be removed by 'autoclean' command
+
+apt-cache:
+  support tool of apt used to work with apt cache(updated by apt-get cache 
+  command)
+  apt-cache pkgnames - list of all installed packages
+  ... search <package> - lists all packages that contain package name in its 
+			 name or description
+  ... show <package> - info about the package, like description in apptitude
+  ... stats - info about local cache(packages related stuff) - could be shrinked
+  	      by running 'apt-get autoclean' to delete useless stuff

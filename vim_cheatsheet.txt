@@ -1,0 +1,13 @@
+find and replace:
+:%s/foo/bar/gci
+ % 	- all lines [current line only if not specified]
+ s 	- substitute - commad for Find and REplace
+ /foo/ 	- text to search for
+ /bar/ 	- text to replace to
+ g 	- all occurances in a line
+ c 	- ask for confirmation
+ /\<foo\>/ - change only whole words foo
+ i 	- case Insensitive
+ /foo\c/ - same case insensitive
+ I 	- case Sensitive
+ 

@@ -1,0 +1,20 @@
+how to properly import all packages from other places than current directory:
+https://stackoverflow.com/a/34066989
+how to change PYTHONPATH:
+http://ask.xmodulo.com/change-syspath-pythonpath-python.html
+
+read\write files 
+open('file_path') - opens for 'r' - read, 'r' is default second param
+ others:
+ 'w' : use for writing
+ 'x' : use for creating and writing to a new file
+ 'a' : use for appending to a file
+ 'r+' : use for reading and writing to the same file
+
+stream = open('file/path', 'r')
+stream.read() - entire contents as String
+stream.readline() - one line and moves cursor forward
+stream.readlines() - all lines left after cursor, returns List[string]
+stream.close() - need to close unmanaged resources, can only read from 'r'
+stream.write() - writes only string w/o carriage return
+

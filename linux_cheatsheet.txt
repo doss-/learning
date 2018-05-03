@@ -395,6 +395,7 @@ aptitude:
   g or u - install selected package
 
 apt-get:
+  stands for Advanced Package Tool
   main apt tool used to install or download packages
   reads dependencies, and could install all of them
   apt-get update - reads all the repos and updates the local packages cache
@@ -454,3 +455,121 @@ apt-cache:
   ... show <package> - info about the package, like description in apptitude
   ... stats - info about local cache(packages related stuff) - could be shrinked
   	      by running 'apt-get autoclean' to delete useless stuff
+
+==========RedHat RHEL\Centos
+
+  .rpm files
+rpm:
+  red hat package manager
+  It seems it has some differend modes, where similar keys could exist with 
+  different functions, i.e. -i - installation mode, -i in -q(query) mode is info
+   the modes are:
+   - install/update/freshen (first param -i)
+   - uninstall (first param -e)
+   - query (first param -q)
+   - verify (first param -V probably)
+   - set owners/groups
+   - show querytags
+   - show configurations
+  Also it has general options, seems like it works with any mode
+  if files or dependencies package need are absent installation of rpm will fail
+  -q - query, probably 'what about something, like package requirements'
+	single param will display package full name if it is installed or will
+	say that it is not installed, i.e.:
+!	rpm -q openssh-server - will return fill name if installed, like this
+				openssh-server-7.4p1-13.el7_4.x86_64
+   -p - package file
+   -R - requires, lists package dependencies
+  i.e.:
+  rpm -qpR <rpm_package or package_name> - will list package requirements(depen
+	dencies), if rpm_package name is given(xterm-123.3.rpm) - will check for
+	package locally	if general package name is given(xterm) will look into
+	remote repos
+   -l - list files of the package, similar to 'dpkg -L' i.e.:
+	rpm -ql openssh-server - will list all the files and paths of sshd
+   -a --last - will list (a)ll the packages installed filtered by latest
+   rpm -qa | grep nmap - will list all Installed packages, and grep nmap from 
+		this list
+   -d - documentation mentionings of a package 
+   -f - some related to documentation param
+   rpm -qdf <package> - return all documentation files where this package is
+		mentioned
+  -i - installation mode (fails if package installed of any version)
+   -v - verbose (general parameter)
+   -h - prints some hashes, looks better with -v
+   -U - update package, BUT will install package if there is none installed
+	if package is installed will not fail but update it(controversy to -i)
+  rpm -Uvh <rpm_package or package_name> - will update or install package, 
+	fails if there are missing dependencies
+  -e or --erase - erase package, uninstall mode
+   -v - short verbose mode, RETURNS NOTHING if no Verbose mode is passed
+   -vv - very verbose, dunno why not -v
+  -V - verify, there is some verification key for every package and rpm could
+	check whether the package indeed has that key
+   -a - all, same as for -a in Query mode of rpm tool 
+   Keys could be imported from remote repos, or rpm could list all the keys
+   that has been already imported
+   rpm --import - will import key somehow from somewhere..
+   rpm -qa gpg-pubkey* - will list all the public verification keys on system
+  
+yum:
+  Stands for Yellowdog Updater, Modified. yellowdog is already unsupported 
+  version of Linux for PowerPC, which is also dead now
+  yum <params> <package_name>
+  Package management system
+  yum update 
+  yum upgrade - same as update - updates all the pkg repos and upgrades pkgs
+
+  yum list [<pkg>] - displays if installed, version, and @updates mean that it
+		   accepts updates. Package could be market to ignore updates
+		   which probably means that yum update will not affect it
+  ..  list installed - returns list of installed packages
+  yum search <pkg> - searches for package, search in name and description
+  yum install <pkg> - install package, and its dependencies
+	-y - answer Yes for prompts automatically
+  yum info <pkg> - info about a package: descr, url, size, arch, etc
+  yum check-update - checks which packages could be updated
+     -C - use only local cache, doesn't update cache
+  yum grouplist - YUM can group packages, this command displays all the groups
+		  those groups will install bunch of packages
+  .. groupinstall '<group name>' - will install all the packages from the group
+  .. gropuremove '<gn>' - removes all the packages related to the group
+  .. groupupdate '<gn>' - updates same stuff
+
+  yum repolist - lists all available(enabled) repositories
+  ..  .. all - lists all the repos disregard of their staus
+  .. --enablerepo=<repoid from repolist> install <pkg> - enable a repo and
+		install the package from that repo
+  yum clean all - clears cache similar to apt-get autoclean
+  yum history - history of yum - install\remove\upd package and stuff, sudo
+  ==UNINSTALLATION of packages==
+  yum remove <pkg> - removes the package, doesn't remove its dependencies
+  To remove dependencies there are several ways:
+  Option1: [probably should do this as standard]
+  yum autoremove - removes orphaned dependencies, similar to 'apt-get utoremove'
+  Option2: [probably could try this]
+  update /etc/yum.conf file
+   set
+    clean_requirements_on_remove=1
+   it is boolean value, which works on removel\update\obsoletion, goes through 
+   each package's dependencies and deletes ones that are no longer required.
+   default value False, could be 1,0,True,False,yes,no
+  Option3: [probably better try not to use it]
+  yum history undo <ID>
+  basically in undoes the operation, that was performed during installation
+  and thus removing the package and all the dependencies, and probably other
+  stuff. 
+  the only thing here is that i'm not sure whether it checks that package from 
+  dependencies is dependent only by this package that caused them to be 
+  installed, or not, so is not - it could end up with broken dependencies
+  so how to do:
+  yum history - check the ID column next to the command line with installation
+  command of the package that need to be uninstalled
+  then call 'yum history undo <ID>'
+
+yum-utils:
+  yumdownloader:
+  yumdownloader <pkg>
+    downloads a .rpm file, into current dir pretty similar to apt-get download
+    command
+

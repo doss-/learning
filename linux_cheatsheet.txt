@@ -168,9 +168,15 @@ root access:
 su:
   log in as super user(root), need to provide root password i.e.: 
   su -
+   - dash is used to call login shell and reset most of env vars, basically safe
+     against env related exploits and overriden standard commands. see here:
+  https://unix.stackexchange.com/questions/7013/why-do-we-use-su-and-not-just-su
+  
   !!!!
   in case root pasword is lost here is how to recover it from recovery mode
   https://askubuntu.com/questions/24006/how-do-i-reset-a-lost-administrative-password
+  UBUNTU by default installs with random root password so noone knows it,
+   need to use SUDO 
 
 passwd: 
   change password for current user
@@ -266,18 +272,6 @@ sftp:
  get - copy file to current local_dir
   get <remote_filename> <new_local_name>
  ls also works, ALIASES from bashrc do not work
-
-chown:
-  changes owner and group of a file\directory\link
-  chown <params> [user][:group] <file/dir>
-		 -reference=R_FILE FILE
-  !!!! links could change owner of targeting file only!!!!!!!!!!
-  -h \ -H - for changing owner of LINK not referenced location, see MANUAL
-  -R - recursively change owners of nested directories
-  -v - verbose, could be redirected to a file for future use, just in case
-   in case of fucked up links
-  could change only owner(<owner>), only group(<:group>), or both(<owner:group>)  could take ownership schema like owner:group from a file:
-   chown --from=:user :otheruser file.txt
 
 top: htop:
   gives a list of processes and resources used by the OS
@@ -573,3 +567,55 @@ yum-utils:
     downloads a .rpm file, into current dir pretty similar to apt-get download
     command
 
+==========File Permissions / Ownership
+
+! Linux treats everything - device\file\directory as if it is a FILE
+
+drwxrwxrwx:
+d - type of file(file\device\dir\link)
+ r - read
+   r only gives ability to list contents, but lots of ????? and file names
+    can't even read files with 'cat' and stuff, need x permission for this
+ w - write
+ x - execute
+   x only gives ability to 'cat' files, but cant ls into dir
+    if file in such dir has only 'r' can even 'cat' it, if file has only x: cant
+     cat it, need 'r' on file in dir with only 'x' to cat
+   together with read - can ls norm and execute stuff like 'cat' to read file
+first 3 - user permissions 
+second 3 - user's group permissions
+third 3 - all other users
+
+chown:
+  changes owner and group of a file\directory\link
+  chown <params> [user][:group] <file/dir>
+		 -reference=R_FILE FILE
+  !!!! links could change owner of targeting file only!!!!!!!!!!
+  -h \ -H - for changing owner of LINK not referenced location, see MANUAL
+  -R - recursively change owners of nested directories
+  -v - verbose, could be redirected to a file for future use, just in case
+   in case of fucked up links
+  could change only owner(<owner>), only group(<:group>), or both(<owner:group>)  could take ownership schema like owner:group from a file:
+   chown --from=:user :otheruser file.txt
+
+chmod:
+  change modification
+  chmod <permissions> <file_path>
+  text modifications:
+  u - owner
+  g - group
+  a - all
+  r/w/x - read/write/execute
+  i.e.
+  chmod a+rwx <filename> - give all the permissions of read/write/execute
+
+  binary mode:
+  4 - read
+  2 - write
+  1 - execute
+
+  sum of numbers above will indicate permissions
+  rwx = 4+2+1 = 7, and so on 
+
+Env vars:
+export 

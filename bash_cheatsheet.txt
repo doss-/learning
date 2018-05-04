@@ -1,0 +1,50 @@
+scripts start from instruction which interpreter to use, first line always must
+be the directive. Except if script is passed as param into interpreter, then
+there is no need in that because there already an interpreter in place.
+#!/path/to/interpreter
+i.e.:
+#!/bin/bash
+
+
+
+if:
+  statement
+  Starts with 'if' ends with 'fi'
+  Condition tests in IF should be inside square brackets - [], which are just a
+  reference for commant 'test'. see MAN page for TEST for details.
+ 
+test:
+   test 100 -eq 100 - test whether 100 equals 100
+  or [<thing to test>]
+   if [ 100 -eq 100 ]
+  used to test conditions
+
+  Operator 	Description
+  ! EXPRESSION 	The EXPRESSION is false.
+  -n STRING 	The length of STRING is greater than zero.
+  -z STRING 	The lengh of STRING is zero (ie it is empty).
+  STRING1 = STRING2 	STRING1 is equal to STRING2
+  STRING1 != STRING2 	STRING1 is not equal to STRING2
+  INTEGER1 -eq INTEGER2 	INTEGER1 is numerically equal to INTEGER2
+  INTEGER1 -gt INTEGER2 	INTEGER1 is numerically greater than INTEGER2
+  INTEGER1 -lt INTEGER2 	INTEGER1 is numerically less than INTEGER2
+  -d FILE 	FILE exists and is a directory.
+  -e FILE 	FILE exists.
+  -r FILE 	FILE exists and the read permission is granted.
+  -s FILE 	FILE exists and it's size is greater than zero (ie. not empty).
+  -w FILE 	FILE exists and the write permission is granted.
+  -x FILE 	FILE exists and the execute permission is granted.
+!  NOTE:
+  = - does a string comparision
+  -eq - does numerical comparison
+
+Loops:
+for:
+  foreach basically
+  FOR object IN collection DO command DONE
+  object - custom name as in regular foreach
+  collection - is a collection, could be just 1 2 3 4 
+  do and done are the braces
+
+while:
+  infinity loop while control is true

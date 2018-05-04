@@ -619,3 +619,10 @@ chmod:
 
 Env vars:
 export 
+
+ln:
+  create link
+  soft links
+  hard links
+  ln <param> <path> <link name>
+  -s - create soft link

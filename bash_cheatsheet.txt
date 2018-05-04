@@ -5,14 +5,37 @@ there is no need in that because there already an interpreter in place.
 i.e.:
 #!/bin/bash
 
+Naming Coventions:
+    Variable Names: Lower-case, with underscores to separate words. Ex: my_variable_name
+    Constants and Environment Variable Names: All caps, separated with underscores, declared at the top of the file. Ex: MY_CONSTANT
+    Google naming convetions: 
+	https://google.github.io/styleguide/shell.xml#Naming_Conventions
 
+variables:
+  Initializate variable by = sign w/o leading or trailing spaces
+  Accessing variable by $
+  To preserve spaces and stuff use quotas with string vars initialization
+   example:
+  my_str_var="string w/ spaces goes in quotas"
+  echo "stuff is: $my_str_var" > stuff is: string w/ spa.....
+  echo 'stuff is: $my_str_var' > stuff is: $my_str_var
 
 if:
-  statement
-  Starts with 'if' ends with 'fi'
   Condition tests in IF should be inside square brackets - [], which are just a
   reference for commant 'test'. see MAN page for TEST for details.
- 
+   example:
+  if [ 100 -eq ]; then - semicolon is needed in case of single line w/o /n
+   -or-
+  if [ <some test> ]
+  then
+    <commands>
+  elif [ <some test> ]
+  then
+    <different commands>
+  else
+    <other commands>
+  fi
+
 test:
    test 100 -eq 100 - test whether 100 equals 100
   or [<thing to test>]
@@ -41,10 +64,25 @@ test:
 Loops:
 for:
   foreach basically
-  FOR object IN collection DO command DONE
+    example:
+  FOR object IN collection; DO command; DONE
+   -or-
+  for i in 1 2 3
+  do
+    echo "print $i" > print 1   print 2    print 3
+  done
+
   object - custom name as in regular foreach
   collection - is a collection, could be just 1 2 3 4 
   do and done are the braces
 
 while:
   infinity loop while control is true
+    example:
+  while read host ...; do... - or like this if in 1 line
+  do
+    ping -c 3 $host
+  done < myhosts.txt
+
+  will read from myhosts.txt while there are lines, each line will reinit $host
+  

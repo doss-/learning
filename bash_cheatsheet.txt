@@ -26,7 +26,7 @@ if:
    example:
   if [ 100 -eq ]; then - semicolon is needed in case of single line w/o /n
    -or-
-  if [ <some test> ]
+  if [ <some test> ] && [ <other test> ] || [ <yet again test> ]
   then
     <commands>
   elif [ <some test> ]
@@ -35,6 +35,9 @@ if:
   else
     <other commands>
   fi
+
+  lots info here:
+  https://ryanstutorials.net/bash-scripting-tutorial/bash-if-statements.php
 
 test:
    test 100 -eq 100 - test whether 100 equals 100

@@ -430,8 +430,10 @@ aptitude:
   Enter key to open\close category.
   g or u - install selected package
 
-apt-get:
+apt-get: apt:
   stands for Advanced Package Tool
+   apt is merge of apt-get and apt-cache, for easier use, has not all functions
+   but also has some additional functions
   main apt tool used to install or download packages
   reads dependencies, and could install all of them
   apt-get update - reads all the repos and updates the local packages cache
@@ -440,9 +442,17 @@ apt-get:
 		    it is compatible with distro and stuff   
   apt-get upgrade - made after Update, upgrades all the packages installed to
 		    latest updates
+          -y - answer Yes for all questons automatically
   .. dist-upgrade - updates to next available supported distro, 14.04 to 14.10 
 		    if 14.10 is not supported already then to 15.04 etc
   apt-get autoclean - cleans cache, which means freeing space on hdd
+
+  apt search <pkg> - search for package
+  apt list --<params> - lists available packages from repos
+	   --installed - lists only installed packages
+  apt show <package> - shows info about package(apt-cache's command)
+
+  --dry-run - simulation, will display possible actions but not perform any
 =======Uninstallation==
   apt-get remove <package> - removes package binaries, leaves configs in the 
 		             system for future use by other version or another
@@ -493,6 +503,18 @@ apt-cache:
   ... show <package> - info about the package, like description in apptitude
   ... stats - info about local cache(packages related stuff) - could be shrinked
   	      by running 'apt-get autoclean' to delete useless stuff
+
+apt-file:
+  another extension for apt-get, is in different package, 
+   need to be installed first
+
+  apt-file update - updates its own caches, need to be run first
+  apt-file find <pattern>  - alias for search, see below:
+  apt-file search <pattern> - search packages for file matched by pattern.
+		returns list of packages and paths where file was found;
+		includes removed packages too
+  apt-file list - similar to dpkg -L but package not need to be installed or
+		fetched
 
 ======List all installed packages:
   dpkg -l - list of packages and their details
@@ -583,6 +605,9 @@ yum:
   ..  .. all - lists all the repos disregard of their staus
   .. --enablerepo=<repoid from repolist> install <pkg> - enable a repo and
 		install the package from that repo
+  yum provides <feature or file> - Just use a specific name or a 
+  	file-glob-syntax wild‐cards to list the packages available or installed
+	that provide that feature or file.
   yum clean all - clears cache similar to apt-get autoclean
   yum history - history of yum - install\remove\upd package and stuff, sudo
 
@@ -684,4 +709,7 @@ ln:
   ln <param> <path> <link name>
   -s - create soft link
 
-
+diff:
+  checks differences between two files
+  i.e.:
+  diff packages.list packages.list2

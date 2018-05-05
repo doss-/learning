@@ -16,6 +16,14 @@ man:
    7. Miscellanea
    8. System administration commands and daemons
 
+grep:
+  filters output using regular expressions
+  grep <params> <regex>
+  -v - inverts results
+   ps aux | grep bash |grep -v grep - will return only real bash w/o grep 
+			process listed
+  -i  - case INsensitive
+
 find:
   find <path> <params> <name mask>
   ex:  find / -type f -name "one.txt" <-ls>
@@ -77,6 +85,15 @@ locate:
   find files by name.
   call 'updatedb' before use, to update database used by locate
   locate <filename> - will return path to file if found
+
+ls:
+  list files on the system
+  ls -<params> <path+wildcards>
+  ll - default bash alias which leads to:
+   ls -la - Ubuntu
+   ls -l - CentOs
+  -l - list format
+  -a - all, show hidden files
 
 update files:
  touch <filename> - will update access time of a file, or create new if none
@@ -290,7 +307,32 @@ general processes:
 ps:
   by default returns processes run by my current user and current terminal 
   session
+  ps [-[-]]<params> 
+	   UNIX standards - -<params>
+	   BSD standards - <params>
+	   GNU standards - --<params>
+	params could be mixed, but conflicts could appear
+   a - list all processes that has terminal attached: ps a
+   x - list all processes owned my you(same EUID as ps)
+   ax - list all processes(less columns)
+   u - user oriented format(tree basically)
+   p <pidlist> (-p, --pid)- select process by id (or just PID, == --pid <PID>)
+   -C <cmdlist> - select by command name(COMMAND column)
+   t <ttylist> - select by tty
+   U, -U, -u, --user - selects by user name or EUID(RUID for -U), different 
+		selections by user , will output different stuff
+   -j - jobs format
+   j - job control format
+   -H - hierarhy(tree\forest format)
+   l - long format
+   -l long format , -y good with this
+   -f - full format listing
+   o, -o, --format - change columns format
+  	i.e. ps -o pid,ruser=RealUser -o comm=Command - wil return 3 columns
+		named PID, RealUser and Command, with values of standard colmns
+
   ps aux - returns all processes run by all users from all terminals
+	    if user 'x' in case of UNIX format it could treat it in BSD format
   ps axjf - formatted method of processes with partens in tree view
 
 pgrep:
@@ -306,7 +348,7 @@ kill:
    kill 1292 or kill -15 1292 or kill -TERM 1292
   -KILL\-9 ask OS's Kernel to shut down the process even if the process(app) 
    does not respond for 
-  -HUP - restarts process if possible
+  -HUP - restarts process if possible, does not change PID
   -l - lists all the signals available with their names and numbers(minus SIG
    prefix)
   NOTE: only owner of the process(or root) could kill the process
@@ -401,8 +443,8 @@ apt-get:
   .. dist-upgrade - updates to next available supported distro, 14.04 to 14.10 
 		    if 14.10 is not supported already then to 15.04 etc
   apt-get autoclean - cleans cache, which means freeing space on hdd
-   uninstallation:
-  apt-get remove <package> - removes package binaries, lives configs in the 
+=======Uninstallation==
+  apt-get remove <package> - removes package binaries, leaves configs in the 
 		             system for future use by other version or another
 			     reason
   .. remove --purge <package> - removes package and all the stuff package 
@@ -426,6 +468,7 @@ apt-get:
 	something
   apt-get autoremove - removes all orphaned packages
   .. purge --auto-remove <package> is similar to autoremove
+=======Uninstallation end===
   apt-get check - what dependencies may be broken
   apt-get build-dep - exact build dependencies for particular app (it seems it 
 		is not necessery to download them all for work though...)
@@ -443,12 +486,18 @@ apt-get:
 apt-cache:
   support tool of apt used to work with apt cache(updated by apt-get cache 
   command)
-  apt-cache pkgnames - list of all installed packages
+  apt-cache pkgnames - list of all pkgs APT knows, not all could be downloaded
+			installed or installable e.g. virtual pkgs
   ... search <package> - lists all packages that contain package name in its 
 			 name or description
   ... show <package> - info about the package, like description in apptitude
   ... stats - info about local cache(packages related stuff) - could be shrinked
   	      by running 'apt-get autoclean' to delete useless stuff
+
+======List all installed packages:
+  dpkg -l - list of packages and their details
+  apt list --installed - list of full names
+  aptitude - has a category for installed pkgs divided by categories
 
 ==========RedHat RHEL\Centos
 
@@ -507,7 +556,7 @@ rpm:
    rpm -qa gpg-pubkey* - will list all the public verification keys on system
   
 yum:
-  Stands for Yellowdog Updater, Modified. yellowdog is already unsupported 
+  Stands for "Yellowdog Updater, Modified". yellowdog is already unsupported 
   version of Linux for PowerPC, which is also dead now
   yum <params> <package_name>
   Package management system
@@ -536,8 +585,10 @@ yum:
 		install the package from that repo
   yum clean all - clears cache similar to apt-get autoclean
   yum history - history of yum - install\remove\upd package and stuff, sudo
-  ==UNINSTALLATION of packages==
+
+=======Uninstallation==
   yum remove <pkg> - removes the package, doesn't remove its dependencies
+!   yum autoremove <pkg> - also removes package, probably its deps too..
   To remove dependencies there are several ways:
   Option1: [probably should do this as standard]
   yum autoremove - removes orphaned dependencies, similar to 'apt-get utoremove'
@@ -560,6 +611,12 @@ yum:
   yum history - check the ID column next to the command line with installation
   command of the package that need to be uninstalled
   then call 'yum history undo <ID>'
+=======Uninstallation end===
+
+======List all installed packages:
+  rpm -qa - query all packages, will return list of all installed packages
+  yum list installed - will return list of installed packages
+
 
 yum-utils:
   yumdownloader:
@@ -626,3 +683,5 @@ ln:
   hard links
   ln <param> <path> <link name>
   -s - create soft link
+
+

@@ -123,6 +123,11 @@ cp:
    -r - recursive copy
    -f - overwrite everything 
    . - current directory with saving all the names and paths from source
+  NOTE: to copy hidden files, those star with . , need to escape dot(.) as it is
+  regular expression:
+  cp /etc/skel/\.* . - will copy all hidden files to current directory
+  ............/.* . - will not work
+  ............/.*.* . - will copy '..' which is parent directory to current one
 
 rm:
   remove stuff, does not delete dirs and not empty dirs w/o additinal params
@@ -183,6 +188,8 @@ gzip:
 root access:
   should be disabled for remote login in sshd for security reasons
 su:
+  su - [<username>] - creates new session for a user, i.e.:
+     su - user - log in under 'user' user
   log in as super user(root), need to provide root password i.e.: 
   su -
    - dash is used to call login shell and reset most of env vars, basically safe
@@ -231,10 +238,42 @@ mount:
    remount - pretty clear at first glance
    / - what to remount
 
+useradd:
+  old since any *nix creation. Almost everything need to be done manually bcs of
+  compatibility - different *nix platforms handles users differently, their ~
+  directories could be different
+  useradd -<params> <username>
+  -d <~_path> - designate home path for new user, home directory need to be
+		created manually anyway, i.e.:
+	useradd -d /home/testuser testuser
+	NOTE: after user is created the password need to be added:
+	passwd testuser
+	NOTE: the home dir of the user need to be created manually by SU
+	mkdir testuser && chown testuser:testuser testuser (centos7 creates 
+	empty dir for new user in home dir)
+	NOTE: then standard user files need to copied from /etc/skel/ dir which
+	      is for SKELeton into ~ dir such as .bashrc, et cetera
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+user related info is stored in
+/etc/group file
+default homedir files are stored in
+/etc/skel/ directory
+Centos7:  it seems on Centos7 useradd and adduser works same way - creates home
+  dir, copies all files to it from /etc/skel but does not set password
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+userdel:
+  deletes user in old way
+  userdel <username>
+  -r - deletes home directory too
+
 adduser:
   adding user
   shell around perl written useradd command, which is hard to use
   adduser <username>
+
+
   
 lsattr:
   lists extra attributes of files on linux file system
@@ -248,8 +287,9 @@ chattr:
   syntax: 
   + - adds attribute
   - - removes attribute
-  = - does something .... dunno
-  i.e. chattr +u file1 - adds undeletable attr to file1
+  = - causes  selected attrs to be only attrs that files have..(not sure)
+  i.e. 
+  chattr +u file1 - adds undeletable attr to file1
 
 scp:
   secure copy using ssh protocol
@@ -682,7 +722,7 @@ chown:
 
 chmod:
   change modification
-  chmod <permissions> <file_path>
+  chmod [<params>] <permissions> <file_path>
   text modifications:
   u - owner
   g - group
@@ -698,6 +738,13 @@ chmod:
 
   sum of numbers above will indicate permissions
   rwx = 4+2+1 = 7, and so on 
+
+  Parameters:
+  -v - verbose for every file processed
+  -c - changes (less verbose), only when change is made
+  -f - supress most error messages, --silent, --quiet
+  --preserve-root - fail to operate recursively on '/'
+  -R - recursive
 
 env vars:
   Set variable ONLY for current shell:

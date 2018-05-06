@@ -699,8 +699,17 @@ chmod:
   sum of numbers above will indicate permissions
   rwx = 4+2+1 = 7, and so on 
 
-Env vars:
-export 
+env vars:
+  Set variable ONLY for current shell:
+  varname="my value"
+  Set variable for current shell and ALL PROCESSES started from current shell:
+  export varname="my value"
+  For below LogOut is required:
+  Set var PERMANENTLY for current user
+  ~/.bashrc - add it here
+  Set var permanently and SYSTEM WIDE (all users/all processes)
+  /etc/environment - add line 'VARNAME="my value"', caps bcs of naming convents
+  LogOut is required for permanent changes.
 
 ln:
   create link
@@ -713,3 +722,13 @@ diff:
   checks differences between two files
   i.e.:
   diff packages.list packages.list2
+
+bash history:
+  ! - invokes the Bash history mechanism
+    !echo - will display and execute latest echo from current shell history
+	    if such exists, displays error if nothing found(event not found)
+   inverts exit code of commands if with space:
+    ! true; echo $? # 1 - means exit code 0 was changed to 1
+   also inverts pipe exit code
+    ls | bogus_command; echo $? # exit code: 127
+    ! ls | bogus_command; echo $? # exit code: 0

@@ -89,3 +89,25 @@ while:
 
   will read from myhosts.txt while there are lines, each line will reinit $host
   
+exit code:
+  bash scripts ALWAYS returns exit code.
+  to manually return exit code:
+  exit nnn - to return nnn
+	!!   nnn - MUST be an INTEGER in range 0-255 !!
+  exit $? or exit or omitting the 'exit':
+   with no params exit code is taken from latest command executed in the script
+    Exit code values:
+  0-255 allowed
+    By convetion
+  0 - OK
+  1-255 - various errors 
+
+  to test Exit Code:
+  echo $? - will return exit code of previous command or value of previously
+	    executed script 
+  more reading:
+  http://tldp.org/LDP/abs/html/exit-status.html
+
+incrementation: increment: i++:
+  counter_var=0
+  counter_var=$(( $counter_var + 1 ))

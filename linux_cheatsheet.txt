@@ -243,6 +243,7 @@ mount:
 
 ==========User\Groups Management
 
+==========User\Groups Management General info
 group related info is stored in
   /etc/group   - file
 user related info stored in 
@@ -256,6 +257,8 @@ Centos7:  it seems on Centos7 useradd and adduser works same way - creates home
 
 /etc/login.defs - useradd/userdel/usermod config
 /etc/adduser.conf - adduser config(Ubuntu)
+/etc/shadow - secure account info
+/etc/gshadow - secure group account info
 
 /etc/passwd:
 root:x:0:0:root:/root:/bin/bash
@@ -266,6 +269,34 @@ x - placeholder for a password
 root - comment about this user
 /root - home directory for this user
 /bin/bash - default shell for this user(after he logs in presumably)
+
+/etc/group:
+wheel:x:10:centos,user
+wheel - group name
+x - place holder for a password
+10 - group id(GID) for the group
+centos,user - users in the group, and probably user wheel too
+   user along with who group was created id not listed in the group..
+   probably to make sure group do or does not contains it , could try check
+   groups of that user like 'groups wheel' - it will return 'no such user' if
+   there is no user with same name as a group
+
+NOTE: there are Primary group for a user and SUpplementary groups, 
+  Primary is the first group of a user, others are suppplementary:
+    $ groups johnny
+    > johnny : test1 john newgroup1 newgroup2
+  to add extra supplementary groups use 'usermod -a -G group1,group2'. 
+  To change Primary group use  'usermod -g john johnny'
+    > johnny : john newgroup1 newgroup2
+  NOTE THAT 'test1' group has been removed at all, and not moved to 
+   supplementary groups
+  NOTE to change to test1 w/o deleting it user 'newgrp' command:
+    $ newgrp newgroup1
+    > newgroup1 john newgroup2
+  Files created by user are owned by PRIMARY group of the user
+
+
+==========User\Groups Management General info end
 
 useradd:
   old since any *nix creation. Almost everything need to be done manually bcs of
@@ -292,6 +323,16 @@ useradd:
 NOTE: after user is created the password need to be added:
 passwd testuser
 
+groups:
+  list groups of a user
+  groups [username]
+    w/o params gives current user groups
+    with username - gives groups of that user
+
+getent:
+  getent group <$(whoami)>
+  lists all groups on system and users of those groups(similar to /etc/group)
+
 usermod:
   modify existing users
   usermod [<params>] <user>
@@ -301,8 +342,19 @@ usermod:
    -m - MOVE-home dir to new DIRECTORY path
       usermod -m -d /home/johnny johnny - creates new dir for the user and moves
 	everything from old dir to new dir
+   -g - change primary GROUP
+   -G - add to other GROUPs delimited , and no spaces adds, more groups for user
+	will overwrite other supplementary groups except primary
+   -a - APPEND groups, used with -G, to append existing supplementary groups:
+      usermod -a -G newgroup1,newgroup2 johnny - will add two groups to the
+	end of the list of a groups user have
    -L - LOCK user
-   -U - UNlock user
+	after lock there will be exclamation mark in /etc/shadow file before
+	user passwod:
+	johnny:!$6$DQMYnvhr$xKMYZSorH2wePlAunWDBKYWYSK8bmnyKMbr9IAuMoykPl7....
+   -U - UNlock user, and remove exclamation mark '!' before user passwd hash
+  More to read at:
+   https://www.tecmint.com/usermod-command-examples/
 
 userdel:
   deletes user in old way
@@ -321,7 +373,43 @@ adduser:
     detailed how adduser works on Ubuntu:
     https://askubuntu.com/questions/659953/what-is-ubuntus-automatic-uid-generation-behavior
 
+groupadd:
+  adds group
+  info about groups is stored in /etc/group file, see General above for details 
+   once group is created use 'usermod' to add users to it
+  group [options] <group>
+  -g - manually set GROUP id
+
+groupmod:
+  modify existing groups
+  -g - change GROUP id
+    groupmod -g 300 manager - change group 'manager' to have new GID of 300
+  -n - change NAME of a group
+    groupmod -n managers manager - change group 'manager' to 'managers'
   
+gpasswd:
+  add\remove users from a group, set admins for the group, set password for
+  a group
+  gpasswd <params> <group>
+  -a <user>  - ADD user to a group
+  -M <user1,user2> - add MULTIPLE users, commadelimited w/o spaces
+     gpasswd -M john,jane manager
+  -d <user> - DELETE user from a group
+     sudo gpasswd -d johnny newgroup1 - remove 'johnny' from 'newgroup1'
+  -A <user> - add ADMIN user for a group, dunno what it is about.. TODO
+
+newgrp:
+  newgrp <groupname>
+  Changes primary group of the user w/o deleting any groups
+   could freely move between assigned groups 
+  And asks for password(probably group password) if trying to set unassigned
+  group as primary one
+
+groupdel:
+  delete group
+  groupdel [params] <groupname>
+==========User\Groups Management end
+
 lsattr:
   lists extra attributes of files on linux file system
   lsattr file1 - display attributes of the file1
@@ -735,6 +823,8 @@ yum-utils:
   yumdownloader <pkg>
     downloads a .rpm file, into current dir pretty similar to apt-get download
     command
+
+==========Package management end
 
 ==========File Permissions / Ownership
 

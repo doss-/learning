@@ -18,11 +18,12 @@ man:
 
 grep:
   filters output using regular expressions
-  grep <params> <regex>
+  grep <params> <regex> <filepath>
   -v - inverts results
    ps aux | grep bash |grep -v grep - will return only real bash w/o grep 
 			process listed
   -i  - case INsensitive
+  <filepath> - is not required if used in pipe
 
 find:
   find <path> <params> <name mask>
@@ -238,30 +239,70 @@ mount:
    remount - pretty clear at first glance
    / - what to remount
 
+
+
+==========User\Groups Management
+
+group related info is stored in
+  /etc/group   - file
+user related info stored in 
+  /etc/passwd  - file
+default homedir files are stored in
+  /etc/skel/   - directory
+Centos7:  it seems on Centos7 useradd and adduser works same way - creates home
+  dir, copies all files to it from /etc/skel but does not set password
+  CentOS7, here is the riddle:
+   lrwxrwxrwx. 1 root root 7 гру 14  2016 /usr/sbin/adduser -> useradd
+
+/etc/login.defs - useradd/userdel/usermod config
+/etc/adduser.conf - adduser config(Ubuntu)
+
+/etc/passwd:
+root:x:0:0:root:/root:/bin/bash
+root - username
+x - placeholder for a password
+0 - is the user ID(UID) for this user
+0 - is the group ID(GID) for this user
+root - comment about this user
+/root - home directory for this user
+/bin/bash - default shell for this user(after he logs in presumably)
+
 useradd:
   old since any *nix creation. Almost everything need to be done manually bcs of
   compatibility - different *nix platforms handles users differently, their ~
   directories could be different
   useradd -<params> <username>
-  -d <~_path> - designate home path for new user, home directory need to be
-		created manually anyway, i.e.:
-	useradd -d /home/testuser testuser
-	NOTE: after user is created the password need to be added:
-	passwd testuser
-	NOTE: the home dir of the user need to be created manually by SU
-	mkdir testuser && chown testuser:testuser testuser (centos7 creates 
-	empty dir for new user in home dir)
-	NOTE: then standard user files need to copied from /etc/skel/ dir which
-	      is for SKELeton into ~ dir such as .bashrc, et cetera
+  -d <~_path> - use if home name\path differs from default location, i.e.:
+		 
+	useradd -d /home/accounts/john testuser
+  useradd -c "John from Accounts" -m -s /bin/bash john
+   -c - adds a COMMENT in the /etc/passwd for this acc
+   -m - MAKEs the home directory for this user, like /home/john
+   -s - assigns the SHELL for the user
+   john - actual user name
+    user 'john' is the member of group 'john' and this is his PRIMARY group
+  also:
+   -u <UID> - user ID , first free picked (from range in config) id no specified
+   -g <GID\Name> - assign to already existing group. i.e. -g accounts
+   -G <GID\Name> - additional group. i.e. -G employees
+   -e <YYY-MM-DD> - EXPIRATION date of the account
+   -k </path> - sKELETON directory if differs from /etc/skel
+   -p <hashed_pwd> - encrypted password for acc, or use 'passwd' command later
+   
+NOTE: after user is created the password need to be added:
+passwd testuser
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-user related info is stored in
-/etc/group file
-default homedir files are stored in
-/etc/skel/ directory
-Centos7:  it seems on Centos7 useradd and adduser works same way - creates home
-  dir, copies all files to it from /etc/skel but does not set password
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+usermod:
+  modify existing users
+  usermod [<params>] <user>
+   -l - change LOGIN of the user. i.e.:
+      usermod -l johnny john - change username john to johnny
+   -d - DIRECTORY path for New directory of the user
+   -m - MOVE-home dir to new DIRECTORY path
+      usermod -m -d /home/johnny johnny - creates new dir for the user and moves
+	everything from old dir to new dir
+   -L - LOCK user
+   -U - UNlock user
 
 userdel:
   deletes user in old way
@@ -270,9 +311,15 @@ userdel:
 
 adduser:
   adding user
+  is seems CentOS 7 has this
+
   shell around perl written useradd command, which is hard to use
   adduser <username>
 
+  /etc/adduser.conf - config for this command, has default ids, default shell
+			default home dir(/home) and so on
+    detailed how adduser works on Ubuntu:
+    https://askubuntu.com/questions/659953/what-is-ubuntus-automatic-uid-generation-behavior
 
   
 lsattr:

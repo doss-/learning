@@ -144,6 +144,40 @@ du:
    -h - human readable
    -s - summary
 
+env vars:
+  Set variable ONLY for current shell:
+  varname="my value"
+  Set variable for current shell and ALL PROCESSES started from current shell:
+  export varname="my value"
+  For below LogOut is required:
+  Set var PERMANENTLY for current user
+  ~/.bashrc - add it here
+  Set var permanently and SYSTEM WIDE (all users/all processes)
+  /etc/environment - add line 'VARNAME="my value"', caps bcs of naming convents
+  LogOut is required for permanent changes.
+
+ln:
+  create link
+  soft links
+  hard links
+  ln <param> <path> <link name>
+  -s - create soft link
+
+diff:
+  checks differences between two files
+  i.e.:
+  diff packages.list packages.list2
+
+bash history:
+  ! - invokes the Bash history mechanism
+    !echo - will display and execute latest echo from current shell history
+	    if such exists, displays error if nothing found(event not found)
+   inverts exit code of commands if with space:
+    ! true; echo $? # 1 - means exit code 0 was changed to 1
+   also inverts pipe exit code
+    ls | bogus_command; echo $? # exit code: 127
+    ! ls | bogus_command; echo $? # exit code: 0
+
 tar:
   tape archive - collects all files in archive, with savin all permissions
    and user's ownership
@@ -186,22 +220,6 @@ gzip:
    will substitute 'archive.tar' by 'archive.tar.gz'
   Could be called by 'tar' command using 'z' key, will works the same
 
-root access:
-  should be disabled for remote login in sshd for security reasons
-su:
-  su - [<username>] - creates new session for a user, i.e.:
-     su - user - log in under 'user' user
-  log in as super user(root), need to provide root password i.e.: 
-  su -
-   - dash is used to call login shell and reset most of env vars, basically safe
-     against env related exploits and overriden standard commands. see here:
-  https://unix.stackexchange.com/questions/7013/why-do-we-use-su-and-not-just-su
-  
-  !!!!
-  in case root pasword is lost here is how to recover it from recovery mode
-  https://askubuntu.com/questions/24006/how-do-i-reset-a-lost-administrative-password
-  UBUNTU by default installs with random root password so noone knows it,
-   need to use SUDO 
 
 passwd: 
   change password for current user
@@ -245,35 +263,49 @@ mount:
 
 ==========User\Groups Management General info
 group related info is stored in
-  /etc/group   - file
+  /etc/group   - file, use 'vigr' for edit
 user related info stored in 
-  /etc/passwd  - file
+  /etc/passwd  - file. in case of edit use 'vipw' like 'visudo' with sudoers
 default homedir files are stored in
   /etc/skel/   - directory
-Centos7:  it seems on Centos7 useradd and adduser works same way - creates home
-  dir, copies all files to it from /etc/skel but does not set password
-  CentOS7, here is the riddle:
-   lrwxrwxrwx. 1 root root 7 гру 14  2016 /usr/sbin/adduser -> useradd
+		 those files will be copied to user home when it is created
+  ..../.bashrc - executed by bash for non-login shells - every time bash
+		 is started interactively
+see more: https://unix.stackexchange.com/questions/129143/what-is-the-purpose-of-bashrc-and-how-does-it-work
+  ..../.profile - executed by command interpreter for login shells
+		  is not read if '.bash_login' or '.bash_profile' exists
+  ..../.bash_logout - executed by bash when login shell ended
+
+unlike files in /etc/skel changes to this files will affect even existing users
+changes from here will be applied with every re-login to every 
+		user on thesystem:
+/etc/bash.bashrc -  will affect ~/.bashrc 
+/etc/profile -  will affect ~/.profile
 
 /etc/login.defs - useradd/userdel/usermod config
 /etc/adduser.conf - adduser config(Ubuntu)
-/etc/shadow - secure account info
-/etc/gshadow - secure group account info
+/etc/shadow - secure account info - passwords
+/etc/gshadow - secure group account info - passwords
 
 /etc/passwd:
 root:x:0:0:root:/root:/bin/bash
 root - username
-x - placeholder for a password
+x - placeholder for a password, modern systems use /etc/shadow file for pass
 0 - is the user ID(UID) for this user
 0 - is the group ID(GID) for this user
 root - comment about this user
 /root - home directory for this user
 /bin/bash - default shell for this user(after he logs in presumably)
+	    Possible values:
+  /bin/nologin - deny login at all
+  /bin/false - deny login but still can be logged in using 'su' command from 
+		another account
+
 
 /etc/group:
 wheel:x:10:centos,user
 wheel - group name
-x - place holder for a password
+x - place holder for a password, modern systems use /etc/shadow filr for pass
 10 - group id(GID) for the group
 centos,user - users in the group, and probably user wheel too
    user along with who group was created id not listed in the group..
@@ -296,7 +328,7 @@ NOTE: there are Primary group for a user and SUpplementary groups,
   Files created by user are owned by PRIMARY group of the user
 
 
-==========User\Groups Management General info end
+==========user\groups management general info end
 
 useradd:
   old since any *nix creation. Almost everything need to be done manually bcs of
@@ -323,6 +355,23 @@ useradd:
 NOTE: after user is created the password need to be added:
 passwd testuser
 
+===Manual User Creation
+user# sudo su -		- become root
+root# vipw		- edit /etc/passwd
+ add new line with user info like:
+ username:x:UID:GID:comment:/home/username:/bin/bash
+root# vigr		- edit /etc/group
+ add new line with user group info like:
+ usergroup:x:GID:
+root# cd /home && mkdir username - create user's home folder
+root# cp -rf /etc/skel/\.* /home/username/. - copy everything from skel
+root# chown -R username:usergroup username/ - change recurse ownership of dir
+root# passwd username - create password for the user
+===manual user creation end
+
+
+
+
 groups:
   list groups of a user
   groups [username]
@@ -338,7 +387,7 @@ usermod:
   usermod [<params>] <user>
    -l - change LOGIN of the user. i.e.:
       usermod -l johnny john - change username john to johnny
-   -d - DIRECTORY path for New directory of the user
+   -d - DIRECTORY path for New home directory of the user
    -m - MOVE-home dir to new DIRECTORY path
       usermod -m -d /home/johnny johnny - creates new dir for the user and moves
 	everything from old dir to new dir
@@ -363,10 +412,10 @@ userdel:
 
 adduser:
   adding user
-  is seems CentOS 7 has this
-
   shell around perl written useradd command, which is hard to use
-  adduser <username>
+   adduser <username>
+  CentOS7, does not have adduser, it links it to useradd:
+   lrwxrwxrwx. 1 root root 7 гру 14  2016 /usr/sbin/adduser -> useradd
 
   /etc/adduser.conf - config for this command, has default ids, default shell
 			default home dir(/home) and so on
@@ -408,7 +457,47 @@ newgrp:
 groupdel:
   delete group
   groupdel [params] <groupname>
-==========User\Groups Management end
+
+==========Super User
+/etc/sudoers - file where all the privileges set. has user accounts with 
+		privileges, as well as some groups, 
+		for Ubuntu: 
+			admin - almost root
+			sudo - as root
+		for CentOS7: 
+			wheel - as root
+NOTE: this file must be edited through 'visudo' command, this will ensure safe
+  changes including lock file on edit and so on
+
+root access:
+  should be disabled for remote login in sshd for security reasons
+
+su:
+  su - [<username>] - creates new session for a user, i.e.:
+     su - user - log in under 'user' user
+  log in as super user(root), need to provide root password i.e.: 
+  su -
+   - dash is used to call login shell and reset most of env vars, basically safe
+     against env related exploits and overriden standard commands. see here:
+  https://unix.stackexchange.com/questions/7013/why-do-we-use-su-and-not-just-su
+  
+  !!!!
+  in case root pasword is lost here is how to recover it from recovery mode
+  https://askubuntu.com/questions/24006/how-do-i-reset-a-lost-administrative-password
+  UBUNTU by default installs with random root password so noone knows it,
+   need to use SUDO 
+  
+  Another way to recover a root password is to add a user to a privileged group
+   like 'sudo' or 'wheel' - this way user, using program 'sudo' can become root
+   w/o entering the forgotten(random for Ubuntu) password:
+  user# groups - make sure user is in sudo group
+  user# sudo su -  - become root w/o entering password root's password
+  root# passwd  - enter new password
+
+sudo
+==========super user end
+
+==========user\groups management end
 
 lsattr:
   lists extra attributes of files on linux file system
@@ -490,7 +579,7 @@ ps:
    a - list all processes that has terminal attached: ps a
    x - list all processes owned my you(same EUID as ps)
    ax - list all processes(less columns)
-   u - user oriented format(tree basically)
+   u - user oriented format
    p <pidlist> (-p, --pid)- select process by id (or just PID, == --pid <PID>)
    -C <cmdlist> - select by command name(COMMAND column)
    t <ttylist> - select by tty
@@ -502,13 +591,15 @@ ps:
    l - long format
    -l long format , -y good with this
    -f - full format listing
+   f - ASCII art process hierarchy (forest)
    o, -o, --format - change columns format
   	i.e. ps -o pid,ruser=RealUser -o comm=Command - wil return 3 columns
 		named PID, RealUser and Command, with values of standard colmns
 
   ps aux - returns all processes run by all users from all terminals
-	    if user 'x' in case of UNIX format it could treat it in BSD format
-  ps axjf - formatted method of processes with partens in tree view
+	    if user does not exist 'x' in case of UNIX format it could treat it
+	    in BSD format
+  ps axjf - formatted method of processes with parents in tree view
 
 pgrep:
   process grep , could find process id (PID) by process name, like
@@ -653,7 +744,7 @@ apt-get: apt:
 	something
   apt-get autoremove - removes all orphaned packages
   .. purge --auto-remove <package> is similar to autoremove
-=======Uninstallation end===
+=======uninstallation end===
   apt-get check - what dependencies may be broken
   apt-get build-dep - exact build dependencies for particular app (it seems it 
 		is not necessery to download them all for work though...)
@@ -695,6 +786,8 @@ apt-file:
   dpkg -l - list of packages and their details
   apt list --installed - list of full names
   aptitude - has a category for installed pkgs divided by categories
+
+==========debian\ubuntu end
 
 ==========RedHat RHEL\Centos
 
@@ -811,7 +904,7 @@ yum:
   yum history - check the ID column next to the command line with installation
   command of the package that need to be uninstalled
   then call 'yum history undo <ID>'
-=======Uninstallation end===
+=======uninstallation end===
 
 ======List all installed packages:
   rpm -qa - query all packages, will return list of all installed packages
@@ -823,8 +916,8 @@ yum-utils:
   yumdownloader <pkg>
     downloads a .rpm file, into current dir pretty similar to apt-get download
     command
-
-==========Package management end
+==========redhat rhel\centos end
+==========package management end
 
 ==========File Permissions / Ownership
 
@@ -883,36 +976,5 @@ chmod:
   --preserve-root - fail to operate recursively on '/'
   -R - recursive
 
-env vars:
-  Set variable ONLY for current shell:
-  varname="my value"
-  Set variable for current shell and ALL PROCESSES started from current shell:
-  export varname="my value"
-  For below LogOut is required:
-  Set var PERMANENTLY for current user
-  ~/.bashrc - add it here
-  Set var permanently and SYSTEM WIDE (all users/all processes)
-  /etc/environment - add line 'VARNAME="my value"', caps bcs of naming convents
-  LogOut is required for permanent changes.
+==========file permissions / ownership end
 
-ln:
-  create link
-  soft links
-  hard links
-  ln <param> <path> <link name>
-  -s - create soft link
-
-diff:
-  checks differences between two files
-  i.e.:
-  diff packages.list packages.list2
-
-bash history:
-  ! - invokes the Bash history mechanism
-    !echo - will display and execute latest echo from current shell history
-	    if such exists, displays error if nothing found(event not found)
-   inverts exit code of commands if with space:
-    ! true; echo $? # 1 - means exit code 0 was changed to 1
-   also inverts pipe exit code
-    ls | bogus_command; echo $? # exit code: 127
-    ! ls | bogus_command; echo $? # exit code: 0

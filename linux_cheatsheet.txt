@@ -257,6 +257,15 @@ mount:
    remount - pretty clear at first glance
    / - what to remount
 
+  -a - mount all lines added to /etc/fstab
+  
+  /etc/fstab - config for filesystems
+   read by fsck, mount, unmount
+  lines from this file read during 'mount -a'.
+   check man fstab for details. 
+  simply add automount of HDD from old windows:
+  LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async
+  labels or UUID could be taken from 'blkid' command
 
 
 ==========User\Groups Management
@@ -978,3 +987,43 @@ chmod:
 
 ==========file permissions / ownership end
 
+==========IP Tables / Firewall
+read more:
+https://www.unixmen.com/iptables-vs-firewalld/
+https://linuxacademy.com/cp/socialize/index/type/community_post/id/15473
+
+Main three groups of something:
+Tables:
+ used to group different functionalities and separated in five:
+ - filter - default table if no specified. Packet filtering.
+ - nat - used for network address translation(NAT)
+ - raw - first table to check, configuring exemptions from conn. tracking
+ - mangle - some specialized packet alteration...
+ - security - Mandatory Access Control(MAC) networking rules
+ -t\--table - parameter to specify a table
+
+Groups:
+ 
+
+Chains:
+
+iptables:
+  a generic table structure for the definition of rulsets
+  basically ruleset of Linux kernel firewall
+  it is a tool to get daemon(service) install other app:
+   Centos - iptables-services
+   Ubuntu\Debian - ufw(probably goes with iptables pkg)
+   RHEL - iptables
+   
+  
+  -L - list all rules currently installed on the system
+  -A <section> - ADD
+
+  to manage a service:
+   Debian/RHEL: sudo /etc/init.d/iptables start\stop\status
+   Ubuntu: sudo service ufw start\stop\status
+   Centos: servicectl start\stop\status iptables
+   
+
+
+==========ip tables / firewall

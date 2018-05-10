@@ -987,25 +987,92 @@ chmod:
 
 ==========file permissions / ownership end
 
-==========IP Tables / Firewall
+==========IPTables / Linux kernel Firewall(not d)
 read more:
 https://www.unixmen.com/iptables-vs-firewalld/
 https://linuxacademy.com/cp/socialize/index/type/community_post/id/15473
 
-Main three groups of something:
+!!!!!!!!!!!!!!!!
+!!  WHen using SSH configure SSH rules first BEFORE changing 
+!!    the policies of the chains in the Filter table. 
+!!  !!    TO DO NOT LOCK MYSELF OUT OF THE MACHINE  !!  !!   !!   !!
+!!  CentOS 7 applies the rules right after entering the command
+!!  even if Service IS stopped.
+!!!!!!!!!!!!!!!
+
+Main three groups or something:
 Tables:
  used to group different functionalities and separated in five:
  - filter - default table if no specified. Packet filtering.
+   Built-in chains:
+    - INPUT
+    - OUTPUT
+    - FORWARD
  - nat - used for network address translation(NAT)
  - raw - first table to check, configuring exemptions from conn. tracking
  - mangle - some specialized packet alteration...
  - security - Mandatory Access Control(MAC) networking rules
  -t\--table - parameter to specify a table
 
-Groups:
- 
-
 Chains:
+ Tables contain set of chains.
+ Chains group rules on different points of process.
+ Chains could be Built-in or User defined.
+  INPUT - Filter. input packets
+  OUTPUT - Filter output packets
+  FORWARD - Filter. going through packets
+ -N\--new-chain - adds user defined chain
+ -X (--delete-chain) - delete chain
+
+Rules:
+ Defined as a set of matches and a target. 
+ Are listed in chains and followed by order until a match is found, then packet
+ is handled by the target specified by the rule.
+ -A (--append) - add new rule
+ -D (--delete) - delete rule along with the chain in which is contained
+ -L (--list) - list rules
+ -S (--list-rules) - same list but in command format, as if the commands
+		     that were used to add rule is saved and displayed here
+
+
+ Matches:
+   if match is true the packet will be processed by iptables.
+   Following matches exist(not full list):
+   -s (--source) - source of the packe(IP, hostname or network IP)
+   -d (--destination) - destination of the packet(IP, hostname or network IP)
+   -p (--protocol) - protocol(tcp/udp/all , all - default if none specified)
+   -i (--in-interface) - interface that receives(left side of ifconfig output)
+   -o (--out-interface) - output interface
+   ! - Not. Match everything that is not in the match.
+
+  Protocols has also its own matches, like 
+   --dport - destination port(22 for ssh) is match for TCP protocol
+  see full list of protocol related matches:
+   iptables -p <protocol> -h - where protocol is tcp, icmp etc i.e.:
+    iptables -A INPUT -p tcp -i eth0 --dport 22:25 -j ACCEPT 
+      - adds rule to default table (-t filter) , appends Chain INPUT, matches:
+	protocol TCP and interface eth0, protocol specific match port with
+	range of ports 22 to 25. Rule's target if match is met - ACCEPT. 
+	If not next rule will be processed until RETURN or end of rules, then
+	Default TARGET(Default policy) will be applied.
+
+ Targets:
+  Determines the action to be taken if packet is Matched.
+  -j (--jump) - specify Target
+  There are 4 built-in Targets:
+   ACCEPT - no checks , just accept packet
+   DROP - refuse packet, do not send a response(simply ignore it)
+   QUEUE - sends the packet to user space
+   RETURN - returns to previous chain, or handle by Chain policy(Default?)
+
+Default Policies:
+  When packet is not matched by any Rule on the Chain - it is handled by the
+  target specified in the policy of that chain.
+  Two main approaches:
+   Accept everything by default, and add rules to refuse access
+   Refuse everything by default, and add rules for accept
+  -P (--policy) <chain> <target> - set default policy for a chain with target
+
 
 iptables:
   a generic table structure for the definition of rulsets
@@ -1019,6 +1086,8 @@ iptables:
   -L - list all rules currently installed on the system
   -A <section> - ADD
 
+Service uses loads default config file when starts, applying some 
+default rules, /etc/sysconfig/iptables for CentOS 7
   to manage a service:
    Debian/RHEL: sudo /etc/init.d/iptables start\stop\status
    Ubuntu: sudo service ufw start\stop\status

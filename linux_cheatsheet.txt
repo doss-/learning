@@ -1,3 +1,20 @@
+==========TODO:
+create bash script that will export variables to:
+1. current session
+2. user .bashrc file so it will be available in other sessions
+3. system-wide
+
+check distribution and update according files for
+1. user-wide
+2. system-wide 
+
+do the same for Bash Aliases
+
+
+Save this script into this repo
+
+==========todo
+
 check linux distro:
   uname -a - returns info about kernel and stuff
   cat /etc/*-release - return info about distro
@@ -117,6 +134,12 @@ sed:
 nl:
   number lines in text file. only numbering not empty lines
 
+mkdir:
+  creates dir
+  mkdir <params> <path>
+  -p - creates every unexisting dir along the path
+   mkdir -p /not_exist1/not_exist2 - will create both not existing dirs 
+
 cp:
   copy stuff
   cp <params> <source1 src2 src3> <destination>
@@ -151,10 +174,38 @@ env vars:
   export varname="my value"
   For below LogOut is required:
   Set var PERMANENTLY for current user
-  ~/.bashrc - add it here
+  ~/.bashrc - add 'export varname="my val"' here
   Set var permanently and SYSTEM WIDE (all users/all processes)
   /etc/environment - add line 'VARNAME="my value"', caps bcs of naming convents
+		     'export' is not userd here parser does not know it
   LogOut is required for permanent changes.
+  
+  Unset:
+  unset ENV_VAR
+  echo $ENV_VAR - returns nothing , bcs it is unset
+
+execute:
+source:
+.:
+  read more:
+  https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it/176788#176788
+
+  execute script if it has x permission
+  !! CREATES NEW SHELL !!
+   ./script - script in current directory(./ dots lash notaion)
+   script - execute script if it is in PATH var
+
+  source script even if it does not have x permission
+  !! DOES NOT CREATE A NEW SHELL !!
+   source myscript - myscript is param for source so no matter myscript is in
+ 		     path or not.
+		     Still need to be valid shell script(#!/interpreter/pat)  
+   . myscript - 'source' is alias for . in bash, syntax from POSIX 
+
+  Source saves stuff changed in script(i.e. Env var updates) to the current 
+  shell session where as Execute creates new session where changes are saved
+  and kills it after everything is done - basic behaviour of everything
+
 
 ln:
   create link
@@ -1000,6 +1051,14 @@ https://linuxacademy.com/cp/socialize/index/type/community_post/id/15473
 !!  even if Service IS stopped.
 !!!!!!!!!!!!!!!
 
+///Iptables is a tool to work with Netilter Framework, kind of firewall
+/There are different services on different Linux distributions such as:
+Ubuntu - ufw(Uncomplicated Firewall) service for Ubuntu, which uses IPtables
+Centos7 - firewalld - firewall daemon which uses iptables
+generic? - iptables-services - firewall service that uses iptables, generic 
+	   it seems
+
+
 Main three groups or something:
 Tables:
  used to group different functionalities and separated in five:
@@ -1096,3 +1155,19 @@ default rules, /etc/sysconfig/iptables for CentOS 7
 
 
 ==========ip tables / firewall
+
+==========Bash command line shortcuts
+ctrl + a - moves cursor on the beginning of the line
+ctrl + e - moved cursor on the End of the line
+ctrl + u - removes everything from cursor position to the beginning of line
+ctrl + k - removes everything from cursor position to the edn of the line
+ctrl + w - removes previous word(space separated)
+ctrl + l - cleares screen except of current command LINE
+ctrl + p - last executed command shown in command line, same as UP ARROW key 
+ctrl + c - terminate current process + exit\del current line by terminating it
+
+========== bash aliases
+alias:
+ new aliasws workws only for current session
+ alias <new name>="<command>" - adds command as alias
+ alias <old name> - shows command

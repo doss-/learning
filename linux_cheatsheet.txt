@@ -50,9 +50,10 @@ find:
 	f - file
 	l - sym link
 	-ls - will output results as in 'ls -l'
-   could search by date 
-	https://www.cyberciti.biz/faq/linux-unix-osxfind-files-by-date/
+   could search by: 
 	date:
+	  https://www.cyberciti.biz/faq/linux-unix-osxfind-files-by-date/
+	Ranges example
 	  -m\a\ctime - modification\acces\creatioin? time <+\ \-days> 
 	  - m\a\cmin - minutes i.e.:
 	  find . -mtime -1 -ls - find files modified less than day ago
@@ -72,20 +73,12 @@ find:
 	 f - file
 	 d - directory
 	 l - symlink and others
-	by user
-   
-  could execute commands on what found:
-   find ~ -iname test.txt -exec du -h {} \;
-    search in home dir for test.txt, case Insensitive, execute du -h for each
-    found file. SEE '-exec' in man
-    {} - is where the each find result will be piped.
-    find and copy:
-    !use with caution!  find . -name "*.pdf" -type f -exec cp {} ./pdfsfolder \;
-  !see man for lots of details
-  NOTE: with Permission denied erros, and probably others
-   clear output of found stuff could be redirected to file. probably STDOUT
-   while STDERR will keep appear on terminal window
+	by user:
+          TODO
+	by group:
+	 -group <name_of_group>
 
+        by permissions:
   -perm - find by permission like Read\Write\Execute
    it seems to be pretty similar to just '-executable' flag(switch?)
     find /usr -type f -executable  - like this
@@ -99,10 +92,27 @@ find:
      -perm /u+w,g+w,o+w - same as above, where u-user, g-group, o-owner
      -perm /a+w - same as above where a-all + or = is same so: /a=w 
 
+  could execute commands on what found:
+   find ~ -iname test.txt -exec du -h {} \;
+    search in home dir for test.txt, case Insensitive, execute du -h for each
+    found file. SEE '-exec' in man
+    {} - is where the each find result will be piped.
+    find and copy:
+    !use with caution!  find . -name "*.pdf" -type f -exec cp {} ./pdfsfolder \;
+  !see man for lots of details
+  NOTE: with Permission denied erros, and probably others
+   clear output of found stuff could be redirected to file. probably STDOUT
+   while STDERR will keep appear on terminal window
+
+
 locate:
   find files by name.
+   NOTE: not all distros have it preinstalled
   call 'updatedb' before use, to update database used by locate
   locate <filename> - will return path to file if found
+   i.e.
+  locate kernel | grep /usr - will find any file contains 'kernel' in its name
+   and grep /usr so it will show up only those which are in /usr dir(matched by)
 
 ls:
   list files on the system
@@ -167,7 +177,23 @@ du:
    -h - human readable
    -s - summary
 
-env vars:
+==========Env Vars / Environment variables:
+printenv:
+env:
+  very similar, prints environment variables to STDOUT
+  printenv VAR - prints value of specified variable to STDOUT
+
+set:
+  prints ALL variables - Shell vars, local vars, shell functions
+  Somewhy it does not have a man page for 'man set'
+
+ Read more of set and printenv\env here:
+https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps
+ Read more of printenv\env history here:
+https://unix.stackexchange.com/questions/123473/what-is-the-difference-between-env-and-printenv
+
+How to set\export env variables in bash:
+
   Set variable ONLY for current shell:
   varname="my value"
   Set variable for current shell and ALL PROCESSES started from current shell:
@@ -186,7 +212,7 @@ env vars:
 
 execute:
 source:
-.:
+dot (.):
   read more:
   https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it/176788#176788
 
@@ -196,7 +222,13 @@ source:
    script - execute script if it is in PATH var
 
   source script even if it does not have x permission
+  documentation:
+  http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#dot
   !! DOES NOT CREATE A NEW SHELL !!
+  Executes commands from a file in the CURRENT environment. 
+  In case it is for login-shell, it will update whole command line, probably
+   not sure how it will work in case of 'su -'
+
    source myscript - myscript is param for source so no matter myscript is in
  		     path or not.
 		     Still need to be valid shell script(#!/interpreter/pat)  
@@ -330,7 +362,7 @@ default homedir files are stored in
   /etc/skel/   - directory
 		 those files will be copied to user home when it is created
   ..../.bashrc - executed by bash for non-login shells - every time bash
-		 is started interactively
+		 is started interactively(from command line, which is also bash)
 see more: https://unix.stackexchange.com/questions/129143/what-is-the-purpose-of-bashrc-and-how-does-it-work
   ..../.profile - executed by command interpreter for login shells
 		  is not read if '.bash_login' or '.bash_profile' exists
@@ -1166,8 +1198,38 @@ ctrl + l - cleares screen except of current command LINE
 ctrl + p - last executed command shown in command line, same as UP ARROW key 
 ctrl + c - terminate current process + exit\del current line by terminating it
 
-========== bash aliases
+==========Bash Aliases
 alias:
  new aliasws workws only for current session
  alias <new name>="<command>" - adds command as alias
  alias <old name> - shows command
+
+bash:
+  man bash
+
+  could customize command prompt from default <user>@<hostname>:<path>$ 
+  to something like <HH:MM:SS> <user> <whatever>!
+   \t - 24 hour time format
+   \w - full current path
+   \w - current directory only
+   \u - username
+   \j - amount of running jobs
+   \h - hostname
+
+history:
+  lists history, dumps .bash_history file into STDOUT, lines numbered
+  -c - Clear history, but only in session, .bash_history remains the same
+	only in CentOS it seems, ubuntu does nothing
+
+which:
+  shows location of a command and its alias if exists
+  can search by alias too
+  which <command\alias>
+   i.e.
+  which ll - will return alias line and path for binary
+
+whereis:
+  searches for binary file, sources, man files of the command
+  Does not work with aliases!
+   i.e.
+  whereis pwd - will return path for binary and path for man page

@@ -34,6 +34,7 @@ man:
    8. System administration commands and daemons
 
 grep:
+  Global Regular Expression Print
   filters output using regular expressions
   grep <params> <regex> <filepath>
   -v - inverts results
@@ -41,6 +42,31 @@ grep:
 			process listed
   -i  - case INsensitive
   <filepath> - is not required if used in pipe
+  -c - Count matched lines, return number of lines matched
+  [] = search for a character
+     i.e.: grep [abzfh] file - will search for appearance of any character 
+		between square brackets in the file, standard regex
+  -f <filename> - pass contents of filename as a pattern
+  -l - search inside file contents and returns names of files found
+  -r - recurse search in a directory
+      i.e.: grep -lr cron /etc - will return all file names which content has
+			'cron' pattern in whole /etc directory
+  -E - extended regular expressions, same as 'egrep'
+  -F - Fixed grep, same as 'fgrep'
+
+fgrep:
+  interprets regex special symbols as usual ones, and searches text with it
+  searches FAST and simple
+   fgrep ^hello file.txt - will find for literal '^hello' and not for hello at
+			the beginning of the line in the file file.txt
+
+egrep:
+  allows to use Extended regular expressions
+   accepts same Parameters as regular 'grep'
+  it allows signs as:
+   | ? + .* {} 
+   {3} - match 3 times exactly
+
 
 find:
   find <path> <params> <name mask>
@@ -134,12 +160,74 @@ cat:
   cat <file1> <file2> >> <file3> - create new\append old file with joined
    contents of file1 and 2
 
+split:
+  splits file into another files, like with collection variable
+  split -l 2 <file name> -  will split the file by 2 Lines into new files named
+			    xaa, xab, xac, etc.
+
 df:
   display all mounted devices with size\free\used\paths etc
   df -h - human readable sizes
 
 sed:
-  stream editor, mostly used for substitution of text in files
+  text stream editor, using RegEx for search\edit in stream(STDIN) line by line,
+  in a non-interactive way(all decisions made\given in command params)
+  Reads from file or STDIN
+  Writes into STDOUT or to file if given 'w <file>' param or redirected STDOUT
+  Does not change original file content (-i will edit it)
+  Does only 1 change per line by default, 'g' - global, will match more than 
+  first occurance
+  Also can just write something(matched) from stream into a new file
+=   sed '' file.txt - will just print everything, same as 'cat'
+
+See More: https://www.digitalocean.com/community/tutorials/the-basics-of-using-the-sed-stream-editor-to-manipulate-text-in-linux
+
+
+  sed <param> '<param1>/pattern/replacement/<param2>' <file>
+  -n - supress default ouput
+  '/p' - print , works with 's'
+    sed -n 'p' file - will print every line of file
+    sed 'p' file - will print every line of file TWICE
+  '1p' - print first line (address range)
+  '1,5p' - print from first to fifth line (address range) 
+  '1,+4p' - print 4 lines from first(inclusively) (address range)
+  '1~3d' - print every other line: first then skip until 3rd line and again
+	print 1st line(drop counter)
+  'd' - delete
+  -i - edits IN-place - edits given file
+   -i.bak - creates baskup of original Edited IN-place file
+  's/pattern/replace/' - Substitute given RegEx pattern with given word
+	's_pattern_replace_' - will work if need to use slash inside fields
+	  or any other character as far as all 3 are consistent
+  's/pattern/(&)/' - & is match result, so it will replace matched text with
+	() around this same text
+  's/\(matchGroup\)/\1/ - \( is escaped to work as matching group, \1 is the
+	referenced matching group
+  '/w <new_file>' - Write changed lines into file - param2 group
+  '/g' - Global, will not go next line until first match
+   '/2' - Instead of 'g' will match only SECOND appearance of pattern
+  '/i' - Ignore case
+  
+     Example:
+=   sed 's/parttime/fulltime/gw promotions.txt' team - will Substitute 
+	everything found by pattern 'parttime' to new value 'fulltime' more than
+	once a line and will Write lines
+	that were changed into 'promotions.txt' in file 'team'
+     Example:
+=   sed 'fulltime/w fulltime.txt' team - will write all matched by 'fulltime'
+	pattern lines from file 'team' into file 'fulltime.txt'
+=   sed .... ... > /dev/null - will supress STDOUT, actually redirecting it 
+	into void
+=   sed '0,/parttime/s/parttime/promotion/' team - will replace First occurance
+	of 'parttime' to 'promotion' in 'team' file
+=   sed 's/<[^>]*>//' team - will substitute matched by expression pattern with
+	nothing - // it is empty, so nothing. 
+	Regex: <[^>]*> - matches HTML tags
+=   sed -n 's/on/forward/2p' file - will print out only lines where replace 
+	was done, and replacing only 2nd match in line
+=   sed 's/^.*at/(&)/' annoying.txt - puts () around matched text
+
+   
 
 nl:
   number lines in text file. only numbering not empty lines
@@ -210,6 +298,13 @@ How to set\export env variables in bash:
   unset ENV_VAR
   echo $ENV_VAR - returns nothing , bcs it is unset
 
+  ALSO has options:
+  set -o - will display all the options
+   one of the options is 'noclobber'
+   set -o noclobber - prevents '>' redirection from overriding files
+   set +o noclobber - removes noclobber back
+
+
 execute:
 source:
 dot (.):
@@ -250,6 +345,19 @@ diff:
   checks differences between two files
   i.e.:
   diff packages.list packages.list2
+    packages.list:
+     pkg1
+     pkg2
+    packages.list2:
+     pkg2
+     pkg3
+   output:
+     < pkg1
+     ---
+     > pgk3
+   read output:
+   < - only first file has pkg1, it was on the left in the params list
+   > - only second file has it, and it was on the right
 
 bash history:
   ! - invokes the Bash history mechanism
@@ -1233,3 +1341,108 @@ whereis:
   Does not work with aliases!
    i.e.
   whereis pwd - will return path for binary and path for man page
+
+Streams and Redirects:
+ Linux\Unix philosophy is that 'everything is a file' but in fact this are not
+  files but block defices stored in /dev or /proc directories, and not files but
+  some stuff stored in RAM for instance
+STD - means standard
+  Read More:
+  https://stackoverflow.com/questions/3385201/confused-about-stdin-stdout-and-stderr
+STDIN:
+  I/O Stream
+  file handle that process read to get info from user
+  NOTE:
+/dev/stdin is a symlink to /proc/self/fd/0 -- the first file descriptor that the currently running program has open. So, what is pointed to by /dev/stdin will change from program to program, because /proc/self/ always points to the 'currently running program'. (Whichever program is doing the open call.) /dev/stdin and friends were put there to make setuid shell scripts safer, and let you pass the filename /dev/stdin to programs that only work with files, but you want to control more interactively. (Someday this will be a useful trick for you to know. :) 
+STDOUT:
+  I/O Stream
+  process writes normal info to this file handle
+STDERR:
+  I/O Stream
+  process writes error info to this file handle
+
+  > - used to redirect STDOUT in cli to someplace else (i.e. file instaed of 
+	console)
+  2> - redirects STDERR
+  >> - redirects STDOUT\ERR but file will not be overwritten, and appended 
+	instead
+  < - redurects STDIN, it will take data not from command line but from
+	something else, i.e. a file
+  cat /etc/passwd > /tmp/out     # redirect cat's standard out to /tmp/out
+  cat /nonexistant 2> /tmp/err   # redirect cat's standard error to /tmp/error
+  cat < /etc/passwd              # redirect cat's standard input to /etc/passwd
+    or like this:
+  cat < /etc/passwd > /tmp/out 2> /tmp/err
+
+NOTE: redirect Standard Output(and error too) to null will hide it from everyone
+  like this:
+   ls secret_place >> /dev/null - will drop output into a void!!11
+  Errors also could be hidden like this, in case of exposing of some secure or
+  sensitive info
+
+Redirect SDOUT and STDERR into two files in the same time:
+  cat goodFile notExistingFile >mystdout 2> mystderr
+	mystdout will contain standard output
+	mystderr will contain standard error output
+
+Redirect STDOUT and STDERR into single file:
+  cat goodFile notExistingFile >mystdout 2>&1
+	mystdout will contain both STDOUT and STDERR
+
+noclobber:
+  is an option set-up by 'set' command
+   prevents redirection '>' from overriding files. it will return an error
+  
+
+
+pipe: |:
+  redirects standard output of first program into standard input of another
+  
+cut:
+  Removes section from each line from a File
+   Or parses each line in file by delimiter(Default is TAB) and could retreive
+   only selected columns, or bytes - this is for -f option
+  cut <param> <filename>
+  See more: https://www.computerhope.com/unix/ucut.htm
+   Example:
+  cut -f1 -d: passwd - will get only first field(-f1) from a file passwd
+		fields are created by delimiting by colon(-d:)
+  -b --bytes=LIST - cuts out bytes
+  -c --characters=LIST - cuts out characters(in different encodings 1 character
+	could be more than 1 byte, which is 8 bits)
+  -f --fields=LIST - uses delimiter(default TAB) to parse each line by it then
+	it could return columns mentioned in the list by numbers from 1
+  How LIST works:
+   !List of Integers
+   !Starts from 1
+   list of Integers, or range of integers, or multiple ranges, Separated by 
+   commas. Selected columns is printed in the same order they were read,
+   written to output exactly once(dunno what it means)
+  N - the Nth byte, character or field
+  N- - range from Nth byte,char,field to end of the line
+  N-M - range from N to M as above
+  -M - from beginning of the line till M
+  -f Option:
+  cut -f 1-2,4-5 data.txt - will cut 1st,2nd, 4th, 5th columns from data.txt
+   --output-delimiter - changes delimiter in the output i.e.:
+    cut -f 1,3 -d ':' --output-delimiter=' ' /etc/passwd - will substitute
+	colon delimiter ':' to space ' ' in the OUTPUT of command for easier
+	read
+    ..... --output-delimiter=$'\t' - will substitute colon ':' for tab '\t'
+	character, '$' here is for escapt
+  -c Option:
+   cut -c 3-12 data.txt - will cut from 3rd to 12th characters in the data.txt
+		will not use delimiters at all
+  -b Option:
+   cut -b 3-12 data.txt - will cut rom 3rd to 12th BYTE, in case of ASCII 
+		encoding it will be the same with -c as there 1 char == 1 byte
+
+  Advanced example:
+   grep '/bin/bash' /etc/passwd | cut -d ':' -f 1,6 - greps passwd file for 
+	users that use /bin/bash as their default shell, and prints out 
+	username and user home directory
+	So cut accepts STDIN redirection
+
+bash escapes:
+special symbols:
+$'\t' - print tab, which is not printable character, same as /r/n or somehting

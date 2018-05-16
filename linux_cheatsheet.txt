@@ -181,7 +181,7 @@ sed:
 =   sed '' file.txt - will just print everything, same as 'cat'
 
 See More: https://www.digitalocean.com/community/tutorials/the-basics-of-using-the-sed-stream-editor-to-manipulate-text-in-linux
-
+https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-streams-of-text-in-a-linux-environment
 
   sed <param> '<param1>/pattern/replacement/<param2>' <file>
   -n - supress default ouput
@@ -193,6 +193,9 @@ See More: https://www.digitalocean.com/community/tutorials/the-basics-of-using-t
   '1,+4p' - print 4 lines from first(inclusively) (address range)
   '1~3d' - print every other line: first then skip until 3rd line and again
 	print 1st line(drop counter)
+  '/pattern/,/pattern/' - address range matched by patterns
+	'/^START$/,/^END$/d' - will delete everything between lines START and
+	END, and do that again for another 'START' (until EOF or 'END' line)
   'd' - delete
   -i - edits IN-place - edits given file
    -i.bak - creates baskup of original Edited IN-place file
@@ -207,15 +210,22 @@ See More: https://www.digitalocean.com/community/tutorials/the-basics-of-using-t
   '/g' - Global, will not go next line until first match
    '/2' - Instead of 'g' will match only SECOND appearance of pattern
   '/i' - Ignore case
+  '/G' - inserts blank line after each line
+  '=' - inserts line with a number of line after each line
+  '/pattern/s/' - matches and substitutes only in the line matched by pattern
+	Pattern could be complex too i.e. '/^$/d' will delete all empty lines
+	 where ^ - beginning of line immediately followed by $ - end of line
+  '/pattern/!' - matches everything EXCEPT pattern
+	'/^$/!d' - will delete everything except blank lines
   
      Example:
 =   sed 's/parttime/fulltime/gw promotions.txt' team - will Substitute 
 	everything found by pattern 'parttime' to new value 'fulltime' more than
 	once a line and will Write lines
 	that were changed into 'promotions.txt' in file 'team'
-     Example:
 =   sed 'fulltime/w fulltime.txt' team - will write all matched by 'fulltime'
 	pattern lines from file 'team' into file 'fulltime.txt'
+=   sed -n '/pattern/p' annoying.txt - will print only line containing pattern
 =   sed .... ... > /dev/null - will supress STDOUT, actually redirecting it 
 	into void
 =   sed '0,/parttime/s/parttime/promotion/' team - will replace First occurance
@@ -226,7 +236,20 @@ See More: https://www.digitalocean.com/community/tutorials/the-basics-of-using-t
 =   sed -n 's/on/forward/2p' file - will print out only lines where replace 
 	was done, and replacing only 2nd match in line
 =   sed 's/^.*at/(&)/' annoying.txt - puts () around matched text
+=   sed 's/and/\&/;s/people/horses' annoying.txt - substitues and to escaped &
+	then substitutes people to horses in annoying.txt
+=   sed '/^$/d' file - will delete empty lines(beginning of line followed by end
+	of line) from a 'file'
 
+tee:
+  reads from STDIN and writes to STDOUT and File
+  Overrides existing file by default , to append use -a
+  tee <params> file1 file2
+  -a - append file
+    Example:
+  ls dir1 | tee file1 - will display ls on dir1 and write output to file1
+  ls dir2 | tee -a file1 - display dir2 and append ls output to file1
+   
    
 
 nl:

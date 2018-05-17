@@ -1376,7 +1376,14 @@ STDIN:
   I/O Stream
   file handle that process read to get info from user
   NOTE:
-/dev/stdin is a symlink to /proc/self/fd/0 -- the first file descriptor that the currently running program has open. So, what is pointed to by /dev/stdin will change from program to program, because /proc/self/ always points to the 'currently running program'. (Whichever program is doing the open call.) /dev/stdin and friends were put there to make setuid shell scripts safer, and let you pass the filename /dev/stdin to programs that only work with files, but you want to control more interactively. (Someday this will be a useful trick for you to know. :) 
+/dev/stdin is a symlink to /proc/self/fd/0 -- the first file descriptor that the
+  currently running program has open. So, what is pointed to by /dev/stdin will
+  change from program to program, because /proc/self/ always points to the 
+  'currently running program'. (Whichever program is doing the open call.) 
+  /dev/stdin and friends were put there to make setuid shell scripts safer, and
+  let you pass the filename /dev/stdin to programs that only work with files, 
+  but you want to control more interactively. (Someday this will be a useful 
+  trick for you to know. :) 
 STDOUT:
   I/O Stream
   process writes normal info to this file handle
@@ -1469,3 +1476,37 @@ cut:
 bash escapes:
 special symbols:
 $'\t' - print tab, which is not printable character, same as /r/n or somehting
+
+test:
+ [ 1 -eq 1 ]
+  tests condition, returns 0 if test is passed(true)
+
+  -f <file> - file exists, aviode ~
+  -d <file> - directory exists
+  -h <file> or -L - symlinc exists
+  -s <file> - exists and has size greater than 0
+  -u <file> - exists and set-user-ID bit is set
+  -k <file> - exists and its sticky bit set 
+  -r <file> - file exists and with read permission
+  -w <file> - file exists and with write permission 
+  -x <file> - file exists and with execute permission
+  -z <string> - length of string is 0
+
+  Test could be performed from script , better to use braces [ . ]
+  Also could be preformed right inside CLI, it will return nothing, so need to
+  create manual then\else-like structures:
+   test -f '/path/to/file name' && echo "exitcode: &?. True" || echo "exitcode:
+ &?. False" - test for file existance, then if exit code 0 will execute second 
+	echo with True, else (OR) will execute echo with False.
+      &? -  will print exit code of previously executed command, which in this 
+	case is 'test' command
+
+  Test even can be performed w/o test itself:
+    Example:
+  curl -s google.com | egrep -ci '301 moved' > /dev/null && echo "file has moved
+" || echo "false" - curl will pass STDOUT to egrep which will try to match 
+	string '301 moved', if it succeed exit code will be 0.
+	And first Echo (after &&) will be executed
+	Else, egrep will return 1, and thus second echo (after ||) will be
+	executed
+  

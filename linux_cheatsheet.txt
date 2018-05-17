@@ -13,6 +13,8 @@ do the same for Bash Aliases
 
 Save this script into this repo
 
+===
+identify myself on git
 ==========todo
 
 check linux distro:

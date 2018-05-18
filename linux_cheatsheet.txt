@@ -306,6 +306,8 @@ https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environment
 https://unix.stackexchange.com/questions/123473/what-is-the-difference-between-env-and-printenv
 
 How to set\export env variables in bash:
+Read export\env differences here:
+ http://hackjutsu.com/2016/08/04/Difference%20between%20set,%20export%20and%20env%20in%20bash/
 
   Set variable ONLY for current shell:
   varname="my value"
@@ -1366,6 +1368,7 @@ whereis:
   Does not work with aliases!
    i.e.
   whereis pwd - will return path for binary and path for man page
+   -b - search only for binaries
 
 Streams and Redirects:
  Linux\Unix philosophy is that 'everything is a file' but in fact this are not
@@ -1480,7 +1483,8 @@ special symbols:
 $'\t' - print tab, which is not printable character, same as /r/n or somehting
 
 test:
- [ 1 -eq 1 ]
+ [ 1 -eq 1 ]    - ints compared with -eq, -lt, -gt, -ge, etc
+ [ 'a' = 'a' ]  - strings compared with =, <, >, >=, etc
   tests condition, returns 0 if test is passed(true)
 
   -f <file> - file exists, aviode ~
@@ -1512,3 +1516,12 @@ test:
 	Else, egrep will return 1, and thus second echo (after ||) will be
 	executed
   
+for:
+  regular for loop could be done in command line too
+
+  for i in `command`; do echo $i; done
+    backtick -  `, does the job, expression between it will be executed in 
+	sub shell and its result will be returned, when we have a collection
+	we could iterate it with FOR 
+  for line in `cat file1`; do echo $line; done
+	

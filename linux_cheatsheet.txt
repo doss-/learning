@@ -17,6 +17,32 @@ Save this script into this repo
 identify myself on git
 ==========todo
 
+Contents
+===General
+===Env Vars / Environment variables:
+===User\Groups Management
+=====User\Groups Management General info
+=====Manipulate Users And Groups
+=====Super User
+===Processes and Services Management
+===Package management
+=====Debian\Ubuntu
+=======Uninstallation
+=======List all installed packages:
+=====RedHat RHEL\Centos
+=======Uninstallation
+=======List all installed packages:
+===File Permissions / Ownership
+===IPTables / Linux kernel Firewall(not d)
+===Bash
+=====Bash command line shortcuts
+=====Bash Shell
+=====Bash Scripting
+
+
+
+
+===General
 check linux distro:
   uname -a - returns info about kernel and stuff
   cat /etc/*-release - return info about distro
@@ -142,6 +168,13 @@ locate:
   locate kernel | grep /usr - will find any file contains 'kernel' in its name
    and grep /usr so it will show up only those which are in /usr dir(matched by)
 
+
+update files:
+ touch <filename> - will update access time of a file, or create new if none
+ echo "" > <filename> - create\rewrite filename with blank line
+ echo "text" >> <filename> - append existing file with line 'text'
+
+
 ls:
   list files on the system
   ls -<params> <path+wildcards>
@@ -151,10 +184,6 @@ ls:
   -l - list format
   -a - all, show hidden files
 
-update files:
- touch <filename> - will update access time of a file, or create new if none
- echo "" > <filename> - create\rewrite filename with blank line
- echo "text" >> <filename> - append existing file with line 'text'
 
 cat:
   concatenate, return file contents on screen
@@ -162,14 +191,17 @@ cat:
   cat <file1> <file2> >> <file3> - create new\append old file with joined
    contents of file1 and 2
 
+
 split:
   splits file into another files, like with collection variable
   split -l 2 <file name> -  will split the file by 2 Lines into new files named
 			    xaa, xab, xac, etc.
 
+
 df:
   display all mounted devices with size\free\used\paths etc
   df -h - human readable sizes
+
 
 sed:
   text stream editor, using RegEx for search\edit in stream(STDIN) line by line,
@@ -243,6 +275,7 @@ https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-s
 =   sed '/^$/d' file - will delete empty lines(beginning of line followed by end
 	of line) from a 'file'
 
+
 tee:
   reads from STDIN and writes to STDOUT and File
   Overrides existing file by default , to append use -a
@@ -253,15 +286,16 @@ tee:
   ls dir2 | tee -a file1 - display dir2 and append ls output to file1
    
    
-
 nl:
   number lines in text file. only numbering not empty lines
+
 
 mkdir:
   creates dir
   mkdir <params> <path>
   -p - creates every unexisting dir along the path
    mkdir -p /not_exist1/not_exist2 - will create both not existing dirs 
+
 
 cp:
   copy stuff
@@ -276,12 +310,14 @@ cp:
   ............/.* . - will not work
   ............/.*.* . - will copy '..' which is parent directory to current one
 
+
 rm:
   remove stuff, does not delete dirs and not empty dirs w/o additinal params
   rm <params> <source>
   rm -r <dirname>
    -r - recursive, also deletes directory at the end
    -d - deletes EMPTY directory
+
 
 du:
   disk usage
@@ -290,83 +326,13 @@ du:
    -h - human readable
    -s - summary
 
-==========Env Vars / Environment variables:
-printenv:
-env:
-  very similar, prints environment variables to STDOUT
-  printenv VAR - prints value of specified variable to STDOUT
-
-set:
-  prints ALL variables - Shell vars, local vars, shell functions
-  Somewhy it does not have a man page for 'man set'
-
- Read more of set and printenv\env here:
-https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps
- Read more of printenv\env history here:
-https://unix.stackexchange.com/questions/123473/what-is-the-difference-between-env-and-printenv
-
-How to set\export env variables in bash:
-Read export\env differences here:
- http://hackjutsu.com/2016/08/04/Difference%20between%20set,%20export%20and%20env%20in%20bash/
-
-  Set variable ONLY for current shell:
-  varname="my value"
-  Set variable for current shell and ALL PROCESSES started from current shell:
-  export varname="my value"
-  For below LogOut is required:
-  Set var PERMANENTLY for current user
-  ~/.bashrc - add 'export varname="my val"' here
-  Set var permanently and SYSTEM WIDE (all users/all processes)
-  /etc/environment - add line 'VARNAME="my value"', caps bcs of naming convents
-		     'export' is not userd here parser does not know it
-  LogOut is required for permanent changes.
-  
-  Unset:
-  unset ENV_VAR
-  echo $ENV_VAR - returns nothing , bcs it is unset
-
-  ALSO has options:
-  set -o - will display all the options
-   one of the options is 'noclobber'
-   set -o noclobber - prevents '>' redirection from overriding files
-   set +o noclobber - removes noclobber back
-
-
-execute:
-source:
-dot (.):
-  read more:
-  https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it/176788#176788
-
-  execute script if it has x permission
-  !! CREATES NEW SHELL !!
-   ./script - script in current directory(./ dots lash notaion)
-   script - execute script if it is in PATH var
-
-  source script even if it does not have x permission
-  documentation:
-  http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#dot
-  !! DOES NOT CREATE A NEW SHELL !!
-  Executes commands from a file in the CURRENT environment. 
-  In case it is for login-shell, it will update whole command line, probably
-   not sure how it will work in case of 'su -'
-
-   source myscript - myscript is param for source so no matter myscript is in
- 		     path or not.
-		     Still need to be valid shell script(#!/interpreter/pat)  
-   . myscript - 'source' is alias for . in bash, syntax from POSIX 
-
-  Source saves stuff changed in script(i.e. Env var updates) to the current 
-  shell session where as Execute creates new session where changes are saved
-  and kills it after everything is done - basic behaviour of everything
-
-
 ln:
   create link
   soft links
   hard links
   ln <param> <path> <link name>
   -s - create soft link
+
 
 diff:
   checks differences between two files
@@ -438,35 +404,6 @@ gzip:
    will substitute 'archive.tar' by 'archive.tar.gz'
   Could be called by 'tar' command using 'z' key, will works the same
 
-
-passwd: 
-  change password for current user
-   or for given user
-  passwd [username]
-  located in /usr/bin/passwd - ubuntu
-             /bin/passwd - centos/red hat
-  has 'setuid' thing..
-
-setuid and setgid:
- setuid:
-  Attribute of a file that allows unprivileged user to have level of permission
-  of original owner of the file. 
-  For example passwd executable is owned by Root user. But unprivileged user 
-  could execute it and the passwd binary will made the changes into /etc/passwd 
-  and /etc/shadow file(contains some related to passwords stuff too), and those 
-  both files also are owned by root user.
-  In the same time passwd used by unprivileged user accepts no params - means
-  user can not change other users passwords
- setgid:
-  Attribute of file\directory inherited byu sub dirs\files, so subdirs inherit 
-  parent's attributes. 
-  Gives access  equal to group owning the file to unprivileged user executing 
-  the file.
-  Unprivileged user executes file Under the privileges granted to the user group  owner of that file.
-
-whoami:
- returns username of currently logged user
-
 mount:
   mount drive (disk, usb, floppy etc)
   mount -o rw,remount /
@@ -486,9 +423,126 @@ mount:
   labels or UUID could be taken from 'blkid' command
 
 
-==========User\Groups Management
+scp:
+  secure copy using ssh protocol
+   could copy to or copy from remote location.
+  copy to remote:
+  scp <params> <file_path> <receiving_username>@<address>:<receiving_file_path>
+  copy from remote:
+  scp <params> <remote_username>@<address(ip\name)>:<remote_local_path> <path>
+  params:
+  -v - verbose  
 
-==========User\Groups Management General info
+sshd(openssh)
+  daemon config location:
+   /etc/ssh/sshd_config
+  sftp enable switch is located there, could be commented out and sshd restart
+  to disable it
+   /etc/ssh/ssh_config
+  some another config
+  ==
+  RSA keys for ssh authentication generation process:
+  https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7
+  ssh-keygen [-b 4096] - generates key pair into given path
+  ssh-copy-id user@34.250.25.207 - copy pub rsa from local machine to remote
+   for the user given further access will be w/o password(could ask passphrese)
+  
+
+sftp:
+  secure file transfer protocol, allows to list dir contents
+  built-in into OpenSSH server, which workks as sshd service(daemon) together
+  with scp
+  sftp <remote_username>@<remote_ipaddress_or_name>
+ sftp has its own set of directory related commands:
+ pwd - print work dir, returns current remote_dir
+ lpwd - current local_dir
+ cd - change dir, changes remote_dir
+ lcd - local change dir, changes local_dir from sftp via OpenSSH daemon
+ get - copy file to current local_dir
+  get <remote_filename> <new_local_name>
+ ls also works, ALIASES from bashrc do not work
+
+===general
+
+
+===Env Vars / Environment variables:
+printenv:
+env:
+  very similar, prints environment variables to STDOUT
+  printenv VAR - prints value of specified variable to STDOUT
+
+
+set:
+  prints ALL variables - Shell vars, local vars, shell functions
+  Somewhy it does not have a man page for 'man set'
+
+ Read more of set and printenv\env here:
+https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps
+ Read more of printenv\env history here:
+https://unix.stackexchange.com/questions/123473/what-is-the-difference-between-env-and-printenv
+
+How to set\export env variables in bash:
+Read export\env differences here:
+ http://hackjutsu.com/2016/08/04/Difference%20between%20set,%20export%20and%20env%20in%20bash/
+
+  Set variable ONLY for current shell:
+  varname="my value"
+  Set variable for current shell and ALL PROCESSES started from current shell:
+  export varname="my value"
+  For below LogOut is required:
+  Set var PERMANENTLY for current user
+  ~/.bashrc - add 'export varname="my val"' here
+  Set var permanently and SYSTEM WIDE (all users/all processes)
+  /etc/environment - add line 'VARNAME="my value"', caps bcs of naming convents
+		     'export' is not userd here parser does not know it
+  LogOut is required for permanent changes.
+  
+  Unset:
+  unset ENV_VAR
+  echo $ENV_VAR - returns nothing , bcs it is unset
+
+  ALSO has options:
+  set -o - will display all the options
+   one of the options is 'noclobber'
+   set -o noclobber - prevents '>' redirection from overriding files
+   set +o noclobber - removes noclobber back
+
+
+execute:
+source:
+dot (.):
+  read more:
+  https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it/176788#176788
+
+  execute script if it has x permission
+  !! CREATES NEW SHELL !!
+   ./script - script in current directory(./ dots lash notaion)
+   script - execute script if it is in PATH var
+
+  source script even if it does not have x permission
+  documentation:
+  http://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#dot
+  !! DOES NOT CREATE A NEW SHELL !!
+  Executes commands from a file in the CURRENT environment. 
+  In case it is for login-shell, it will update whole command line, probably
+   not sure how it will work in case of 'su -'
+
+   source myscript - myscript is param for source so no matter myscript is in
+ 		     path or not.
+		     Still need to be valid shell script(#!/interpreter/pat)  
+   . myscript - 'source' is alias for . in bash, syntax from POSIX 
+
+  Source saves stuff changed in script(i.e. Env var updates) to the current 
+  shell session where as Execute creates new session where changes are saved
+  and kills it after everything is done - basic behaviour of everything
+
+
+
+
+
+===User\Groups Management
+
+=====User\Groups Management General info
 group related info is stored in
   /etc/group   - file, use 'vigr' for edit
 user related info stored in 
@@ -555,8 +609,9 @@ NOTE: there are Primary group for a user and SUpplementary groups,
   Files created by user are owned by PRIMARY group of the user
 
 
-==========user\groups management general info end
+=====user\groups management general info end
 
+=====Manipulate Users And Groups
 useradd:
   old since any *nix creation. Almost everything need to be done manually bcs of
   compatibility - different *nix platforms handles users differently, their ~
@@ -582,7 +637,7 @@ useradd:
 NOTE: after user is created the password need to be added:
 passwd testuser
 
-===Manual User Creation
+=====Manual User Creation
 user# sudo su -		- become root
 root# vipw		- edit /etc/passwd
  add new line with user info like:
@@ -594,9 +649,7 @@ root# cd /home && mkdir username - create user's home folder
 root# cp -rf /etc/skel/\.* /home/username/. - copy everything from skel
 root# chown -R username:usergroup username/ - change recurse ownership of dir
 root# passwd username - create password for the user
-===manual user creation end
-
-
+=====manual user creation end
 
 
 groups:
@@ -662,7 +715,17 @@ groupmod:
     groupmod -g 300 manager - change group 'manager' to have new GID of 300
   -n - change NAME of a group
     groupmod -n managers manager - change group 'manager' to 'managers'
+
   
+passwd: 
+  change password for current user
+   or for given user
+  passwd [username]
+  located in /usr/bin/passwd - ubuntu
+             /bin/passwd - centos/red hat
+  has 'setuid' thing..
+
+
 gpasswd:
   add\remove users from a group, set admins for the group, set password for
   a group
@@ -685,7 +748,29 @@ groupdel:
   delete group
   groupdel [params] <groupname>
 
-==========Super User
+setuid and setgid:
+ setuid:
+  Attribute of a file that allows unprivileged user to have level of permission
+  of original owner of the file. 
+  For example passwd executable is owned by Root user. But unprivileged user 
+  could execute it and the passwd binary will made the changes into /etc/passwd 
+  and /etc/shadow file(contains some related to passwords stuff too), and those 
+  both files also are owned by root user.
+  In the same time passwd used by unprivileged user accepts no params - means
+  user can not change other users passwords
+ setgid:
+  Attribute of file\directory inherited byu sub dirs\files, so subdirs inherit 
+  parent's attributes. 
+  Gives access  equal to group owning the file to unprivileged user executing 
+  the file.
+  Unprivileged user executes file Under the privileges granted to the user group  owner of that file.
+
+whoami:
+ returns username of currently logged user
+
+=====manipulate users and groups
+
+=====Super User
 /etc/sudoers - file where all the privileges set. has user accounts with 
 		privileges, as well as some groups, 
 		for Ubuntu: 
@@ -722,64 +807,13 @@ su:
   root# passwd  - enter new password
 
 sudo
-==========super user end
+  TODO
+=====super user end
 
-==========user\groups management end
 
-lsattr:
-  lists extra attributes of files on linux file system
-  lsattr file1 - display attributes of the file1
+=====user\groups management end
 
-chattr:
-  changes extra attributes, lots of them, here some:
-  i - immutable (can not be changed)
-  a - appendable (can be opened only in append mode)
-  u - undeletable
-  syntax: 
-  + - adds attribute
-  - - removes attribute
-  = - causes  selected attrs to be only attrs that files have..(not sure)
-  i.e. 
-  chattr +u file1 - adds undeletable attr to file1
-
-scp:
-  secure copy using ssh protocol
-   could copy to or copy from remote location.
-  copy to remote:
-  scp <params> <file_path> <receiving_username>@<address>:<receiving_file_path>
-  copy from remote:
-  scp <params> <remote_username>@<address(ip\name)>:<remote_local_path> <path>
-  params:
-  -v - verbose  
-
-sshd(openssh)
-  daemon config location:
-   /etc/ssh/sshd_config
-  sftp enable switch is located there, could be commented out and sshd restart
-  to disable it
-   /etc/ssh/ssh_config
-  some another config
-  ==
-  RSA keys for ssh authentication generation process:
-  https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7
-  ssh-keygen [-b 4096] - generates key pair into given path
-  ssh-copy-id user@34.250.25.207 - copy pub rsa from local machine to remote
-   for the user given further access will be w/o password(could ask passphrese)
-  
-
-sftp:
-  secure file transfer protocol, allows to list dir contents
-  built-in into OpenSSH server, which workks as sshd service(daemon) together
-  with scp
-  sftp <remote_username>@<remote_ipaddress_or_name>
- sftp has its own set of directory related commands:
- pwd - print work dir, returns current remote_dir
- lpwd - current local_dir
- cd - change dir, changes remote_dir
- lcd - local change dir, changes local_dir from sftp via OpenSSH daemon
- get - copy file to current local_dir
-  get <remote_filename> <new_local_name>
- ls also works, ALIASES from bashrc do not work
+===Processes and Services Management
 
 top: htop:
   gives a list of processes and resources used by the OS
@@ -903,8 +937,10 @@ service: daemon:
   it seems it also supports systemctl and disable\enable with same commands,
    but creating .override file in the Debian way
 
-==========Package management
-==========Debian\Ubuntu
+===processes and services management
+
+===Package management
+=====Debian\Ubuntu
 
 .deb - packages format
 
@@ -946,7 +982,7 @@ apt-get: apt:
   apt show <package> - shows info about package(apt-cache's command)
 
   --dry-run - simulation, will display possible actions but not perform any
-=======Uninstallation==
+=======Uninstallation
   apt-get remove <package> - removes package binaries, leaves configs in the 
 		             system for future use by other version or another
 			     reason
@@ -971,7 +1007,7 @@ apt-get: apt:
 	something
   apt-get autoremove - removes all orphaned packages
   .. purge --auto-remove <package> is similar to autoremove
-=======uninstallation end===
+=======uninstallation end
   apt-get check - what dependencies may be broken
   apt-get build-dep - exact build dependencies for particular app (it seems it 
 		is not necessery to download them all for work though...)
@@ -1009,14 +1045,14 @@ apt-file:
   apt-file list - similar to dpkg -L but package not need to be installed or
 		fetched
 
-======List all installed packages:
+=======List all installed packages:
   dpkg -l - list of packages and their details
   apt list --installed - list of full names
   aptitude - has a category for installed pkgs divided by categories
 
-==========debian\ubuntu end
+=====debian\ubuntu end
 
-==========RedHat RHEL\Centos
+=====RedHat RHEL\Centos
 
   .rpm files
 rpm:
@@ -1106,7 +1142,7 @@ yum:
   yum clean all - clears cache similar to apt-get autoclean
   yum history - history of yum - install\remove\upd package and stuff, sudo
 
-=======Uninstallation==
+=======Uninstallation
   yum remove <pkg> - removes the package, doesn't remove its dependencies
 !   yum autoremove <pkg> - also removes package, probably its deps too..
   To remove dependencies there are several ways:
@@ -1131,9 +1167,9 @@ yum:
   yum history - check the ID column next to the command line with installation
   command of the package that need to be uninstalled
   then call 'yum history undo <ID>'
-=======uninstallation end===
+=======uninstallation end
 
-======List all installed packages:
+=======List all installed packages:
   rpm -qa - query all packages, will return list of all installed packages
   yum list installed - will return list of installed packages
 
@@ -1143,10 +1179,10 @@ yum-utils:
   yumdownloader <pkg>
     downloads a .rpm file, into current dir pretty similar to apt-get download
     command
-==========redhat rhel\centos end
-==========package management end
+=====redhat rhel\centos end
+===package management end
 
-==========File Permissions / Ownership
+===File Permissions / Ownership
 
 ! Linux treats everything - device\file\directory as if it is a FILE
 
@@ -1203,9 +1239,25 @@ chmod:
   --preserve-root - fail to operate recursively on '/'
   -R - recursive
 
-==========file permissions / ownership end
+lsattr:
+  lists extra attributes of files on linux file system
+  lsattr file1 - display attributes of the file1
 
-==========IPTables / Linux kernel Firewall(not d)
+chattr:
+  changes extra attributes, lots of them, here some:
+  i - immutable (can not be changed)
+  a - appendable (can be opened only in append mode)
+  u - undeletable
+  syntax: 
+  + - adds attribute
+  - - removes attribute
+  = - causes  selected attrs to be only attrs that files have..(not sure)
+  i.e. 
+  chattr +u file1 - adds undeletable attr to file1
+
+===file permissions / ownership end
+
+===IPTables / Linux kernel Firewall(not d)
 read more:
 https://www.unixmen.com/iptables-vs-firewalld/
 https://linuxacademy.com/cp/socialize/index/type/community_post/id/15473
@@ -1318,12 +1370,11 @@ default rules, /etc/sysconfig/iptables for CentOS 7
    Debian/RHEL: sudo /etc/init.d/iptables start\stop\status
    Ubuntu: sudo service ufw start\stop\status
    Centos: servicectl start\stop\status iptables
-   
 
+===ip tables / firewall
 
-==========ip tables / firewall
-
-==========Bash command line shortcuts
+===Bash
+=====Bash command line shortcuts
 ctrl + a - moves cursor on the beginning of the line
 ctrl + e - moved cursor on the End of the line
 ctrl + u - removes everything from cursor position to the beginning of line
@@ -1333,7 +1384,7 @@ ctrl + l - cleares screen except of current command LINE
 ctrl + p - last executed command shown in command line, same as UP ARROW key 
 ctrl + c - terminate current process + exit\del current line by terminating it
 
-==========Bash Aliases
+=====Bash Shell
 alias:
  new aliasws workws only for current session
  alias <new name>="<command>" - adds command as alias
@@ -1482,6 +1533,7 @@ bash escapes:
 special symbols:
 $'\t' - print tab, which is not printable character, same as /r/n or somehting
 
+=====Bash Scripting
 test:
  [ 1 -eq 1 ]    - ints compared with -eq, -lt, -gt, -ge, etc
  [ 'a' = 'a' ]  - strings compared with =, <, >, >=, etc

@@ -11,3 +11,28 @@ find and replace:
  /foo\c/ - same case insensitive
  I 	- case Sensitive
  
+number lines:
+  :set numbe
+
+
+go to line:
+  :<line number>
+  
+  or
+
+  vim +<line number> <file> - opens vim at a given line
+
+change line case:
+change case:
+  visual select, then press 'u' for lovercase or 'U' to Upper case
+   Without Visual select:
+  ~     - Inverts the case of current CHARACTER
+  g~~   - Inverts the case of current LINE
+  guu   - change current LINE Upper > Lower (see above for another method)
+  gUU   - change current LINE Lower > Upper
+  guw   - change to end of current WORD Upper > Lower
+  guaw  - change all of current WORD Upper > Lower
+  gUw   - change to end of current WORD Lower > Upper
+  gUaw  - change all of current WORD Lower > Upper
+  
+

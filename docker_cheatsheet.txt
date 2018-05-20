@@ -1,0 +1,183 @@
+
+===Installation
+install
+
+Centos7
+  add docker repo 
+   into /etc/yum.repos.d (see linux_cheatsheet for details)
+  install docker-engine package
+   yum install docker-engine
+  start service 'docker'
+   systemctl enable docker
+   systemctl start docker
+
+  make sure it works:
+   systemctl status docker
+   docker --version
+   sudo docker images - docker client installed together with docker server
+	is able to connect to the server and fetch list of images
+
+  Regular user:
+   Docker uses docker.sock socket to connect to server, this socket is 
+   represented as a file(as everything in linux) and is located in:
+    /ver/run/docker.sock
+   this file is owned by user 'root' and group 'docker', both user and group
+   have same permissions 'rw-'.
+    So to be able to run Docker commands which will require Server connection
+   as a regular user, this user need to be added to 'docker' group
+
+===General
+Base image:
+  pull from Docker Hub or another private repos not in Docker Hub.
+  Base image is the image we  pulled from somewhere and could build upon it our
+  own image.
+
+Container Lifecycle:
+  Pull - Image is built or pulled from repo
+  Run - image is run and container is instantiated
+    Network interface for docker server is used to connect to particular 
+    container which is given IP by Dockers DHCP
+
+
+IP address
+During install docker daemon creates its own Network Interfacte, with ip address
+attached, like 172.17.0.1. 
+New containers will be assigned addresses from this pull, from ..0.2 to 0.254
+
+
+images:
+  displays list of locally available images
+  format
+   REPOSITORY - name of repo where downloaded, seems like name of image too
+   TAG - tag, 'latest' or other, like version number
+   IMAGE ID - id of the image
+   CREATED - when it was created in the repo(not pulled locally)
+   SIZE - size of the image
+
+pull:
+  pulls image from a repo
+   docker pull [repo/]<image>
+  default - latest version
+  version could be specified by tag:
+   docker pull centos:centos6 - will pull version 6, when 7 is latest one
+	'centos6' is a tag, which specifies a version number
+   docker pull centos - will pull using default tag 'latest'
+
+search:
+  searches for an image in a repo(somewhere configured)
+  Search results has Name , Description, also as
+   Reputation - STARS, which is some kind of carma?
+   OFFICIAL - official repo marked [OK]
+   AUTOMATED - dunno, but marked [OK] if yes
+
+  docker search centos - will search for image containing word 'centos' in its
+	name(and probably description)
+
+run:
+  runs a image thus creating a container
+  docker run [params] <image> [command to start with] [params to the command]
+   can run by Image name - 'REPOSITORY' field in 'images', by ID 'IMAGE ID' 
+   field or by container name. 
+   Container name could be manually or automatically assigned, then it will be 
+   bound to the container and this exact container could be restarted.
+  -i - interactive run
+  -t - connect tty to current terminal
+   Example: 
+    docker run -it centos:latest /bin/bash
+  -d - detached, container will run in background
+  --name=<name> - creates container with specified and not random name
+
+stop:
+  stops the container
+   docker stop <name>
+
+ps:
+  process list from withing docker daemon
+  returns all running containers
+  docker ps
+  -a - returns All containers, including those who stopped already
+  -q - returns only hex IDs of the containers
+
+inspect:
+  gives info about local image or container(running or stopped), output is in 
+  JSON format.
+   It gives much more information if Running Container is inspected, such as
+  IP address etc
+ 
+  docker inspect nginx - will show info about local image of 'nginx' in JSON
+	such as info about container config - its hostname, user, STD* 
+	processing, tags, env variables set for the container
+	env vars will be inherited in case of building on this image
+
+attach:
+  docker attach <container>
+  attach to containers process, the main process given to it by Dockerfile.
+  Exiting after attach will stop the container, because its main process was
+  stopped.
+  Useful only if some shell (i.e. bash) is executed there. i.e. if this is nginx
+  container no command promt will be given.
+
+  SO in case of Nginx, attaching to container will attach to the Process.
+  And exiting by ctrl+c or 'exit' will effectively stop Nginx, and thus a 
+  container too.
+  
+
+exec:
+  execute something on a container that is running some other process and
+  'attach' wont help.
+  Exiting by 'exit' or ctrl+c will not stop the container as per it is still 
+  running its main task given to it in Dockerfile.
+  exec <new process> <container>
+   Example:
+  docker exec -it LifeCycle1 /bin/bash - will execute /bin/bash on container
+	LifeCycle1 which is running Nginx in detached(-d) mode and can not be
+	attached in useful way
+	Notice '-it' params which are the same as for Run command
+ 
+start:
+  starts previously stopped container(which could be found by 'ps -a')
+  start <container>
+
+restart:
+  Shuts down and Starts the container.
+   IF the process is restartable
+ 
+stop:
+  stop <container>
+  gracefully stops the container
+
+rmi:
+  removes image by its name ID or repo + tag
+  docker rmi <repo:tag>
+  It will untag and delete image
+  Images that has container instatiated from it(even stopped) will not be 
+  deleted without Force. 
+  Or containers need to be deleted first (see rm command)
+   Example:
+  docker rmi centos:centos6 - will remove image from repo 'centos 'tagged as 
+	'centos6' which is basically its version
+
+rm:
+  removes container by its ID or name
+   docker rm <name or ID> [name or ID]
+  -v - delete any volumes associated with a container
+    Example:
+  docker rm name1 name2 - will remove containers named name1 and name2 from 
+  the system
+
+  ` - back tick(tilda button w/o shift) allows to execute command and put its 
+	results out one by one to parent command.
+	Actually it will execute another shell with commant between ``. 
+	Same as in For loop like 'for i in `ls -la .`'
+
+  xargs is used for piping:
+   docker ps -a -q | xargs docker rm - will display all IDs of all the 
+   containers and send it to xargs through pope to rm command.
+  Same w/o xargs:
+   docker rm `docker ps -a -q`
+  Another solution:
+   docker rm $(docker ps -a -q)
+
+  -f / --filter "key=value" - filters ps output by key-value paris:
+    docker ps -a -f "name=name" - will print out all the containers(stopped and
+	running) which field NAME contains string 'name'

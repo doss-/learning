@@ -30,6 +30,7 @@ Contents
 =======Uninstallation
 =======List all installed packages:
 =====RedHat RHEL\Centos
+=======Manage repositories
 =======Uninstallation
 =======List all installed packages:
 ===File Permissions / Ownership
@@ -1141,6 +1142,20 @@ yum:
 	that provide that feature or file.
   yum clean all - clears cache similar to apt-get autoclean
   yum history - history of yum - install\remove\upd package and stuff, sudo
+
+=======Manage repositories
+repos stored in /etc/yum.repos.d, which is a directory
+to add new repository:
+ create new file in the /etc/yum.repos.d dir named '<anything>.repo'
+
+Format of repo file:
+[dockerrepo]  - name of the repository section
+name=Docker Repository - name of repo to display
+baseurl=https://...    - address to where from do pulls of packages
+enabled=1	       - repo is enabled inside my system
+gpgcheck=1	       - enables gpg check
+gpgkey=https://....    - location of the key
+
 
 =======Uninstallation
   yum remove <pkg> - removes the package, doesn't remove its dependencies

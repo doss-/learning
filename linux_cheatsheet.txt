@@ -1592,3 +1592,12 @@ for:
 	we could iterate it with FOR 
   for line in `cat file1`; do echo $line; done
 	
+
+===Other programs:
+
+elinks:
+  command line browser, with interface similar to MC or aptitude
+  
+mc:
+  two-windowed GUI to work with file system
+

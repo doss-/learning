@@ -209,6 +209,11 @@ exec:
 	LifeCycle1 which is running Nginx in detached(-d) mode and can not be
 	attached in useful way
 	Notice '-it' params which are the same as for Run command
+  -u <UID> - use specific user id during exec execution,
+	UID 0 - will be ROOT id (see /etc/passwd for UID)
+	docker exec -u 0 -it container_name /bin/bash - will connect to 
+	'container name' as Root, regardless which user is specified in USER 
+	directive in the Dockerfile
  
 start:
   starts previously stopped container(which could be found by 'ps -a')
@@ -284,3 +289,61 @@ build:
   or instead of . use:
   < /path/to/Dockerfile
   
+logs:
+  returns logs of the container. Available only with 'json-file' and 'journald'
+  logging drivers.
+   docker logs [params] <container>
+  --follow - will do pretty similar as 'tail -f'
+  --timestamps - will add timestamps
+  --details - will add more to the logs, such as env vars etc.
+  --since - will show only logs since some date:
+	1m30s, 3h - Go duration format
+	2006-01-02T15:04:05 - RFC 3339 Nano format
+	local time zone is used unless Z or +-00:00 provided
+
+===Dockerfile
+
+FROM
+  need to be first command, tells docker daemon from where to build.
+  could be:
+   scratch - means no image need to be searched or downloaded
+	then file need to be added which will contain all the
+	needed binaries
+   image[:tab] - name of the image optionally with tag, which will be 
+	downloaded and used as base image, to which all the other commands
+	will be applied
+
+MAINTAINER
+  name or email or anything relating of who maintans the image
+
+RUN
+  RUN <command>
+    RUN useradd -ms /bin/bash testuser
+  runs a command after 'RUN ', like regular cli command 'useradd'
+  command will be executed\saved as a layer
+  Can be executed several times during Dockerfile
+
+CMD
+  executes command, but it does not become a layer
+   CMD "echo" "this is a test message" - will execute Echo command with a custom
+	message. Also container will immediately stop after doing that, if
+	no other directives are given for it to run continuously
+  
+
+USER
+  USER <username>
+  marks entry point for a container to be under specific user.
+  in this case user first need to be created using RUN command
+   All the commands in Dockerfile after this directive will run under 
+  the user that was specified!
+
+Environment variables manupulation:
+  the simpliest way is to export something into users .bashrc file:
+  RUN echo "export JAVA_HOME=/usr/java/jdk1.8.0/jre" >> /home/user/.bashrc - 
+	this will add a line into .bashrc file which is read every time the
+	shell is executed. Basically is standard way to add ENV variables for a
+	user
+ENV
+  sets system-wide variables
+  ENV <key value>
+   ENV JAVA_BIN /user/java/jdk1.8.0/jre/bin

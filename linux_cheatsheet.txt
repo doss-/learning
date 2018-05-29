@@ -28,6 +28,7 @@ Contents
 ===Package management
 =====Debian\Ubuntu
 =======Uninstallation
+=======Repository setup
 =======List all installed packages:
 =====RedHat RHEL\Centos
 =======Manage repositories
@@ -203,6 +204,10 @@ df:
   display all mounted devices with size\free\used\paths etc
   df -h - human readable sizes
 
+
+ifconfig:
+  displays current network interfaces
+  part of the 'net-tools' package
 
 sed:
   text stream editor, using RegEx for search\edit in stream(STDIN) line by line,
@@ -447,6 +452,13 @@ sshd(openssh)
   ssh-keygen [-b 4096] - generates key pair into given path
   ssh-copy-id user@34.250.25.207 - copy pub rsa from local machine to remote
    for the user given further access will be w/o password(could ask passphrese)
+
+ssh-keygen:
+  Known hosts are stored in a file /home/<username>/.ssh/knonwn_hosts.
+   There are only 1 RSA key is allowed for the IP, in case RSA key is changed, then 
+  old one need to be removed, otherwise it will not allow ssh acces:
+   ssh-keygen -f "/home/dos/.ssh/known_hosts" -R 172.17.0.2
+  
   
 
 sftp:
@@ -983,32 +995,7 @@ apt-get: apt:
   apt show <package> - shows info about package(apt-cache's command)
 
   --dry-run - simulation, will display possible actions but not perform any
-=======Uninstallation
-  apt-get remove <package> - removes package binaries, leaves configs in the 
-		             system for future use by other version or another
-			     reason
-  .. remove --purge <package> - removes package and all the stuff package 
-  .. purge <package> ^same^     created during install(SYSTEMWIDE configs, link
-				etc)
-		it will not remove:
-		 -dependence packages , to delete orphanes use
-			apt-get autoremove
-			  or
-			.. --purge autoremove (same - will remove configs also)
-		 -NOT SYSTEMWIDE config files - user-specific files
-			files in user's home dir, or .config subdirectory of 
-			home, those could be hidde (starts with .)
-  		 -doesn't reverse changes in already existing user-specific
-		  config files
-		 -doesn't remove 'gconf' and 'dconf' files or reverse any
-		  configuration d\gconf changes
-	existing SYSTEMWIDE configs also are not affected by neither purge or
-	remove commands, those ones created by user or other packages. but 
-	uninstalling package could sometimes affect such files and undone 
-	something
-  apt-get autoremove - removes all orphaned packages
-  .. purge --auto-remove <package> is similar to autoremove
-=======uninstallation end
+
   apt-get check - what dependencies may be broken
   apt-get build-dep - exact build dependencies for particular app (it seems it 
 		is not necessery to download them all for work though...)
@@ -1045,6 +1032,77 @@ apt-file:
 		includes removed packages too
   apt-file list - similar to dpkg -L but package not need to be installed or
 		fetched
+
+=======Uninstallation
+  apt-get remove <package> - removes package binaries, leaves configs in the 
+		             system for future use by other version or another
+			     reason
+  .. remove --purge <package> - removes package and all the stuff package 
+  .. purge <package> ^same^     created during install(SYSTEMWIDE configs, link
+				etc)
+		it will not remove:
+		 -dependence packages , to delete orphanes use
+			apt-get autoremove
+			  or
+			.. --purge autoremove (same - will remove configs also)
+		 -NOT SYSTEMWIDE config files - user-specific files
+			files in user's home dir, or .config subdirectory of 
+			home, those could be hidde (starts with .)
+  		 -doesn't reverse changes in already existing user-specific
+		  config files
+		 -doesn't remove 'gconf' and 'dconf' files or reverse any
+		  configuration d\gconf changes
+	existing SYSTEMWIDE configs also are not affected by neither purge or
+	remove commands, those ones created by user or other packages. but 
+	uninstalling package could sometimes affect such files and undone 
+	something
+  apt-get autoremove - removes all orphaned packages
+  .. purge --auto-remove <package> is similar to autoremove
+=======uninstallation end
+
+=======Repository setup
+  Due to regular use of secure stuff also make sure following packages are
+  installed(use apt-cahce show <package name> or 'apt list --installed'):
+   apt-transport-https - This package enables the usage of 
+	'deb https://foo distro main' lines
+	in the /etc/apt/sources.list so that all package managers using the
+	libapt-pkg library can access metadata and packages available in sources
+	accessible over https (Hypertext Transfer Protocol Secure).
+	  This transport supports server as well as client authentication
+	 with certificates.
+   ca-certificates - list of PEM files of certificates approved by Certificate
+	Authorities, some common trusted certificates. For instance it has
+	certificates for Debian stuff and Mozilla stuff.. 
+	TLDR:
+	It is a list of default trusted SSL sertificates stored in PEM format.
+   curl - tool for transfering data from or to a server via HTTP/S, FTP/S, LDAP
+	and lots of other formats, except SSH, but it has SCP..
+	Used to download GPG key from docker storage. Which is added then to
+	local apt storage
+   software-properties-common - adds additional command for APT repositories 
+	management. Such as 'add-apt-repository'
+
+  Add gpg key:
+	curl -fsSl https://download.docker.com/linux/ubuntu/gpg | sudo apt-key
+	add -
+	  Curl will download gpg key from docker , then pass it to apt-key (-) 
+	and it will be added to local key storage
+    make sure it is added, by searching for fingerpring:
+	sudo apt-key fingerprint 0EBFCD88 - this will return OK if everything is
+	fine
+  Add a STABLE repository, it seems it is required:
+	it is stored in:
+	/etc/apt/sources.list - the file with the sources, where 
+	add-apt-repository will add the repo by default
+	/etc/apt/sources.list.d - directory where new file with a repo should be
+	added, like in CentOS' yum
+	add-apt-repository example:
+	sudo add-apt-repository \
+	   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+	   $(lsb_release -cs) \ - returns distro name
+	   stable" - list of repos, test, edge could be added for docker
+	
+   
 
 =======List all installed packages:
   dpkg -l - list of packages and their details
@@ -1124,6 +1182,8 @@ yum:
   yum search <pkg> - searches for package, search in name and description
   yum install <pkg> - install package, and its dependencies
 	-y - answer Yes for prompts automatically
+  yum localinstall <pkg> - installs .rpm package downloaded to local machine
+	will ALSO install needed dependencies, unlike 'rpm' tool
   yum info <pkg> - info about a package: descr, url, size, arch, etc
   yum check-update - checks which packages could be updated
      -C - use only local cache, doesn't update cache
@@ -1405,8 +1465,18 @@ alias:
  alias <new name>="<command>" - adds command as alias
  alias <old name> - shows command
 
+sleep:
+  just regular sleep, stops current thread for amount of given seconds
+
 bash:
   man bash
+  
+  -c - accepts a whole bunch of commands like:
+  /bin/bash -c "while true; do echo HELLO; sleep 1; done" - which will execute
+	echo HELLO endlessly witn interval of 1 second.
+	This even could be passed into a container:
+   docker run -d ubuntu:xenial /bin/bash -c "...."
+
 
   could customize command prompt from default <user>@<hostname>:<path>$ 
   to something like <HH:MM:SS> <user> <whatever>!

@@ -158,10 +158,20 @@ run:
 	other) will be forwarded into container
 	 docker run -d -p 80:80 nginx - will run nginx in Detached mode with
 	port 80 of container is published as port 80 of the host
+  Volumes can not be made in Dockerfile because Dockerfile meant to be 
+	portable
   -v /host/dir:/container/dir - mounts a Volume from Host machine into Docker
 	container. It could overwrite Docker directory, like /etc or default
 	nginx dir for stuff to display.
-	TODO: newer versions of Docker has its command improved, add this here
+   --volume /mydirectory - will create directory 'mydirectory' as a volume
+	inside the container. Thus this will be destination
+	Using 'docker inspect' source could and it will be:
+	/var/docker/volumes/<ID>/_data
+  --mount - is the recommended way to use volumes. see '--mount' here:
+	https://docs.docker.com/engine/reference/commandline/service_create/#add-bind-mounts-volumes-or-memory-filesystems
+	
+
+  --entrypoint - overides entrypoint of the Base Image
 
 stop:
   stops the container
@@ -325,9 +335,24 @@ RUN
 
 CMD
   executes command, but it does not become a layer
+  Can be inherited from parent image in FROM directive
+  Can be overridden in child docker file using CMD [] directive
    CMD "echo" "this is a test message" - will execute Echo command with a custom
 	message. Also container will immediately stop after doing that, if
 	no other directives are given for it to run continuously
+  
+ENTRYPOINT
+  Executes a command EVERY time, no matter what command is given during 
+  instantiation like 'docker run .... /bin/bash'
+  Can be inherited from parent image in FROM directive
+  Can be overridden in child docker file (probably)
+  or in command line using --entrypoint of docker run command
+  Usually shell is executed with this directive
+
+  ETNRYPOINT echo "echoed message" - will be displayed all the time no matter 
+	what is applied to run command(such as /bin/bash)
+  ENTRYPOINT apachectl "-DFOREGROUND"
+
   
 
 USER
@@ -347,3 +372,12 @@ ENV
   sets system-wide variables
   ENV <key value>
    ENV JAVA_BIN /user/java/jdk1.8.0/jre/bin
+
+EXPOSE
+  exposes particular port, or probably list or range of ports
+  This port will be always exposed in the container unless unexposed in some
+  manual way
+  The same could be achieved with using 'docker run -p' command
+   Although '-P' param will not expose anything because it looks for already 
+  exposed ports on the containers, and w/o EXPOSE directive there are none
+   EXPOSE 80

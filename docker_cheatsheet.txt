@@ -90,6 +90,12 @@ During install docker daemon creates its own Network Interfacte, with ip address
 attached, like 172.17.0.1. 
 New containers will be assigned addresses from this pull, from ..0.2 to 0.254
 
+man:
+  regular 'man' command works with Docker in the following way:
+   man docker - will cal manual for Docker
+   man docker-run - will cal manual for 'docker run' command
+	So to call man need to substitute spaces with dashes, it should work for most of the commands
+
 version:
   command that displays pretty detailed version info about all the docker stuff
   Client, Server, their Go version, API, built date for both etc.
@@ -128,6 +134,30 @@ search:
 
   docker search centos - will search for image containing word 'centos' in its
 	name(and probably description)
+
+network:
+   network drivers are configured via JSON config files, usually there are:
+	bridge - main network, all other networks goes through here, DHCP is configured according to it, and range of IP addresses also
+		configured here
+	host - TODO
+	none - TODO
+  ls:
+   lists all the network interfaces\drivers available for docker daemon
+  inspect: 
+   inspect <networkID\Name> - lists all the settings of given network, like inspect <container>, including IP ranges(Subnet), Gateway etc.
+	i.e. com.docker.network.bridge.name, looks like is what is displayed in 'ifconfig' for its network interface
+  create:
+   creates a network, that could be listed by 'network ls' command
+	Example:
+   docker network create --subnet 10.1.0.0./24 --gateway 10.1.0.1 mybridge01 - will create new network of type 'bridge', probably default one
+	all other stuff will be default(as well as driver used). this network will be available for view by 'docker network ls'
+	Also it will be seen in 'ifconfig' as a regular network interface, with wierd name(beginning of network ID actuallybeginning of 
+	network ID actually)
+  rm:
+   remove network. by ID or Name
+	!!!! DO NOT REMOVE DEFAULT NETWORKS, it will probably lead to whole Docker reinstallation. !!!!
+    Example:
+	docker network rm mybridge01 - will return network name and delete it
 
 run:
   runs a image thus creating a container

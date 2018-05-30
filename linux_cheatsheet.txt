@@ -1446,6 +1446,11 @@ default rules, /etc/sysconfig/iptables for CentOS 7
    Ubuntu: sudo service ufw start\stop\status
    Centos: servicectl start\stop\status iptables
 
+IP address ranges:
+CIDR blocks
+https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation
+https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks
+
 ===ip tables / firewall
 
 ===Bash

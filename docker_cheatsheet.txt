@@ -143,19 +143,55 @@ network:
 	none - TODO
   ls:
    lists all the network interfaces\drivers available for docker daemon
+
   inspect: 
-   inspect <networkID\Name> - lists all the settings of given network, like inspect <container>, including IP ranges(Subnet), Gateway etc.
-	i.e. com.docker.network.bridge.name, looks like is what is displayed in 'ifconfig' for its network interface
+   inspect <networkID\Name> - lists all the settings of given network, like 
+   inspect <container>, including IP ranges(Subnet), Gateway etc.
+	i.e. com.docker.network.bridge.name, looks like is what is displayed in
+	'ifconfig' for its network interface
+
   create:
    creates a network, that could be listed by 'network ls' command
 	Example:
-   docker network create --subnet 10.1.0.0./24 --gateway 10.1.0.1 mybridge01 - will create new network of type 'bridge', probably default one
-	all other stuff will be default(as well as driver used). this network will be available for view by 'docker network ls'
-	Also it will be seen in 'ifconfig' as a regular network interface, with wierd name(beginning of network ID actuallybeginning of 
+   docker network create --subnet 10.1.0.0./24 --gateway 10.1.0.1 mybridge01 - 
+	will create new network of type 'bridge', probably default one
+	all other stuff will be default(as well as driver used). this network 
+	will be available for view by 'docker network ls'
+	Also it will be seen in 'ifconfig' as a regular network interface, 
+	with wierd name(beginning of network ID actuallybeginning of 
 	network ID actually)
+  --subnet - subnet of a network first available IP will be used for container
+  --gateway - gateway address, could be checked from container by 'netstat -rn'
+	which is part of 'net-tools' package
+  --ip-range - IP for container will be assigned only from this range, should
+	be inside 'subnet'
+  --driver - driver to use, default is Bridge, could be Overlay
+  --label - ...
+	Example:
+   docker network create --subnet 10.1.0.0/16 --gateway 10.1.0.1 --ip-range=10.1.4.0/24--driver=bridge --label=host4network bridge04
+	Creates subnet of addresses of 10.1.0.0 to 10.1.254.254, Class B netwrk
+	Gateway is 10.1.0.1 - this is the address used to communicate with host
+	Range of IP available from the subnet hovewer is only 254 addresses
+	of last octet, and it is Class C network, 10.1.0.0 to 10.1.0.254
+	Network Driver to use is 'bridge'
+	Label to refer to it is 'host4network', seems that label will mark
+	usage of ip-range?
+	Network is 'bridge04'
+   docker run -it --name nettest1 --net bridge04 centos:latest /bin/bash
+	Runs a container using newly created network from above, its IP will be
+	assigned from IP-Range, and will be 10.1.4.0, which is first available
+	address
+    =================STATIC IP ASSIGNATION======================
+	Static IP could only be assigned for Custom networks and CAN NOT be
+	assigned for default networks(bridge, host, none)
+	--ip for docker run command will do the magic
+
   rm:
    remove network. by ID or Name
-	!!!! DO NOT REMOVE DEFAULT NETWORKS, it will probably lead to whole Docker reinstallation. !!!!
+
+	!!!! DO NOT REMOVE DEFAULT NETWORKS !!!!!
+    !!!! it will probably lead to whole Docker reinstallation. !!!!
+
     Example:
 	docker network rm mybridge01 - will return network name and delete it
 
@@ -172,6 +208,11 @@ run:
     docker run -it centos:latest /bin/bash
   -d - detached, container will run in background
   --name=<name> - creates container with specified and not random name
+  --net <network name>- use specified network (see docker network)
+	--net bridge04 - will use custom network 'bridge04' instead of default
+	one called 'bridge'
+  --ip - assigns Static IP for a container, will only work with Custom network
+	assigned using --net param
   -P - auto publishing. of all exposed Container's ports. Assigning random port
 	number (range defined by /proc/sys/net/ipv4/ip_local_port_range) for
 	every exposed port

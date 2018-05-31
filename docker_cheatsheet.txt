@@ -195,6 +195,10 @@ network:
     Example:
 	docker network rm mybridge01 - will return network name and delete it
 
+create:
+  create a container but not run it immediately
+   seeps its syntax is similar to 'docker run', see below
+
 run:
   runs a image thus creating a container
   docker run [params] <image> [command to start with] [params to the command]
@@ -394,12 +398,33 @@ FROM
 	downloaded and used as base image, to which all the other commands
 	will be applied
 
-MAINTAINER
+MAINTAINER - deprecated, use LABEL
   name or email or anything relating of who maintans the image
+   Example:
+  LABEL maintainer="SvenDowideit@home.org.au"
+
+LABEL
+  Adds metadata to an image. <key>=<value> pair based.
+   use quotes to escape spaces, and backslashes to escape new lines(as usual)
+  LABEL <key>=<value> <key>=<value> <key>=<value> ...
+
+  Examples:
+   LABEL "com.example.vendor"="ACME Incorporated"
+   LABEL com.example.label-with-value="foo"
+   LABEL version="1.0"
+   LABEL description="This text illustrates \
+   that label-values can span multiple lines."
+ 
+  in 'docker inspect' Labels will be available in its separate group
+   Example:
+    "Labels": {
+    "com.example.vendor": "ACME Incorporated"
+
+
 
 RUN
   RUN <command>
-    RUN useradd -ms /bin/bash testuser
+   RUN useradd -ms /bin/bash testuser
   runs a command after 'RUN ', like regular cli command 'useradd'
   command will be executed\saved as a layer
   Can be executed several times during Dockerfile
@@ -408,47 +433,68 @@ CMD
   executes command, but it does not become a layer
   Can be inherited from parent image in FROM directive
   Can be overridden in child docker file using CMD [] directive
-   CMD "echo" "this is a test message" - will execute Echo command with a custom
-	message. Also container will immediately stop after doing that, if
-	no other directives are given for it to run continuously
-  
+  CMD "echo" "this is a test message" - will execute Echo command with a custom
+   message. Also container will immediately stop after doing that, if
+   no other directives are given for it to run continuously
+
 ENTRYPOINT
   Executes a command EVERY time, no matter what command is given during 
   instantiation like 'docker run .... /bin/bash'
   Can be inherited from parent image in FROM directive
   Can be overridden in child docker file (probably)
-  or in command line using --entrypoint of docker run command
+   or in command line using --entrypoint of docker run command
   Usually shell is executed with this directive
 
   ETNRYPOINT echo "echoed message" - will be displayed all the time no matter 
-	what is applied to run command(such as /bin/bash)
-  ENTRYPOINT apachectl "-DFOREGROUND"
+   what is applied to run command(such as /bin/bash)
+   ENTRYPOINT apachectl "-DFOREGROUND"
 
-  
+
 
 USER
   USER <username>
   marks entry point for a container to be under specific user.
   in this case user first need to be created using RUN command
-   All the commands in Dockerfile after this directive will run under 
+  All the commands in Dockerfile after this directive will run under 
   the user that was specified!
 
 Environment variables manupulation:
   the simpliest way is to export something into users .bashrc file:
   RUN echo "export JAVA_HOME=/usr/java/jdk1.8.0/jre" >> /home/user/.bashrc - 
-	this will add a line into .bashrc file which is read every time the
-	shell is executed. Basically is standard way to add ENV variables for a
-	user
+  this will add a line into .bashrc file which is read every time the
+  shell is executed. Basically is standard way to add ENV variables for a
+  user
 ENV
-  sets system-wide variables
-  ENV <key value>
-   ENV JAVA_BIN /user/java/jdk1.8.0/jre/bin
+  sets system-wide variables, could be used in two ways:
+   Usage 1:
+  ENV <key> <value>
+   Example:
+  ENV JAVA_BIN /user/java/jdk1.8.0/jre/bin
+   Everything after first space will be treated as a 'value' including spaces,
+   and even other env var names
+   Example:
+  ENV myName John Doe
+  ENV myDog Rex The Dog
+  ENV myCat fluffy
+
+   Usage 2:
+  ENV <key>=<value> ...
+  use for multiple env vars assignment in one ENV directive
+   Example:
+   ENV myName="John Doe" myDog=Rex\ The\ Dog \
+    myCat=fluffy
 
 EXPOSE
   exposes particular port, or probably list or range of ports
   This port will be always exposed in the container unless unexposed in some
   manual way
-  The same could be achieved with using 'docker run -p' command
+   Ports however are still hidden and unavailable, it is just mark made by
+   image creator for image user to open this ports as per they are 
+   intended to be opened
+  To open ports for real use 'docker run -p' command, or '-P'.
+   If ports are not EXPOSEd, -P will not work:
    Although '-P' param will not expose anything because it looks for already 
-  exposed ports on the containers, and w/o EXPOSE directive there are none
+   exposed ports on the containers, and w/o EXPOSE directive there are none
+  Examples:
    EXPOSE 80
+   EXPOSE 22 80

@@ -258,6 +258,9 @@ ps:
   docker ps
   -a - returns All containers, including those who stopped already
   -q - returns only hex IDs of the containers
+  -f / --filter "key=value" - filters ps output by key-value paris:
+    docker ps -a -f "name=name" - will print out all the containers(stopped and
+	running) which field NAME contains string 'name'
 
 inspect:
   gives info about local image or container(running or stopped), output is in 
@@ -269,6 +272,21 @@ inspect:
 	such as info about container config - its hostname, user, STD* 
 	processing, tags, env variables set for the container
 	env vars will be inherited in case of building on this image
+
+top:
+  docker top <container>
+  Works pretty same as regular top command, returns list of all running 
+  processes in the container, but exits out immediately unlike regular
+  'top' which will run continuously.
+
+stats:
+  docker stats <container>
+  Returns info about RUNNING container Continuously(will refresh it in 
+  realtime), unlike 'docker top' which will return only current snap-shot
+   Example:
+  docker stats `docker ps -q` - will display resources usage for all the
+	container that are currently Running
+  
 
 attach:
   docker attach <container>
@@ -299,6 +317,11 @@ exec:
 	docker exec -u 0 -it container_name /bin/bash - will connect to 
 	'container name' as Root, regardless which user is specified in USER 
 	directive in the Dockerfile
+   Example:
+  docker exec <container_name> /usr/bin/which ps - will return location of
+	'ps' util in the container's file system
+  docker exec <container_name> /bin/ps aux - will return all the processes
+	running in the container
  
 start:
   starts previously stopped container(which could be found by 'ps -a')
@@ -327,6 +350,7 @@ rm:
   removes container by its ID or name
    docker rm <name or ID> [name or ID]
   -v - delete any volumes associated with a container
+  -f - force, will delete running container
     Example:
   docker rm name1 name2 - will remove containers named name1 and name2 from 
   the system
@@ -344,9 +368,14 @@ rm:
   Another solution:
    docker rm $(docker ps -a -q)
 
-  -f / --filter "key=value" - filters ps output by key-value paris:
-    docker ps -a -f "name=name" - will print out all the containers(stopped and
-	running) which field NAME contains string 'name'
+ == Manually remove container from filesystem w/o involving Docker:
+  stop Docker daemon:
+   sudo systemctl stop docker
+  Containers are stored in /var/lib/docker/containers
+   Container ID from 'docker ps'  will match name of directory in that directory
+  Restart docker daemon, it will re-read the directory and will find out  that
+   container has been removed, it wont show in 'docker ps -a' anymore
+
 
 port:
   displays all the ports of container and their mapping

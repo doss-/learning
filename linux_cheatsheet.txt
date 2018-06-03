@@ -299,7 +299,7 @@ nl:
 mkdir:
   creates dir
   mkdir <params> <path>
-  -p - creates every unexisting dir along the path
+  -p - creates every unexisting dir along the path, return no errors
    mkdir -p /not_exist1/not_exist2 - will create both not existing dirs 
 
 

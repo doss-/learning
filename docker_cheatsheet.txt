@@ -1,3 +1,7 @@
+
+systemd works weird in containers, see here:
+https://forums.docker.com/t/any-simple-and-safe-way-to-start-services-on-centos7-systemd/5695/9
+
 ===General
 Docker is Client-Server app, both could be run on the same system or client 
 could be connected to a remove Docker Daemon
@@ -212,17 +216,23 @@ run:
     docker run -it centos:latest /bin/bash
   -d - detached, container will run in background
   --name=<name> - creates container with specified and not random name
+    could be Lower case but could have Upper case (unlike Images names which
+	have to be Lower case). Spaces are not allowed.
   --net <network name>- use specified network (see docker network)
 	--net bridge04 - will use custom network 'bridge04' instead of default
 	one called 'bridge'
   --ip - assigns Static IP for a container, will only work with Custom network
 	assigned using --net param
+  --dns=[] - set custom DNS for a container
   -P - auto publishing. of all exposed Container's ports. Assigning random port
 	number (range defined by /proc/sys/net/ipv4/ip_local_port_range) for
 	every exposed port
 	Forward == Publish
-  -p=[] - publish specified port, or range of ports. If range is used amount of
-	ports should match each other:
+  -p=[] - publish specified port, or range of ports. 
+	By Default uses TCP, but UDP or SCTP could be specified:
+	-p 127.0.0.1:8080:80/udp - bind port 80 of container to UDP port 8080
+	of 127.0.0.1 of the Host Machine
+	If range is used amount of ports should match each other:
 	 -p 1234-1236:1234-1236/tcp - 3 ports on the left(host), 3 ports on the
 	right
 	 -p 8080:80 - publishes port 8080 on Host to port 80 on Container
@@ -233,6 +243,13 @@ run:
 	other) will be forwarded into container
 	 docker run -d -p 80:80 nginx - will run nginx in Detached mode with
 	port 80 of container is published as port 80 of the host
+     Ports poblish could be done w/o specification of the forwarded port, so
+	-p 80 - will expose container's port 80 to a port from range.
+	It works pretty same as -P , but needs a port number specified, when -P
+	just grams all the exposed container's ports
+	-p 127.0.0.2:8081:80 - also specific IP could be mapped to a container'
+	port, so in this case i could reach container's port 80 by using IP+port
+	but using another IP will not get me into this port
   Volumes can not be made in Dockerfile because Dockerfile meant to be 
 	portable
   -v /host/dir:/container/dir - mounts a Volume from Host machine into Docker
@@ -251,6 +268,13 @@ run:
 stop:
   stops the container
    docker stop <name>
+
+rename:
+  renames container names Stopped or Running ones
+  docker rename <container> <new name>
+  Container ID also could be changed but in the same way as to deletion of 
+  container manually - by stopping Docker daemon, navigating to 
+  /etc/var/docker/containers and renaming the folder with a specific container.
 
 ps:
   process list from withing docker daemon
@@ -287,6 +311,16 @@ stats:
   docker stats `docker ps -q` - will display resources usage for all the
 	container that are currently Running
   
+events:
+  Attaches to Docker daemon and displays all the current docker events like
+  stopping or starting container etc.
+   docker events <params>
+  --since '1h' - will display all the events since given time, e.g. 1 hour 
+  --filter 'filter'=value - there are several filters:
+	container, event, image, label, type, volume, network, daemon
+	filters event output by the event type and value:
+	--filter event=attach - will display only attach events, in runtime
+    several different filters could be applied 
 
 attach:
   docker attach <container>
@@ -335,12 +369,32 @@ stop:
   stop <container>
   gracefully stops the container
 
+save:
+  saves image to STDOUT, could be redirected into a file
+   docker save <image:name> > file.image.tar - will save image into a file
+  -o \ --output - Output, also redirects output to a file:
+   docker save -o file.image.tar <image:name>
+    later it could be read by tar(no matter it is not a tar at all basically)
+     tar tvf file.image.tar - will show contents of a file
+     gzip file.image.tar - to get it shrinked and save space
+
+load:
+  loads an image from a file using STDIN
+   docker load < file.image.tar - will load image from a tar file where image
+	has been saved previously
+  --input - input file with image contents to load
+	docker load --input file.image.tar
+    Load could work with compressed files too(compressed by gzip at least)
+	docker load --input file.image.tar.gz - will load image back in the
+	same way as from a regular file
+
 rmi:
   removes image by its name ID or repo + tag
   docker rmi <repo:tag>
   It will untag and delete image
   Images that has container instatiated from it(even stopped) will not be 
   deleted without Force. 
+  -f - force, will remove image if it has container instantiated
   Or containers need to be deleted first (see rm command)
    Example:
   docker rmi centos:centos6 - will remove image from repo 'centos 'tagged as 
@@ -414,6 +468,22 @@ logs:
 	1m30s, 3h - Go duration format
 	2006-01-02T15:04:05 - RFC 3339 Nano format
 	local time zone is used unless Z or +-00:00 provided
+
+history:
+  Returns the history of the image, layers and commands made it
+   Also IDs of the layers could show that those are parent ids of other images
+   located locally, in other case there will be <missing>
+   Latest layer ID it the image ID
+  --no-trunc - will show full lines without trancating, usefull to check 
+	Dockerfile directives used to create each layer
+
+tag:
+  tags an image by ID or name:tag. 
+   docker tag <user/image:tag> <user/image:new_tag>
+   docker tag <imageID> <user/image:tag>
+  New copy with the same ID will be created with new <image/name:tag> value
+   docker tag <image> image/name:tag - will create new entry of the image
+	(link to it), with tiven <image/name:tag>
 
 ===Dockerfile
 
@@ -527,3 +597,42 @@ EXPOSE
   Examples:
    EXPOSE 80
    EXPOSE 22 80
+
+===Docher Hub
+https://hub.docker.com/add/repository/?namespace=doss
+
+create repo:
+  go home, and click 'Create Repository +'
+
+login from CLI:
+docker login:
+  issues login process into the docker hub
+  After successful login file in 
+	/home/dos/.docker directory will be created called config.json, 
+	which will have auth info
+  --username=<user> - saves username for further logins
+
+docker logout:
+  issues logout process, which will delete auth info from config.json file
+
+docker push:
+  Pushes image to authenticated repository
+   Note: need to docker login first
+   Note: image need to be called properly:
+	cant push random named image into my repo, but image named with
+	<my_docker_name>/image:tag - goes nice
+   Note: creates new repo if no such were existent:
+	doss/deepdive:ex1 - will be pushed ok if user 'doss' is the one i've
+	logged in with
+	If user has no repo called 'deepdive' yet the repo will be created with
+	default settings(public repo)
+  docker push <user/image:tag>
+	Example:
+	docker login --username=doss - will ask for password
+		then create auth config.json (see above)
+	docker tag my_ramdom_image/test:tag1 doss/deepdive:ex1 - rename image
+		to user/repo sufficient format, where names match
+	docker push doss/deepdive:ex1 - will push the image into Dockerhub for 
+		user 'doss' under which i'm logged in and create public 
+		repository 'deepdive' if none existent
+		Will ask for credentials if repository exists and it is private

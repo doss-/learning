@@ -40,6 +40,7 @@ Contents
 =====Bash command line shortcuts
 =====Bash Shell
 =====Bash Scripting
+===Nginx
 
 
 
@@ -907,9 +908,18 @@ nice: renice:
   nice -n 20 /bin/bash - will start New(-n) process from /bin/bash binary, with
    priority of 20(the lowest one)
    
+sysvinit, systemd, upstart
+/usr/lib/systemd - systemd service manager working dir (new Rhel\Debian-like)
+/usr/share/upstart - upstart service manageer working dir(old Debian\Ubuntu)
+/etc/init.d - sysvitin service manager working dir (old Centos\Debian\Ubuntu)
+Note: Ubuntu could has all three installed currently, unlike centos that has
+initd but it wrapped in systemd
+
+
 service: daemon:
-  RHEL-like - systemd
-  Debian-like - upstart service
+  RHEL-like - systemd (moved from SysVinit)
+	https://fedoraproject.org/wiki/SysVinit_to_Systemd_Cheatsheet
+  Debian-like - upstart service (also adopted systemd)
   for Debian-like and RHEL-like systems its two different ways
    for Ubuntu since 15.xx it seems it is even more different..
   Debian-like:
@@ -1675,4 +1685,89 @@ elinks:
   
 mc:
   two-windowed GUI to work with file system
+
+
+===Nginx
+  fast web server, could be used as load balancer between servers(docker 
+   containers) - reverse proxy server
+
+  package name: nginx
+  /etc/nginx - config(as usual in etc dir)
+    ...conf.d - directory for some main configs probably
+    ...default.d - directory for default configs
+    ...sites-available - directory for available sites, convention directory
+	does not exist by default
+    ...sites-enabled - same as previous
+	Read more about sites-* here:
+	https://serverfault.com/questions/527630/what-is-the-different-usages-for-sites-available-vs-the-conf-d-directory-for-ngi
+
+    Basically all the configs are included in main config:
+    /etc/nginx/nginx.conf
+	it includes all the configs from directories mentioned above
+	same settings from different configs are overwritten by later added:
+	first.conf(a=1, b=2), second.conf(b=4, c=3) will be treated like this:
+	a=1, b=4, c =3
+ !!! MAKE SURE to follow syntax !!!
+	'upstream' directive can not be added before http{} section 
+	or inside http{} section
+
+	So all includes need to be made correctly
+	also not all directives could be added into configs that are included
+	because it could lead to conflicts and Nginx wont start
+	
+	IF nginx is not starting check:
+	journalctl -xe - for service errors
+
+	IF nginx throws errors or behave in not expected way check error log
+	its location in nginx.conf file
+	default location: /var/log/nginx/error.log
+
+    Nginx could refuse connection:
+	(13: Permission denied)
+       this related to SELinux, which also has error log:
+	sudo cat /var/log/audit/audit.log | grep nginx | grep denied
+     SELinux has bool values that Nginx and Apache and probably others use
+       getsebool -a | grep httpd - will return all bools related to httpd 
+	and Nginx(it uses them too)
+     To allow connections set:
+	setsebool httpd_can_network_connect on - or use 1
+	-P - will set it permanently
+	
+
+    Config setup, for proxy server:
+    Option 1:
+	create config with following stuff:
+
+#pool for balancing? should be after http{} section
+upstream containerapp {
+        server localhost:8081; #- not sure whether localhost is fine
+        server localhost:8082;
+}
+
+#server configuration
+server {
+        listen *:80; #everything coming to port 80
+
+        server_name localhost;
+        index index.html index.htm index.php #match any such file and use it
+
+        access_log /var/log/nginx/localweb.log; #save logs here
+        error_log /var/log/nginx/localerr.log;
+
+	#location is root , for some reason
+        location / {
+		#pass traffic coming through port 80 into the pool
+                proxy_pass http://containerapp; 
+        }
+}
+
+     Option 2:
+	Add upstream (with local network IPs) into nginx.config after http{}
+	section
+	Update server{} like above, but w/o *_log fields
+	Server_name also use local network IP
+	ALso i commented default 'root' not sure if this necessary
+
+
+
 

@@ -1,0 +1,7 @@
+
+clone:
+  clones repository locally , later parent repo could be reached as origin
+ clone locally:
+  this will allow have repo and working local branch on the same machine
+
+  git clone <username>@localhost:/path/to/repository <local dir name>

@@ -908,6 +908,9 @@ nice: renice:
   nice -n 20 /bin/bash - will start New(-n) process from /bin/bash binary, with
    priority of 20(the lowest one)
    
+=====Service controllers
+
+
 sysvinit, systemd, upstart
 /usr/lib/systemd - systemd service manager working dir (new Rhel\Debian-like)
 /usr/share/upstart - upstart service manageer working dir(old Debian\Ubuntu)
@@ -959,6 +962,26 @@ service: daemon:
   it exactly called now
   it seems it also supports systemctl and disable\enable with same commands,
    but creating .override file in the Debian way
+
+supervisor:
+  lightweight services controller, available for both RHEL and Debian like
+   distros
+  Manages processes, could restart and monitor them, require config file to
+  operate
+   See how to start several processes in Docker using this tool:
+https://kuldeeparya.wordpress.com/tag/how-to-run-ssh-and-apache2-in-docker-container/
+
+  config file:
+	[supervisord]
+	nodaemon=true
+	
+	[program:sshd]
+	command=/usr/sbin/sshd -D
+	
+	[program:apache2]
+	command=/bin/bash -c “source /etc/apache2/envvars && exec /usr/sbin/apache2 -DFOREGROUND”
+
+
 
 ===processes and services management
 
@@ -1767,7 +1790,5 @@ server {
 	Update server{} like above, but w/o *_log fields
 	Server_name also use local network IP
 	ALso i commented default 'root' not sure if this necessary
-
-
 
 

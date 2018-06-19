@@ -41,6 +41,7 @@ Contents
 =====Bash Shell
 =====Bash Scripting
 ===Nginx
+===Networking
 
 
 
@@ -1792,3 +1793,21 @@ server {
 	ALso i commented default 'root' not sure if this necessary
 
 
+===Networking
+
+ip: 
+  link - creates network interface with name and type:
+	Example:
+     ip link add br10 type bridge - will create network interface with 
+	name br10 and of type bridge
+   add - add interface
+   set - sets interface, somehow
+	ip link set br10 up - will enable network interface br10
+
+
+  addr - manages ip addresses..
+   add - adds gateway ip and subnet mask for device with a name
+	Example:
+     addr add 10.10.100.1/24 dev br10 - adds gateway with addres ...100.1 
+	and with subnet mask 255.255.255.0 to the device called br10
+	which is a network interface

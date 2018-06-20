@@ -1,0 +1,66 @@
+Runs w/o any daemons, but still needs a server installed on the main machine
+Manages nodes which are not required to have ansible installed
+Uses SSH for access the nodes, so OpenSSH-Server need to be installed
+Playbooks are the thing that define and install software
+
+When running Ansible commands, they are run against nodes
+ nodes are identified by Names
+List of nodes is stored in 'inventory' option of config , which points to
+ a file which describes Nodes - /etc/ansible/hosts , by default
+
+things to install to get ansible environment up and running:
+ sudo yum install python python-devel python-pip openssl ansible
+
+
+specific package dependencies for Ansible:
+python-httplib2
+python-jinja2
+python-markupsafe
+python2-crypto
+python2-paramiko
+
+
+===Configuration
+Config files:
+/etc/ansible/ansible.cfg - has a configuration settings all of which are 
+   commented out by default
+ 'sudo_user' option should be uncommented to be sure, but it is by default
+   behaviour
+ inventory - path to file where all the Nodes are stored
+
+=====Hosts
+located in
+/etc/ansible/hosts
+back it up
+
+groups are started with [<group_name>]
+and could has domain names or addresses or other aliases of the kind. i.e.:
+[local]
+localhost
+
+=====User
+create new user for ansible(lets call it ansible), add it to sudoers, because playbooks will fail
+in case of password request promt
+sudo visudo
+ add
+ansible ALL=(ALL)	NOPASSWD: ALL
+
+!! This user account need to be created on EACH of the nodes
+!! and also need to be added to sudoers file
+
+=====SSH Keys
+it is probably good practice to have key files generated and used for shh 
+connection:
+from under ansible user on Control Node generate keys:
+  ssh-keygen
+then copy public keys to other nodes:
+  ssh-copy-id <other_node_address>
+    ssh-copy-id 172.31.96.63 - will copy key to other machine, it somewhy did
+     not work with domain name like doss12.mylabserver.com
+!NOTE!:
+  SSH Key also need to be copied to local machine, because Ansible will use SSH
+   and SSH will try to connect to local machine via SSH and will ask for 
+   password too
+
+--version - returns version name and configuration info like config file 
+  locations, paths, modules locations etc.

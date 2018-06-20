@@ -35,4 +35,24 @@ change case:
   gUw   - change to end of current WORD Lower > Upper
   gUaw  - change all of current WORD Lower > Upper
   
+:scriptnames - displays all the file locations of all the configs loaded for
+  vim instance running
+:e $MYVIMRC  - open & edit the current .vimrc that you are using, then use 
+  Ctrl + G to view the path in status bar.
 
+.vimrc - main config file
+
+
+Colors:
+all the currently available colors are located in
+/usr/share/vim/vim74/colors folder
+
+to change color scheme for current session use:
+  :color <shceme_name>
+   :color desert
+
+to have it loaded automatically add it into vimrc file like:
+/etc/vimrc => :color desert
+
+somewhy it does not work when adding ~/.vimrc file, probably it is no tloaded
+for some reason, may be need to adjust some configs

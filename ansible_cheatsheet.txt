@@ -19,6 +19,14 @@ python-markupsafe
 python2-crypto
 python2-paramiko
 
+===Documentation
+available at ansible.com
+it has two documentations for
+Ansible - opensource\free 
+Ansible Tower - proprietary\paid
+Documentations split into sections, check out
+Module Indes section which will describe Ansible modules with examples
+ and stuff
 
 ===Configuration
 Config files:
@@ -64,3 +72,54 @@ then copy public keys to other nodes:
 
 --version - returns version name and configuration info like config file 
   locations, paths, modules locations etc.
+
+ all - executed from command line for all items in 
+	Inventory (/etc/ansible/hosts)
+  Or use name of the section from Inventory file instead of 'all'
+ -m - Module to use
+   ansible all -m ping - will ping-pong all items, green output is good
+	red - bad, it could be if user is prompted for password enter
+	in this case use ssh-keys authentification, as described in SSH Keys
+	section above
+   ansible centos -m copy -a "src=test.txt dest=/tmp/test.txt" - 
+	Use module called 'copy'(copy files) with Attributes of
+	src - source file (accepts relative path) test.txt located in current
+	 directory
+	dest - destination path on machines from a group 'centos'
+ -a - Attributes. everything after it will be executed as a command
+   ansible all -a "ls -la /home/ansible" - will return a section for each entry
+	in Inventory, with executed ls -la command
+	It returns 
+	Name of the machine 
+	Result - SUCCESS
+	rc=0 - return code
+	and command line output of executed command
+ -s - SUDO, use elevated privileges, or something like that DEPRECATED
+ -b --become - use to Become a SUDO
+	this could also want a password for Root or user with root privileges:
+	    "module_stderr": "Shared connection to localhost closed.\r\n",
+	    "module_stdout": "sudo: a password is required\r\n",
+	https://stackoverflow.com/questions/21870083/specify-sudo-password-for-ansible
+	use this line:
+   ansible local -b --extra-vars "ansible_become_pass=LAvmCenAns" -a "cat /var/log/messages"
+	 --extra-vars proides extra parameters sent into execution 
+		key value pairs, like name=value
+		ansible_become_pass - special Ansible variable to store pass
+===Modules
+ping - checks nodes, like pings and pongs back
+copy - copies files, requires attributes (-a)
+	src=<relative\absolute path> - source path
+	dest=<path> - destination path, where to copy a source 
+	Example:
+	ansible centos -m copy -a "src=./ansible/test.txt dest=/tmp/test.txt"
+apt - installs packages (UBUNTU only), attributes:
+	name=<package_name> - package to do something with
+	state=<state> - state of package to be after command executed:
+	  present - installs package if abscent, does nothing otherwise
+	  latest - installs latests version of package, even if older exists
+	  absent - makes sure package is absent
+yum - installs packages for CentOS7
+user - adds users, parameters:
+	name=<username> - username for user to be created
+	state=<state>
+	  absent - remove the user

@@ -72,6 +72,7 @@ then copy public keys to other nodes:
 
 --version - returns version name and configuration info like config file 
   locations, paths, modules locations etc.
+--list-hosts - list all hosts from Inventory
 
  all - executed from command line for all items in 
 	Inventory (/etc/ansible/hosts)
@@ -123,3 +124,23 @@ user - adds users, parameters:
 	name=<username> - username for user to be created
 	state=<state>
 	  absent - remove the user
+setup - gather facts checked by default and display it
+	ansible all -m setup - will return facts about all groups in Inventory
+	Parameters:
+:	filter=<value> - filter output by some keywords, accepts wildcards
+	Example:
+	ansible all -m setup -a "filter=*ipv4*" - will return all the sections 
+	 and their parents that contain keyword
+:	--tree <dir_name> - saves all the facts in JSON format into a directory
+	 creating file for each host, named by that host name in Inventory
+	Example:
+	ansible centos -m setup --tree facts - will create dir facts with file
+	for each machine from centos group, that file will contain all the
+	facts gathered for that particular machine. And will be named after the
+	hostname from Inventory for that machine
+	Tree could be used the check all the available facts, forfurther filtering
+
+===Playbooks
+ansible-playbook:
+ to execute playbooks
+ ansible-playbook <playbook.yaml>

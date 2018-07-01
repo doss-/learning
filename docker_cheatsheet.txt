@@ -89,10 +89,16 @@ Container Lifecycle:
 	storage driver name. This will contain all the Images, names will be
 	match with Image ID returned by 'docker images' command
 
-IP address
+===IP address
 During install docker daemon creates its own Network Interfacte, with ip address
 attached, like 172.17.0.1. 
 New containers will be assigned addresses from this pull, from ..0.2 to 0.254
+=====Change IP address for new containers
+ docker -d -b <network_interface> - could change default IP addresses range for 
+new containers
+ This will start docker daemon with another than default network interface 
+attached
+
 
 man:
   regular 'man' command works with Docker in the following way:
@@ -487,7 +493,135 @@ tag:
 
 ===Dockerfile
 
+=====Praser directives
+Comes on the top of the Dockerfile
+After first empty line or comment line(not existing directives treated as 
+comment line too) - Parser no more looking for parser directives
+Must start from # , Example:
+	# directive = value
+Lowercase by convention
+Could be any case, could have spaces
+Every directive could be used only Once
+
+Anything below will be treated ok
+Example:
+#directive=value
+# directive =value
+#	directive= value
+# directive = value
+#	  dIrEcTiVe=value
+
+escape:
+  Default escape character is \ (backslash)
+  directive to change escape character, usefull in windows, where \ is dir
+   separator
+
+  # escape=`   - changes esc char to ` (backtik) which is also esc char in
+	Powershell
+
+=====Environment variables:
+
+Environment variables could be used in Docker file as follows:
+$env_variable
+${env_variable}
+${env_variable:-other_value}	- see bash_cheatsheet
+${env_variable:+override_value} - see bash_cheatsheet
+
+Escape env variables usein \ (backslash)
+$foo - will refer to foo's value
+\$foo - will use it literally as '$foo'
+\${foo} - same escape
+
+Example:
+FROM busybox
+ENV foo /bar
+WORKDIR ${foo}   # WORKDIR /bar
+ADD . $foo       # ADD . /bar
+COPY \$foo /quux # COPY $foo /quux
+
+Following instructions support env variables:
+ADD
+COPY
+ENV
+EXPOSE
 FROM
+LABEL
+STOPSIGNAL
+USER
+VOLUME
+WORKDIR
+ONBUILD (when combined with one of the supported instructions above)
+
+ENV is not updates variable's values during the instruction execution:
+ENV abc=hello
+ENV abc=bye def=$abc  	#def is 'hello', bcs of same instruction
+ENV ghi=$abc		#ghi is 'bye', bcs is not on same instruction
+
+=====Dockerignore .dockerignore
+Filters context sent to docker daemon, before CLI sends context it goes
+through .dockerignore, and is being filtered out if matched by path
+Need to be located in the root of the context dir
+New line separated lit of patterns similar to file globs of Unix shells
+Root of the context is considered as Workdir and Root dir, so:
+/foo/bar
+foo/bar
+treated in the same way
+
+Example:
+# comment	- ignored
+*/temp* 	- any first sub directory\file whose name starts with 'temp'
+		/somedir/temporary.txt - ignored
+		/somedir/temp - ignored
+*/*/temp*	- same but two levels below the Root
+temp?		- excludes from Root files\dirs whose names 1 char extention
+		of temp: /tempa, /tempb, /tempo etc.
+
+Matching is done using Go's filepath.Match rules
+leading and trailing whitespaces are removed during preprocess
+. and .. are eliminated during preprocess
+After preprocessing Empty lines are ignored
+filepath.Clean Go's method is used for preprocess
+
+Special wildcards also supported:
+**
+which matches any number of directories(0 too).
+Example:
+**/*.go - will exclude all files that end with .go that are found in all dirs
+including the root of the build context
+
+! - adds exceptions for ignore. 
+Example:
+*.md		- excludes all .md file in context root
+!README.md	- except README.md file in context root
+
+Placement of ! influences the behavior
+Example:
+*.md		- excludes all .md file in context root
+!README*.md	- except all files start with README with .md
+README-secret.md - this particular file is still excluded
+
+If !README*.md will be 3rd and not 2nd line, current 3rd line will have no 
+effect
+
+.dockerignore could even exclude .dockerignore and Dockerfile
+Those file will still be sent to the daemon 
+BUT WILL NOT BE ADDED IN THE IMAGE using ADD and COPY directives
+
+Good Practice:
+Ignore everything using *
+Add only what is needed using ! for add exceptions
+NOTE: this is the same approach as in 'iptables' when closing everything 
+except what is needed
+
+Note: for historical reasons . is ignored
+
+=====Dockerfile directives:
+
+
+FROM
+  FROM <image> [AS <name>]
+  FROM <image>[:<tab>] [AS <name>]
+  FROM <image>[@<digest>] [AS <name>]
   need to be first command, tells docker daemon from where to build.
   could be:
    scratch - means no image need to be searched or downloaded
@@ -496,6 +630,39 @@ FROM
    image[:tab] - name of the image optionally with tag, which will be 
 	downloaded and used as base image, to which all the other commands
 	will be applied
+  FROM could appear several times during one Dockerfile.
+	  Each FROM unstruction clears any state created by previous one
+  AS - used to name a build stage, later on this name could be passed to
+	subsequent FROM and COPY --from<name|indes> instructions to refer
+	the image built in this stage
+  tag or digest - are optional , if omitted builder assumes a 'latest' tag
+	by default.
+	Error is returned if builder can not find a tag value
+
+ARG
+  Declares an argument to be used during build
+	ARG <name>[=<default value>]
+  Docker file could contain one or More ARG instructions:
+	ARG user1	- arg w/o value
+	ARG buildno=1	- arg w/ default value
+	both could be set from command line, see below
+  Argument could be initialized by value from command line like:
+	docker build --build-arg <varname>=<valuename>
+	Dockerfile could contain such varname w/o or w/ value
+	or could not, then Warning will be issued
+!!
+ ARG could be used before FROM directive:
+ But to use it INSIDE a build stage(after FROM directive) ARG need to be
+	redeclared w/o default value, see below:
+  ARG VERSION=latest 			- set up a default value
+  FROM busybox:$VERSION			- use the value
+  FROM easybox:$VERSION			- use it again
+  ARG VERSION				- set it to be visible inside a build
+					  stage
+  RUN echo $VERSION > image_version	- save it to a file 'image_version'
+
+	
+
 
 MAINTAINER - deprecated, use LABEL
   name or email or anything relating of who maintans the image
@@ -522,47 +689,206 @@ LABEL
 
 
 RUN
-  RUN <command>
+	Has two forms, Sell form and Exec form
+  RUN <command> - shell form
    RUN useradd -ms /bin/bash testuser
+  RUN ["executable", "param1", "param2"] - exec form
+	Exec form is parsed as JSON array, thus double quotes " is must, and
+	not the single quotes '
+   In exec mode env vars expansion is made by the Shell not Docker
+   Bachskashes need to be escaped in exec form as to not being valid JSON chars
+   Runs in default shell:
+	Linux: /bin/sh -c
+	Windows: cmd /S /C
+    Default shell could be changed using SHELL direcive
+   To run different shell use:
+	RUN ["/bin/bash", "-c", "echo hello"]
   runs a command after 'RUN ', like regular cli command 'useradd'
-  command will be executed\saved as a layer
+
+  Use \ in the 'shell' mode to create a multi line command:
+	RUN /bin/bash -c 'source $HOME/.bashrc; \
+	echo $HOME'
+
+  Command will be executed on the current image and saved as a layer
   Can be executed several times during Dockerfile
+ 
+  Layering RUN commands is bad practice and conforms core concepts of Docker
+  where commits are cheamp and containers can be created from any point in an
+  image's history, like in source control
+
 
 CMD
-  executes command, but it does not become a layer
+  Executes command, but it does not become a layer
+  Main purpose of a CMD instruction is to provide defaults for an executiong 
+  container
+   Has three forms:
+    CMD ["executable", "param1", "param2"] - exec form, preferred
+    CMD ["param1", "param2"] - default params for ENTRYPOINT
+    CMD command param1 param2 - shell form
+	Exec form executes command With Out the shell
+	variable expansion is not done in exec mode: 
+	CMD [ "echo", "$HOME" ] - will return '$HOME'
+	if need to be done - call shell directly:
+	CMD [ "sh", "-c", "echo $HOME" ] - the shell will expand variables
+	
+   Default shell is:
+	/bin/sh -c
+!  Only one CMD could be in Docker file, if several such instructions are given
+	only latest one will take effect
+  In case executable is omitted (2nd form) ENTRYPOINT must be provided
+	If ENTRYPOINT and CMD with params are used, both need to be done in
+	JSON format(exec format)
   Can be inherited from parent image in FROM directive
   Can be overridden in child docker file using CMD [] directive
   CMD "echo" "this is a test message" - will execute Echo command with a custom
    message. Also container will immediately stop after doing that, if
    no other directives are given for it to run continuously
 
+  If same executable need to be run everytime on start of the container
+   ENTRYPOINT need to be used, together with CMD providing the params
+
 ENTRYPOINT
   Executes a command EVERY time, no matter what command is given during 
   instantiation like 'docker run .... /bin/bash'
+    Has two forms:
+   ENTRYPOINT ["executable", "param1", "param2"] - exec form, preferred
+   ENTRYPOING command param1 param2 - shell form
+
   Can be inherited from parent image in FROM directive
   Can be overridden in child docker file (probably)
    or in command line using --entrypoint of docker run command
-  Usually shell is executed with this directive
 
   ETNRYPOINT echo "echoed message" - will be displayed all the time no matter 
    what is applied to run command(such as /bin/bash)
    ENTRYPOINT apachectl "-DFOREGROUND"
 
+  ENTRYPOINT is used to run container as executable
+	docker run -i -t --rm -p 80:80 nginx
+   command line args to 'docker run <image>'  will be appended after all 
+    elements of exec form of ENTRYPOINT. 
+    Will override all elements specified in CMD (see 2nd form of CMD command)
+   So new arguments could be passed instead of default ones stated in CMD
+    Example:
+	docker run <image> -d - will path -d argument to the entry point.
+   ENTRYPOINT could be overriden by:
+	docker run --entrypoing 
 
+   Shell form of ENTRYPOINT prevents any CMD or 'docker run' command line args 
+   from being used, but starts not as PID 1, so will not receive Unix signals 
+   (SIGTERM) so	docker stop <container> will not work for this container
+
+   Only last ENTRYPOINT will work in Dockerfile.
+
+ Good practice:
+  use exec form of Entrypoint to set fairly stable default parameters
+  and CMD for those which are more likely to change:
+   ENTRYPOINT ["top", "-b"]
+   CMD ["-c"]
+
+  If shell form is used, to be able to gracefully stop a container 'exec'
+   need to be added to ENTRYPOINT directive:
+
+  ENTRYPOINT exec top -b      - in this case top will be PID1 and docker stop
+				will terminate container correctly.
+  In other case PID1 will be 'sh', because 'shell' works through '/bin/sh -c'
+  and container will be SIGKILL'ed after a timeout when used 'docker stop'
+  
+=====ENTRYPOINT and CMD iteract
+Both CMD and ENTRYPOINT define what command gets executed when running a 
+container. There are few rules:
+1. Dockerfile should specify at least one of CMD or ENTRYPOINT
+2. ENTRYPOINT should be defined when using the container as executable
+3. CMD should be used to provide default arguments for ENTRYPOINT
+ 3.1 or to execute some ad-hoc command in a container.
+	Probably the one which could or could not be needed every time
+	container is instantiated\started. When there is a high possibility
+	of running a container with some Other command
+4. CMD will be overriden when running container with alternative arguments
+	Example:
+	 docker run -itd image:tag --alternative-param - this will override
+	params given to CMD with '--alternative-param'
+
+Shell mode:
+ ENTRYPOINT exe param
+  /bin/sh -c exe param
+ CMD exe param
+  /bin/sh -c exe param
+Exec mode:
+ ENTRYPOINT ["exe", "param"]
+  exe param
+ CMD ["exe", "param"]
+  exe param
+
+ ENTRYPOINT/CMD combinations
+1. If no ENTRYPOINT or CMD given - Error produced
+2. CMD used if No ENTRYPOINT given
+3. Shell ENTRYPOINT will ignore all the CMD at all
+4. Exec ENTRYPOINT will append to it everything from CMD in the same order
+ 4.1 If Exec ENTRYPOINT and Shell CMD are combined, ENTRYPOINT will be 
+	appended by CMD with '/bin/sh -c' line
+	 Example:
+	ENTRYPOINT ["exec_entry", "p1_entry"]
+	CMD exec_cmd p1_cmd
+	 Will produce:
+	exec_entry p1_entry /bin/sh -c exec_cmd p1_cmd
+
+VOLUME
+  creates volume during container instantiation. several volumes could be 
+	created at once:
+   VOLUME ["/var/log", "/var/db"]  - JSON array
+   VOLUME /var/log /var/db - plain string
+
+  by default volumes created in instantiated container, and on the host in 
+  docker directory in 'volumes' subdirectory:
+   /var/lib/docker/volumes/a2d05af6cb32bd1f8e827d5a3943500e0ffe51210dbf0e72a15e35b357f99b85/_data - will contain volume's contents
+
+ Notes:
+  1. If any build step change the data within the volume after it has been 
+	declared, those changes will be discarded
+  2. JSON , use double quotes " instead of single quotes '
+  3. Declare host directory at container runtime.
+	VOLUME instruction does not specify a host-dir. It does not support it
+	Host dir mountpoint need to be specified at container:
+	- creation
+	- restart
+    3.1 but i do not know how to do that
+    3.2 need to check Volumes usage here:
+	https://docs.docker.com/storage/volumes/
 
 USER
-  USER <username>
+  USER <username>[:<group>]
+  USER <UID>[:<GID>]
   marks entry point for a container to be under specific user.
   in this case user first need to be created using RUN command
-  All the commands in Dockerfile after this directive will run under 
+  All the instructions in Dockerfile after this directive will run under 
   the user that was specified!
+  All the instructions are:
+   CMD
+   RUN
+   ENTRYPOINT
 
-Environment variables manupulation:
+WORKDIR
+   WORKDIR /path/to/workdir
+   WORKDIR relative/path/to/previous/WORKDIR
+  Sets a working directory for :
+  RUN, CMD, ENTRYPOINT, ADD, COPY instructions
+   It is created anyway, even if not used(pointing to /)
+
+  Could be absolute or relative, could be used multiple times in a Dockerfile
+  If relative - will be added to current WORKDIR (by default /)
+
+  Could use Env variables , but only explicitly set previously in the
+  Dockerfile. Env vars from system, even current session, will not apply,
+  same as ENV vars set with docker instruction but later on in the same
+  Dockerfile
+
+===Environment variables manupulation:
   the simpliest way is to export something into users .bashrc file:
   RUN echo "export JAVA_HOME=/usr/java/jdk1.8.0/jre" >> /home/user/.bashrc - 
   this will add a line into .bashrc file which is read every time the
   shell is executed. Basically is standard way to add ENV variables for a
   user
+
 ENV
   sets system-wide variables, could be used in two ways:
    Usage 1:
@@ -570,7 +896,7 @@ ENV
    Example:
   ENV JAVA_BIN /user/java/jdk1.8.0/jre/bin
    Everything after first space will be treated as a 'value' including spaces,
-   and even other env var names
+   and even other env var names. Quote chars are ignored if not escaped
    Example:
   ENV myName John Doe
   ENV myDog Rex The Dog
@@ -582,6 +908,92 @@ ENV
    Example:
    ENV myName="John Doe" myDog=Rex\ The\ Dog \
     myCat=fluffy
+
+ADD
+  Copies files\dirs from relative <src> of context to <dest> of the image
+   Two forms are supported:
+    ADD [--chown=<user>:<group>] <src>... <dest>
+    ADD [--chown=<user>:<group>] ["<src>",... "<des>"]
+	Second form is used when path contains whitespaces
+     NOTE: --chown works only in Linux not Windows
+  Multiple <src> are supported, all need to be relative to context root
+  Wildcards are supported, matching is done using Go's filepat.Match rules
+	Example:
+   ADD hom* /mydir/        # adds all files starting with "hom" to /midir in 
+				the image file system
+   ADD hom?.txt /mydir/    # ? is replaced with any single character, 
+				e.g., "home.txt"
+   <dest> - absolute path in the image file system
+	or
+	relative path to WORKDIR
+	Example:
+   ADD test relativeDir/          # adds "test" to `WORKDIR`/relativeDir/
+   ADD test /absoluteDir/         # adds "test" to /absoluteDir/
+
+  Special characters like ] or [ need to be escaped
+	Example:
+   ADD arr[[]0].txt /mydir/ #copies a file "arr[0].txt" to /mydir
+
+  All files and dirs created with UID and GID as 0, unless --chown specifies
+	another user/group. Username and Groupname are supported as well as
+	UID and GID integers
+	If --chown is used Containers /etc/passwd and /etc/group will be used
+	to check ID numbers
+	Example:
+   ADD --chown=55:mygroup files* /somedir/
+   ADD --chown=bin files* /somedir/
+   ADD --chown=1 files* /somedir/
+   ADD --chown=10:11 files* /somedir/
+  NOTE: if /etc/passwd or /etc/group files are absent ADD operation will fail 
+	during the Build process
+!	Using ingeregs for UID and GID is not require checks of those files
+
+!!!!
+   If Dockerfile is sent through STDIN:
+	docker build - < Dockerfile
+    There will be NO context, so Docker file can contain only URL based ADD
+	instructions.
+    Or pass an archive with Dockerfile and context:
+	docker build - < archive.tar.gz
+Authentification:
+ Note: If your URL files are protected using authentication, you will need to
+ use RUN wget, RUN curl or use another tool from within the container as the 
+ ADD instruction does not support authentication.
+
+ ADD Rules:
+  - <src> must be Inside of the context of the build
+	ADD ../something /something - will NOT work
+  - if <src> is a URL and <dest> does NOT end with trailing slash, then
+	a file is downloaded from URL and copied to <dest>
+  - if <src> is a URL and <dest> DOES end with trailing slash, then
+	a filename is inferred from URL and file is downloaded to 
+	<dest>/<filename>. Example:
+	ADD http://example.com/foobar / - will create /foobar file
+  - if <src> is a dir, the entire contents of the dir are copied including 
+	file system metadata.
+	NOTE: directory is not copied, only its contents
+  - if <src> is 'local' tar archive , compressed in recognized format
+	(identity, gzip, bzip2 or xz) - then it is unpacked as a dir.
+  - if multiple <src> are specified <dest> must be a directory and
+	must end with trailing slash - /
+  - if <dest> does NOT end with a trailing slash it is considered as FILE
+	and contents of <src> are written at <dest>
+  - if <dest> is missing it is created along with all dirs in its path
+
+COPY
+  behaves pretty similar to ADD but is not unpacking archived things
+  Preferred to use over ADD until archive need to be unpacked
+	Two forms:
+    COPY [--chown=<user>:<group>] <src>... <dest>
+    COPY [--chown=<user>:<group>] ["<src>",... "<dest>"]
+	second form is for path containing whitespaces
+
+  Also accepts flag '--from=<name|index>' of a build stage like
+	FROM .. AS <name>
+	in this case contents will not be taken from a context but taken
+	from a build step specified.
+	If no build stage is found with such name, image will be attempted for
+	use
 
 EXPOSE
   exposes particular port, or probably list or range of ports

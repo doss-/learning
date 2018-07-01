@@ -19,6 +19,22 @@ variables:
   my_str_var="string w/ spaces goes in quotas"
   echo "stuff is: $my_str_var" > stuff is: string w/ spa.....
   echo 'stuff is: $my_str_var' > stuff is: $my_str_var
+   Bash modifiers:
+  ${variable:-word} - if 'variable' is set, the result will be its value
+	if 'variable' is unset - the result will be 'word'
+  ${variable:+word} - if 'variable' is set, the result will be 'word',
+	otherwise result will be EMPTY string
+  Example:
+	$ echo ${variable:-ls} - variable unset - ls used
+	> ls
+	$ export variable=1
+	$ echo ${variable:-ls} - variable is set- its value used
+	> 1
+	$ echo ${variable:+ls} - variable is set - ls used
+	> ls
+	$ echo ${variable1:+ls} - variable unset - empty line used
+	> 
+
 
 if:
   Condition tests in IF should be inside square brackets - [], which are just a

@@ -210,6 +210,7 @@ df:
 ifconfig:
   displays current network interfaces
   part of the 'net-tools' package
+   /etc/network/interfaces - for interfaces(5) changes
 
 sed:
   text stream editor, using RegEx for search\edit in stream(STDIN) line by line,
@@ -1811,3 +1812,13 @@ ip:
      addr add 10.10.100.1/24 dev br10 - adds gateway with addres ...100.1 
 	and with subnet mask 255.255.255.0 to the device called br10
 	which is a network interface
+
+  Add persistant network interface:
+	/etc/network/interfaces
+	auto <interface name>
+	iface <name> inet static
+		address 10.10.100.1	#main address
+		netmask 255.255.255.0	#class C, like 10.10.100.1/24
+		bridge_ports dummy0	#some mock stuff
+		bridge_stp off
+		bridge fd 0 		#frame 0

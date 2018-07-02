@@ -539,7 +539,7 @@ WORKDIR ${foo}   # WORKDIR /bar
 ADD . $foo       # ADD . /bar
 COPY \$foo /quux # COPY $foo /quux
 
-Following instructions support env variables:
+Following instructions support env variables(variables expansion):
 ADD
 COPY
 ENV
@@ -661,8 +661,76 @@ ARG
 					  stage
   RUN echo $VERSION > image_version	- save it to a file 'image_version'
 
-	
+!!
+ ENV overrides ARG if both with Same name are defined. 
+  Same manner as in shell scripts when local scope overrides passed as params
+  vars or inherited from environment
+ Example:
+  ARG VAR
+  ENV VAR ${VAR:-local_value}
+  RUN echo $VAR
+   docker build --build-arg VAR=outer_value
+  with --build art RUN will return 'outer_value', without - 'local_value'
+ ENV is persisted in the Image, so w/o --build-arg default 'local_value' will 
+ persist in the image.
 
+ NOT ALL DOCKERFILE INSTRUCTIONS SUPPORT VARIABLE EXPANSION($VAR > 'value')
+ see '=====Environment variables'
+
+ Predefined ARG values, that could be used w/o using ARG to declare: 
+    HTTP_PROXY
+    http_proxy
+    HTTPS_PROXY
+    https_proxy
+    FTP_PROXY
+    ftp_proxy
+    NO_PROXY
+    no_proxy
+  This could be passed directly from command line, w/o declaration in Dockerfile
+   Example:
+  --build-arg HTTP_PROXY=http://user:pass@proxy.lon.example.com 
+   Output of those variables is supressed in 'docker history' and build cache
+   for security reasons
+
+  Specifying those variables in Dockerfile will override the behavior and
+  output will be visible in 'docker history' and saved in build cache
+
+ONBUILD
+  sets trigger to fire if current image will be used as base(FROM) image of
+  inheriting container. Trigger is another instruction.
+   ONBUILD [INSTRUCTION]
+  
+  Triggers list is saved in Image metadata during build.
+  Triggers list could be viewed by 'docker inspect <image>' under OnBuild
+  Triggers list checked in inheriting Dockerfile during Build, during FROM
+   instruction execution. It checks parent image's metadata and executes
+   all instructions in order they were added.
+  Triggred instructions are executed immidiately after FROM instruction
+  Grand-children do not inherit this Triggers list(Base>child>grand-child)
+  
+  Useful when before doing something during build e.g inheriting image need some
+  prerequisites (like copy source code somewhere before build it).
+
+  Example:
+  ONBUILD ADD . /app/src
+  ONBUILD RUN /usr/local/bin/python-build --dir /app/src
+   This will execute ADD and RUN instructions in inheriting Dockerfile right 
+   after its FROM instruction
+
+ NOTE:
+  Any instructions allowed except:
+   ONBUILD - something strange here it seems
+   FROM - may not trigger it
+   MAINTAINER - may not trigger it
+
+STOPSIGNAL
+  kill command, accepts numbers and names of the signals
+   numbers need to match kernel's syscall table
+  Command sends signals to container to exit
+
+  Example:
+   STOPSIGNAL 9
+   STOPSIGNAL SIGKILL
 
 MAINTAINER - deprecated, use LABEL
   name or email or anything relating of who maintans the image
@@ -1009,6 +1077,10 @@ EXPOSE
   Examples:
    EXPOSE 80
    EXPOSE 22 80
+
+HEALTHCHECK
+
+SHELL
 
 ===Docher Hub
 https://hub.docker.com/add/repository/?namespace=doss

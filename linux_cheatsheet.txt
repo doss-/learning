@@ -967,7 +967,7 @@ service: daemon:
 
 supervisor:
   lightweight services controller, available for both RHEL and Debian like
-   distros
+   distros. Could be used in containers instead of systemd or systemctl etc
   Manages processes, could restart and monitor them, require config file to
   operate
    See how to start several processes in Docker using this tool:

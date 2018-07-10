@@ -665,6 +665,8 @@ ARG
  ENV overrides ARG if both with Same name are defined. 
   Same manner as in shell scripts when local scope overrides passed as params
   vars or inherited from environment
+  -e - overrides ENV value in docker file:
+    docker run -e varInDockerFile="new_value" image:tag
  Example:
   ARG VAR
   ENV VAR ${VAR:-local_value}
@@ -959,6 +961,7 @@ WORKDIR
 
 ENV
   sets system-wide variables, could be used in two ways:
+  COuld be overriden by outer parameter for 'docker run' command
    Usage 1:
   ENV <key> <value>
    Example:
@@ -976,6 +979,11 @@ ENV
    Example:
    ENV myName="John Doe" myDog=Rex\ The\ Dog \
     myCat=fluffy
+
+  -e - sets Env variable, this will override the ones existing in container
+   Example:
+  docker run -e LOCAL="outer" image:tag
+	this will re set value of LOCAL variable to 'outer'
 
 ADD
   Copies files\dirs from relative <src> of context to <dest> of the image
@@ -1120,3 +1128,132 @@ docker push:
 		user 'doss' under which i'm logged in and create public 
 		repository 'deepdive' if none existent
 		Will ask for credentials if repository exists and it is private
+
+docker-compose:
+ up:
+  Sets everything up(all services) as described in docker-compose.yml
+   Uses current terminal for STDOUT\ERR
+  Should be executed in directory with docker-compose.yml file
+  Restarts everything back in case of host-machine restart
+
+  -d - detached mode, will return control of terminal (same as docker run -d)
+
+ down:
+  turns everything down, which was upd by up command
+  Deletes all the infrastructure - containers, networks etc (except images)
+   --volumes - also removes volumes created during composing stuff
+
+ stop: 
+  stops all the composed environment, but keep it
+
+ start:
+  starts all the stoped environment
+
+ run:
+  run one-off commands on the service
+   Example:
+  docker-compose run web env - will return all 'env' variables of service
+	called 'web'
+
+docker-compose configuration file:
+
+version: 
+  version of docker compose parser, pretty old ones are not 3+
+   Example:
+  version: '3'
+
+services:
+  main field, it seems, the head of hierarchy
+  all the 'containers' are listed under it
+   Example:
+  services:
+    container_first:
+     ...
+    container_second:
+     ...
+
+
+build: 
+  Instruction to build a container from given Dockerfile(and image if given)
+  Could accept only path for directory where Dockerfile is located
+   Example:
+  build: .
+   Or could have list of <property>=<value> points:
+  build: 
+   context: ./dir 		#(could be .)
+   dockerfile: Dockerfile-alternate  
+   args:
+     buildno: 1
+
+  could also has image provided, with some behavior...
+   Compose named build image will have image(?) name and its tag if provided
+
+ context:
+  path to a directory or GIT repository url
+  which goes right into 'build:' if only this used - path for directory where 
+  Dockerfile and context are located.
+   if path is relative - location of docker-compose.yml is used as a starting
+  point
+   path is also a context for build of Dockerfile pointed
+
+ dockerfile:
+  alternate file, i dont know what it means..
+
+ args:
+  Add build arguments which are env vars accessible only during build process
+  If Dockerfile has ARG field specified, it could be initialized with value 
+  using this parameter
+   Example:
+  ARG buildno 		#in Dockerfile
+  --
+  build:
+   args:
+    buildno=1		#will apply '1' to Dockerfile's ARG
+
+  Applies YAML's mapping or list:
+  args:
+   buildno: 1
+    =or=
+  args:
+   - buildno=1
+
+  If no value is provided to args it will be taken from current environment
+  where compose is running:
+   Example:
+  export buildno=1	#shell where env var is exported
+  --
+  args:
+   buildno		#will take value '1' from shell's environment
+
+  Note: YAML boolean values (true, false, yes, no, on, off) must be enclosed 
+    in quotes, so that the parser interprets them as strings. 
+
+ cache-from:
+  list of images to use cache from
+  probably is useful to increase build speed of composed containers
+
+ labels:
+  adds metadata to the resulting image using Docker labels.
+  could use array or dictionary
+   Example
+ build:
+  labels:
+   com.example.description: "Accounting webapp"
+   =or=
+   - "com.example.description=Accounting webapp"
+
+ NOTE: use reverse-DNS(where .com at beginning) to prevent labels from
+  confliction with those used by other software
+
+command:
+  overrides CMD, could also be in two forms
+  command: bundle exec thin -p 3000
+  =or=
+  command: ["bundle", "exec", "thin","-p", "3000"]
+
+container_name:
+ Specifies a container name. 
+  Can not scale service(container(s)) more than 1 in this case - names
+  must be uniq
+ Container usually named as '<dir_of_docker-compose>_<service_name>'
+ 

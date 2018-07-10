@@ -3,6 +3,23 @@ https://stackoverflow.com/a/34066989
 how to change PYTHONPATH:
 http://ask.xmodulo.com/change-syspath-pythonpath-python.html
 
+
+print:
+  2.7
+   print "this is string and this is ",variable
+   print 'Hello World! I have been seen {} times.\n'.format(count)
+  3+
+   print("this is string and this is",variable)
+
+if:
+  if 1>2:
+    print "this will never print"
+
+whiel:
+  wile True:
+    print "this will print forever"
+
+
 read\write files 
 open('file_path') - opens for 'r' - read, 'r' is default second param
  others:
@@ -17,4 +34,22 @@ stream.readline() - one line and moves cursor forward
 stream.readlines() - all lines left after cursor, returns List[string]
 stream.close() - need to close unmanaged resources, can only read from 'r'
 stream.write() - writes only string w/o carriage return
+
+
+exception handling:
+  try:
+    {try code}
+  except <lib.namespace.ExceptionClass> as <var_name>:
+    {catch code}
+
+pip:
+  python libraries manager
+
+ install:
+   installs libraries
+   -r <file_name>- requirement, takes required packages from a file
+	each package name on new line
+	 Example:
+	Flask   	- will install Flask
+	Flask==0.10.1   - will install Flask of given version
 

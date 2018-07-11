@@ -1796,8 +1796,34 @@ server {
 
 ===Networking
 
+networking relies on configuration files:
+/etc/sysconfig/network-scripts/ifcfg-<interfase_name> - this file describes 
+	how network interface works, every interface has its own file.
+	Settings of the interface are stored in here
+	 Example:
+	DEVICE="eth0"
+	BOOTPROTO="dhcp"
+	HWADDR="00:0C:29:3B:44:D3"
+	IPV6INIT="yes"
+	NM_CONTROLLED="yes"
+	ONBOOT="yes"
+	TYPE="Ethernet"
+	UUID="951b47f7-e9c5-4e64-85ce-44c79732d914"
+/etc/sysconfig/network - general network configuration, probably
+	 Example:
+	NETWORKING=yes
+	HOSTNAME=centos7
+	GATEWAY=10.0.0.1
+/etc/resolv.conf - something like 'hosts' in Windows, it seems, store default DNS here
+	 Example:
+	nameserver 8.8.8.8   - default google's DNS
+see this for details on resolving Networking issue on VMWare:
+https://superuser.com/questions/901672/centos-7-ping-8-8-8-8-connect-network-is-unreachable/901677
+
+
 ip: 
   link - creates network interface with name and type:
+	also could be used if 'ifconfig' is absent
 	Example:
      ip link add br10 type bridge - will create network interface with 
 	name br10 and of type bridge
@@ -1806,7 +1832,8 @@ ip:
 	ip link set br10 up - will enable network interface br10
 
 
-  addr - manages ip addresses..
+  addr - manages ip addresses. 
+	in case 'ifconfig' is not available this comes handy
    add - adds gateway ip and subnet mask for device with a name
 	Example:
      addr add 10.10.100.1/24 dev br10 - adds gateway with addres ...100.1 

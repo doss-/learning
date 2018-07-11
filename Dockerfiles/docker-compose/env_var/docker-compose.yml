@@ -1,0 +1,14 @@
+version: '3'
+services:
+  api:
+    #image: 'node:6-alpine'
+    image: 'nginx'
+    env_file:
+     - ./Docker/api/api.env
+     - .env
+    environment:
+     - NODE_ENV1=compose_file
+     - NODE_ENV2
+    command: "echo node_env is $NODE_ENV . and node_env1 is $NODE_ENV1 . and node_env2 is $NODE_ENV2. and node_env3 is $NODE_ENV3 > test.txt"
+     
+#

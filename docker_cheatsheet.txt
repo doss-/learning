@@ -1256,4 +1256,53 @@ container_name:
   Can not scale service(container(s)) more than 1 in this case - names
   must be uniq
  Container usually named as '<dir_of_docker-compose>_<service_name>'
+
+env_file:
+
+
+environment:
+  
+environment expansion:
+  1. If shell has value it will be expanded in docker-compose file 
+   1.2 It'll passed into container ONLY if mentioned in 'environment:' 
+    Example:
+   environment:
+    - SHELL_VAR
+  2. If .env file in root is present it will be expanded in docker-com file
+   2.2 it'll be passed into container ONLY if mentioned in 'env_file:'
+    Example:
+   env_file: .env
+  3. If docker-compose has custom .env file (other name or path) it will NOT
+   be expanded in docker-compose file
+    Example:
+   env_file: ./Custom/path/app.env
+    3.2 it will be passed into container anyway
+  4. If docker-compose has custom environment var defined it will NOT
+   be expanded in docker-compose file
+    Example:
+   environment:
+    - CUSTOM_VAR=compose_file_variable
+   4.1 it will be passed into container anyway
+  5. If Shell has a variable and docker-compose file also has initialized one:
+     during expansion SHell value will be used
+     but in Container's shell docker-compose value will be passed
+      Example:
+     export SHARED_VAR=shell
+     --
+     environment:
+      - SHARED_VAR=compose_file
+     command "echo shared_var is $SHARED_VAR"
+     --
+      docker-compose config - will return:
+     environment:
+      SHARED_VAR=compose_file - this will be in container's shell
+      command: 'echo shared_var is shell'
+
+  !!!!!!!!!!!!!!!!!!
+  !!!! BE EXPLICIT
+  !!!! do not use same names, or recheck twice
+  !!!! explicitly use .env file or other variables 
+  !!!!!!!!!!!!!!!!!!
  
+
+

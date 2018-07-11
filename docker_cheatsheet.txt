@@ -1305,4 +1305,6 @@ environment expansion:
   !!!!!!!!!!!!!!!!!!
  
 
-
+config:
+  shows docker-compose.yml but with expanded variables
+  and 'environment:' section has ALL THE ENV VARS THAT WILL BE PASSED TO CONTAINER\SERVICE

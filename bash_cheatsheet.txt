@@ -127,3 +127,72 @@ exit code:
 incrementation: increment: i++:
   counter_var=0
   counter_var=$(( $counter_var + 1 ))
+
+help:
+  lists all built-in commands
+   help <built-in command>
+  will return help for that command
+
+shopt:
+  SHell OPTions - built-in command to set\view shell options
+
+shell types
+  See details:
+  https://unix.stackexchange.com/questions/129143/what-is-the-purpose-of-bashrc-and-how-does-it-work
+  Even more detailed:
+  https://askubuntu.com/questions/879364/differentiate-interactive-login-and-non-interactive-non-login-shell
+ there are 4 shell types
+  Interactive Login shell
+    either shell opened via SSH
+    or via ctrl+alt+F1(-F6)
+  Interactive Non-Login shell
+    Opening terminal
+    executing 'bash'
+  Non-interactive Non-Login
+    scripts execution
+    or 'bash -c'
+  Non-interactive Login
+    rare stuff, complex.. should be ssh launched w/o command and STDIN of the
+    ssh should has no TTY - echo command | ssh server
+    or 'bash -l -c command'
+
+  How to check which shell is:
+   echo $-
+     if output has 'i' - its Interactive:
+   >himBH
+   ----
+   bash -c 'echo $-'
+   > hBc
+     NOTE: that double quotes - bash -c "echo $-" still will start interactive
+	shell.. probably due to Shell Expansion of variables
+
+   shopt login_shell
+   >login_shell off
+    will mean that it is NOT login shell
+   >login_shell on
+    will mean that is IS login shell
+ 
+ Example for each type:
+## Interactive, non-login shell. Regular terminal
+$ echo $-; shopt login_shell
+himBHs
+login_shell     off
+
+## Interactive login shell
+$ bash -l
+$ echo $-; shopt login_shell
+himBHs
+login_shell     on
+
+## Non-interactive, non-login shell
+$ ssh localhost 'echo $-; shopt login_shell'
+hBc
+login_shell     off
+
+## Non-interactive login shell
+$ echo 'echo $-; shopt login_shell' | ssh localhost
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+hBs
+login_shell     on    
+
+ 

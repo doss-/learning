@@ -1,0 +1,7 @@
+#ignore everything in Dockerfiles directory for now
+/Dockerfiles/*
+#except those Dockerfiles i need
+!/Dockerfiles/docker-compose/env_var
+
+#also ignore python directory for now
+/python/*

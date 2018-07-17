@@ -10,6 +10,7 @@ print:
    print 'Hello World! I have been seen {} times.\n'.format(count)
   3+
    print("this is string and this is",variable)
+   print("test value: {}".format(value))
 
 if:
   if 1>2:

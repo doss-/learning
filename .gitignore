@@ -2,6 +2,7 @@
 /Dockerfiles/*
 #except those Dockerfiles i need
 !/Dockerfiles/docker-compose/env_var
+!/Dockerfiles/docker-compose/first_try
 
 #also ignore python directory for now
 /python/*

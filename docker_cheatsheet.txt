@@ -230,6 +230,7 @@ run:
   --ip - assigns Static IP for a container, will only work with Custom network
 	assigned using --net param
   --dns=[] - set custom DNS for a container
+  --rm - deletes anonymous volumes of the container
   -P - auto publishing. of all exposed Container's ports. Assigning random port
 	number (range defined by /proc/sys/net/ipv4/ip_local_port_range) for
 	every exposed port
@@ -267,7 +268,8 @@ run:
 	/var/docker/volumes/<ID>/_data
   --mount - is the recommended way to use volumes. see '--mount' here:
 	https://docs.docker.com/engine/reference/commandline/service_create/#add-bind-mounts-volumes-or-memory-filesystems
-	
+  --volumes-from <container> - uses volumes from another container, also mounts
+	them in the same way etc
 
   --entrypoint - overides entrypoint of the Base Image
 
@@ -925,6 +927,38 @@ VOLUME
     3.2 need to check Volumes usage here:
 	https://docs.docker.com/storage/volumes/
 
+prune:
+  docker volume prune - delete all volumes that are not currently used by
+	running containers
+
+volume drivers:
+  vieux/sshfs:
+   can access volume via SSH
+
+  install:
+   docker plugin install --grant-all-permissions vieux/sshfs
+
+  create volume:
+   docker volume create --driver vieux/sshfs \
+    -o sshcmd=test@node2:/home/test \
+    -o password=testpassword \
+    sshvolume
+
+   this will create volume using driver 'vieux/sshfs'
+   mount point will be on another host 'node2' with path '/home/test'
+   password to use is 'testpassword' 
+   name of the volume is 'sshvolume'
+
+  use volume in container:
+   docker run -d \
+    --name sshfs-container \
+    --volume-driver vieux/sshfs \
+    --mount src=sshvolume,target=/app,volume-opt=sshcmd=test@node2:/home/test,volume-opt=password=testpassword \
+    nginx:latest
+
+   this will start the container using created volume, but it seems we are
+   creating new one here, for some reason..
+
 USER
   USER <username>[:<group>]
   USER <UID>[:<GID>]
@@ -1258,6 +1292,18 @@ container_name:
  Container usually named as '<dir_of_docker-compose>_<service_name>'
 
 env_file:
+  specify file to take key=value pairs of env variables
+  it is overriden by anything else(shell or environment: values)
+  it will ready by default .env file, but if not excpilitly specified
+   will not pass values further than build stage(expansion in docker-file)
+  specified file will pass env variables into containers
+   Example:
+  env_vile:
+   - /home/user/.env_file #will read this file, expand variables in docker-fiel
+ 	if exist and shell and environment: has no such. 
+	And will pass those values into thecontainer
+	#also will check for .env file in root dir(docker-compose execution dir)
+	but will not pass those in container bcs its not mentioned explicitly
 
 
 environment:
@@ -1304,6 +1350,92 @@ environment expansion:
   !!!! explicitly use .env file or other variables 
   !!!!!!!!!!!!!!!!!!
  
+volumes:
+  defines list of named volumes to be used in differenct containers
+   Example:
+  volumes:
+   data-volume: 	# this will be named volue available for all the
+			containers in the 'services:' section
+
+ driver:
+  define driver for the volume in the 'volumes:' list
+   Example:
+  driver: foobar 	#will use 'foobar' driver for given volume
+
+ driver_opts:
+  various options for defined 'driver:' 
+   Example
+  driver_opts:
+   foo: "bar"
+   baz: 1
+
+ external:
+  if volume is already created set it to True so Docker will not attempt to 
+	recreate it
+  CAN NOT BE USED TOGETHER WITH 'DRIVER' OR 'DRIVER_OPTS'
+  
+  name:
+   use an existing name of external volume, or something like this
+
+ name: 
+  adds name for a new volume 
+  could be used together with existing volume
+   Example:
+  volumes:
+   data:
+    external: true
+    name: my-app-data
+
+   in the example external volume with name 'my-app-data' will be used inside
+	doker-compose file, but with name 'data'
+ 
+ network:
+  create a network in docker-compose file same as volumes etc.
+
+ driver:
+  which driver to use for particular network
+   Example:
+  network:
+   my_network:
+    driver: overlay
+
+  by default it is BRIDGE driver
+
+  Overlay - named network to be used in multiple nodes of swarm
+
+ external:
+  use external network, same as volumes
+   Example:
+  networks:
+   hostnet:
+    external: true
+    name: host
+
+ Also could has none network at all:
+  like 'docker run --net=none'
+   Example:
+  service:
+   web:
+    networks:
+     nonet: {}
+
+  networks:
+   nonet:
+    external: true
+    name: none
+
+  NOTE: seems like a little dumb but it creates some empty network for future
+	use by services(containers)
+
+ driver_opts:
+  same as in volumes - takes additional options for driver during Creation 
+	of the network
+
+ attachable: 
+	feature of Overlay and v3.2 docker-file
+	able standalone(not from compose) containers to attach to the network
+  Example:
+ attachable: true
 
 config:
   shows docker-compose.yml but with expanded variables

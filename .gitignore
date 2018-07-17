@@ -1,8 +1,9 @@
 #ignore everything in Dockerfiles directory for now
-/Dockerfiles/*
+/Dockerfiles/WebFarm/
+
 #except those Dockerfiles i need
-!/Dockerfiles/docker-compose/env_var
-!/Dockerfiles/docker-compose/first_try
+#!/Dockerfiles/docker-compose/env_var
+#!/Dockerfiles/docker-compose/first_try/*.py
 
 #also ignore python directory for now
 /python/*

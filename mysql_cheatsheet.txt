@@ -1,0 +1,26 @@
+connect from command line:
+  mysql -u <user> -p
+   will connect under user (e.g. root) and will promt for password
+
+ create user:
+   https://dev.mysql.com/doc/refman/8.0/en/create-user.html
+  create user 'tuser'@'localhost' identified by 'testp';
+
+ grant user access to databases:
+    https://dev.mysql.com/doc/refman/8.0/en/grant.html
+   grant all on *.* to 'tuser'@'localhost';
+    will grant acess to all databases (first * in *.*)
+
+ create database(schema is same):
+   https://dev.mysql.com/doc/refman/8.0/en/create-database.html
+  create schema testdb;
+
+ create table:
+   https://dev.mysql.com/doc/refman/8.0/en/create-table.html
+  CREATE TABLE IF NOT EXISTS testdb.t (c CHAR(20));
+    will create table 't' in database 'testdb' with a column 'c'
+ 
+ insert in table:
+   https://dev.mysql.com/doc/refman/8.0/en/insert.html 
+  insert testdb.t (c) value ('first');
+   insert value 'first'  in column 'c' of table 't' from schema 'testdb'

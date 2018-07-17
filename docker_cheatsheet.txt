@@ -1104,6 +1104,16 @@ COPY
 	from a build step specified.
 	If no build stage is found with such name, image will be attempted for
 	use
+  
+  <dest> could be treated as File and as Directory(also file in the linux basically =\ )
+   If copying <src> which is a Directory its fine
+   If copying some files as <src> the <dest> MUST be ended with trailing slash '/' to be treated as Directory
+    Example:
+   COPY . /test 	# will copy all the contents of build context dir into /test directory
+   COPY app.py /test/   # will copy app.py from root of build context dir into /test directory
+     COPY ./app.py - will be the same
+   COPY app.py /test    # will copy app.py from root .. into /test FILE
+     in this case WORKDIR /test - wont work, because THERE IS NO SUCH DIRECTORY
 
 EXPOSE
   exposes particular port, or probably list or range of ports

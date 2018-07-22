@@ -58,3 +58,6 @@ mysql+python:
   mysql-connector-python - contains mysql libs for work with database
    how to work with DB:
   https://dev.mysql.com/doc/connector-python/en/connector-python-example-connecting.html
+  
+  nice example of PYthon+Mysql in DockerCompose 
+   https://stackoverflow.com/questions/42106613/docker-compose-mysql-connection-failing

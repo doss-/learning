@@ -1,5 +1,6 @@
 FROM python:3.4-alpine
-COPY app.py /code/
+COPY ./app/* /code/
 WORKDIR /code
-CMD ["python", "app.py"]
+RUN pip install -r requirements.txt
+CMD ["python", "appSql.py"]
 

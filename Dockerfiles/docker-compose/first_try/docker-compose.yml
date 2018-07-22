@@ -3,12 +3,19 @@ version: '3'
 services:
  db:
   image: mysql
+  hostname: mysql_server
   restart: on-failure
   env_file: .env
+  volumes:
+   - $PWD/database:/docker-entrypoint-initdb.d
  src:
   #image: python:3.4-alpine
   build: .
+  depends_on: 
+   - db
   volumes:
-   - .:/code
+  # - .:/code
    - $HOME/test:/test 
+  links:
+   - db:mysql_server
   #command: python

@@ -56,3 +56,12 @@ to have it loaded automatically add it into vimrc file like:
 
 somewhy it does not work when adding ~/.vimrc file, probably it is no tloaded
 for some reason, may be need to adjust some configs
+
+Insert space in multilines:
+ https://stackoverflow.com/questions/253380/how-do-i-insert-text-at-beginning-of-a-multi-line-selection-in-vi-vim
+  
+  Esc - enter 'command mode'
+  Ctrl + V - visual block mode
+  Up\Down - to mark 
+  Shift+i - to insert (e.g. space )
+  Esc - to apply changes (need to wait some 1 second)

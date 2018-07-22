@@ -1,0 +1,13 @@
+MYSQL:
+probably it is better to compy ./database/* into mysql image, 
+thus create some custom
+so it would be available anywhere
+
+PYTHON:
+1. parametrize connection string, in some way, do not hardcode it
+2. use try to reconnect to MySql in case of fail , at least when err: 111
+   2.1 use loop, for X times
+   2.2 call method that will try to connect
+    2.2.1 handle exception with 111 error here
+    2.2.2 return bool with result, true if no exception
+   2.3 if no exception, break the loop

@@ -24,3 +24,31 @@ connect from command line:
    https://dev.mysql.com/doc/refman/8.0/en/insert.html 
   insert testdb.t (c) value ('first');
    insert value 'first'  in column 'c' of table 't' from schema 'testdb'
+
+Password storage for script use:
+  https://dev.mysql.com/doc/refman/8.0/en/password-security-user.html
+ 1. the best way is to use encripted file, but it is too many  stuff
+ 2. mysql ... -p<password> or --password=<password> easy and UNsecure
+    because 'ps' could list it in some way
+ 3. use just -p or --password, and be prompted(not ok for scripts)
+ 4. use .my.cnf file in home dir or specify one by 
+
+Execute SQL from file
+ https://dev.mysql.com/doc/refman/8.0/en/mysql-batch-commands.html
+    'mysql --defaults-file=<path?>'
+    do it not readable by anyone except me:
+    chmod 400 <.my.cnf> =or= chmod 600
+ 5. store password in env var MYSQL_PWD
+	extrimely unsecure because 'ps' could list it in some way
+
+Initialize database:
+  https://docs.docker.com/samples/library/mysql/#docker-secrets
+ MYSQL_DATABASE - database to e created when docker container starts
+ MYSQL_USER - user to be created with superuser for the database
+ MYSQL_PASSWORD - password for the user
+ 
+ /docker-entrypoint-initdb.d  - every .sh, sql. sql.gz will be read
+   in alphabetical order and be executed
+
+Troubleshooting:
+ https://dev.mysql.com/doc/refman/8.0/en/problems-connecting.html

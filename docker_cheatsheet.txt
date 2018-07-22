@@ -1401,6 +1401,10 @@ volumes:
  
  network:
   create a network in docker-compose file same as volumes etc.
+   Example:
+  networks: 
+   mailman: 
+    ipv4_address: 172.19.199.2
 
  driver:
   which driver to use for particular network

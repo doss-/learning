@@ -5,3 +5,46 @@ clone:
   this will allow have repo and working local branch on the same machine
 
   git clone <username>@localhost:/path/to/repository <local dir name>
+
+git reset:
+  moves HEAD and Branch(e.g. Master) pointers to previous commit
+   Unlike revert it does not create new commit, just moves pointer
+  to a previous commit (or any other if specified)
+   Read More:
+https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
+
+   --hard - moves state of all 3 Git Trees (DANGEROUS)
+	Working directory
+	Staging area
+	Commit history
+   --mixed  (default) - moves state of 2 Trees
+	Staging area
+	Commit history
+   --soft - moves state only of 1 Tree
+	Commit history
+
+   In case of --hard reset all the data will be wiped out
+	w/o possibility to restore it
+   Mixed reset clears staging area, moving everything from there
+	back to Working directory tree, so changes are there and
+	not lost
+   Soft reset moves only Commit history back, and everything
+	that was staged remains staged, and everithing that 
+	whas edited but not yet added , remains also
+
+
+
+git revert:
+  creates new commit which will be added to the history
+	_after_ the commit to which user want to revert
+
+    Read More:
+https://www.atlassian.com/git/tutorials/undoing-changes/git-revert
+
+
+git ls-files:
+  debugging util , displays all the files and their hashes
+	if file has been moved from Working to Stage the
+	hash will change
+
+   -s  - stage, displays only staged stuff

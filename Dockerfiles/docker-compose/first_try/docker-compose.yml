@@ -15,7 +15,6 @@ services:
    - db
   volumes:
   # - .:/code
-   - $HOME/test:/test 
   links:
    - db:mysql_server
   #command: python

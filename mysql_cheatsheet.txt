@@ -42,7 +42,9 @@ Execute SQL from file
 	extrimely unsecure because 'ps' could list it in some way
 
 Initialize database:
-  https://docs.docker.com/samples/library/mysql/#docker-secrets
+   Dockerized Mysql setup and use
+  https://docs.docker.com/samples/library/mysql/
+	#docker-secrets - navigate here for subj
  MYSQL_DATABASE - database to e created when docker container starts
  MYSQL_USER - user to be created with superuser for the database
  MYSQL_PASSWORD - password for the user

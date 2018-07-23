@@ -4,6 +4,21 @@ how to change PYTHONPATH:
 http://ask.xmodulo.com/change-syspath-pythonpath-python.html
 
 
+types:
+  Bool:
+   True
+   False
+  nothing:
+   None - usefull when need to declare empty(not initialized) variable
+	Example:
+    variable = None
+    while (not variable):
+      variable = True
+
+not:
+  like ! in c#\ruby
+   if (not varTrue) == if(!varTrue)
+
 print:
   2.7
    print "this is string and this is ",variable
@@ -61,3 +76,11 @@ mysql+python:
   
   nice example of PYthon+Mysql in DockerCompose 
    https://stackoverflow.com/questions/42106613/docker-compose-mysql-connection-failing
+
+Web Frameworks:
+  Flask - small and easy, almost nothing included, does the job, has many custom 
+	libraries to close the gap. Good for little projects
+  Django - has everything, good for large projects
+
+  Flask vs Djanko vs Pyramid:
+    https://www.airpair.com/python/posts/django-flask-pyramid#6-1-demo-app-with-flask

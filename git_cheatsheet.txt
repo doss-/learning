@@ -13,6 +13,8 @@ git reset:
    Read More:
 https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
 
+  DESIGNED TO UNDO LOCAL COMMITS
+
    --hard - moves state of all 3 Git Trees (DANGEROUS)
 	Working directory
 	Staging area
@@ -32,11 +34,19 @@ https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
 	that was staged remains staged, and everithing that 
 	whas edited but not yet added , remains also
 
+   Example:
+     reset foo.py - resets foo.py leaving it only in Working tree
+
+     reset HEAD~2 - moves HEAD back for 2 commits, using --mixed
+	flag as default
+
 
 
 git revert:
   creates new commit which will be added to the history
 	_after_ the commit to which user want to revert
+
+  DESIGNED FOR UNDO PUBLIC COMMITS
 
     Read More:
 https://www.atlassian.com/git/tutorials/undoing-changes/git-revert

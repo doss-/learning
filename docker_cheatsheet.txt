@@ -1454,3 +1454,6 @@ volumes:
 config:
   shows docker-compose.yml but with expanded variables
   and 'environment:' section has ALL THE ENV VARS THAT WILL BE PASSED TO CONTAINER\SERVICE
+
+docker-compose examples:
+  https://github.com/ramkulkarni1/django-apache2-docker - subj

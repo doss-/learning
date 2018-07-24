@@ -84,3 +84,5 @@ Web Frameworks:
 
   Flask vs Djanko vs Pyramid:
     https://www.airpair.com/python/posts/django-flask-pyramid#6-1-demo-app-with-flask
+     Flask short tutorial:
+    https://www.tutorialspoint.com/flask/flask_wtf.htm

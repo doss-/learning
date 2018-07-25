@@ -14,7 +14,10 @@ services:
   depends_on: 
    - db
   volumes:
-  # - .:/code
+   - $PWD/app:/code
+  ports:
+   - "5000:5000"
+  command: ["appFlask.py"]
   links:
    - db:mysql_server
   #command: python

@@ -1,6 +1,20 @@
 <HTML>
-<TITLE> title here </TITLE>
+<TITLE>1 title here </TITLE>
 
 <p> here goes a line of text  </p>
+
+<!--display all values from db table where submit saves stuff-->
+
+<form method="POST" action="/submit">
+  <!-- TODO: actually it displays variable name from the code
+  and not the text i wanted it to be and defined in the code -->
+  {{ form.text_field.name }} {{ form.text_field }}
+  <br>
+  {{ form.int_field.name }} {{ form.int_field }}
+  <br>
+  <br>
+  {{ form.submit }}
+</form>
+
 </HTML>
 

@@ -11,3 +11,12 @@ PYTHON:
     2.2.1 handle exception with 111 error here
     2.2.2 return bool with result, true if no exception
    2.3 if no exception, break the loop
+
+update Dockerfile and docker-compose.yml:
+	i do tried of rebuild image
+	so need to move everything dynamic in the compose
+1. made development version, where code is taken from the volume
+ 1.1 probably leave the dockerfile copy as is? it will be overriden
+     by composed volume
+2. for development version add ENTRYPOINT python in Dockerfile
+ 2.1 add command in Compose, with file i want to execute

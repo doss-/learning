@@ -86,3 +86,5 @@ Web Frameworks:
     https://www.airpair.com/python/posts/django-flask-pyramid#6-1-demo-app-with-flask
      Flask short tutorial:
     https://www.tutorialspoint.com/flask/flask_wtf.htm
+     Flask greater tutorial, also has something with DB connection:
+    https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database

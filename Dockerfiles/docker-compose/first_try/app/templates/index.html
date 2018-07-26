@@ -8,12 +8,12 @@
 <form method="POST" action="/submit">
   <!-- TODO: actually it displays variable name from the code
   and not the text i wanted it to be and defined in the code -->
-  {{ form.text_field.name }} {{ form.text_field }}
+  {{ form.text_field.label }} {{ form.text_field }}
   <br>
-  {{ form.int_field.name }} {{ form.int_field }}
+  {{ form.int_field.label }} {{ form.int_field }}
   <br>
   <br>
-  {{ form.submit }}
+  {{ form.submit_button }}
 </form>
 
 </HTML>

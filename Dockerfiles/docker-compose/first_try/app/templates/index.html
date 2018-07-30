@@ -6,8 +6,14 @@
 <!--display all values from db table where submit saves stuff-->
 
 <form method="POST" action="/submit">
-  <!-- TODO: actually it displays variable name from the code
-  and not the text i wanted it to be and defined in the code -->
+  <!-- 
+    form.<field_name_var>.label - will render our a label
+    form.<field_name_var>.data - will return data
+    form.<field_name_var>      - renders a form itself
+    form.csrf_token            - renders hidden security field
+                                 required for validation
+  -->
+  {{ form.csrf_token }}
   {{ form.text_field.label }} {{ form.text_field }}
   <br>
   {{ form.int_field.label }} {{ form.int_field }}

@@ -7,7 +7,7 @@ dbuser = "testu"
 dbpasswd = "testpass"
 dbserver = "mysql_server"
 dbname = "testdb"
-dburi = "mysql://{}:{}@{}/{}".format(dbuser, dbpasswd, dbserver, dbname)
+dburi = "mysql+mysqlconnector://{}:{}@{}/{}".format(dbuser, dbpasswd, dbserver, dbname)
 print("dburi: {}".format(dburi))
 
 # see here for basic SQLAlchemy start

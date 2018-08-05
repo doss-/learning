@@ -1,0 +1,2 @@
+docker-compose + aws
+https://medium.com/@peatiscoding/docker-compose-ecs-91b033c8fdb6

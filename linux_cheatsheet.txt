@@ -204,6 +204,7 @@ split:
 
 df:
   display all mounted devices with size\free\used\paths etc
+    Stands for: Disk Free
   df -h - human readable sizes
 
 
@@ -1017,6 +1018,9 @@ apt-get: apt:
   apt-get install - installs package(s), list delimited by space
        or install <package-2.3.5-3ubuntu1> - installs particular version if
 		    it is compatible with distro and stuff   
+       install -f - will install .deb package with its dependencies
+		    Fix Broken Dependencies:
+			https://unix.stackexchange.com/questions/159094/how-to-install-a-deb-file-by-dpkg-i-or-by-apt
   apt-get upgrade - made after Update, upgrades all the packages installed to
 		    latest updates
           -y - answer Yes for all questons automatically

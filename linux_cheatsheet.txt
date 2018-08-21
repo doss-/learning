@@ -320,7 +320,17 @@ cp:
   ............/.* . - will not work
   ............/.*.* . - will copy '..' which is parent directory to current one
 
-
+curl:
+  tool for view-download web pages and content
+   -o - output, redirects output to a file, usefull when downloading files
+    sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest
+     will download ecs-cli binary file from amazon storage into /usr/... path
+   -s - silent, no progress or error output. BUT still displays url contents
+    echo "$(curl -s https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest.md5) /usr/local/bin/ecs-cli" | md5sum -c -
+     will curl display md5 from amazon storage, w/o any other output, then
+      will display path to local ecs-cli, which will go into pipe to md5 sum
+      which will compare given md5 and md5 from file under given path, and will
+      return OK if everything if fine
 rm:
   remove stuff, does not delete dirs and not empty dirs w/o additinal params
   rm <params> <source>

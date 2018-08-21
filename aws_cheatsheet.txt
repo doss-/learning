@@ -1,2 +1,85 @@
+==aws
+==ecs-cli
+
+==aws
+aws:
+ Docs:
+ https://docs.aws.amazon.com/cli/latest/reference/index.html#cli-aws
+
+ install aws command line interface:
+ easiest way is to use pip, which is python package manager:
+ 
+ pip install awscli --upgrade --user
+ --upgrade - will upgrade all packages required for awscli
+ --user - will install it in user directory so it wont interfee with system libs
+ Read more:
+ https://docs.aws.amazon.com/cli/latest/userguide/installing.html
+
+aws iam list-users:
+  list all configured IAM users for aws command line in configured format
+  JSON by default
+
+aws ec2:
+  Docs:
+  https://docs.aws.amazon.com/cli/latest/reference/ec2/index.html#cli-aws-ec2
+
+aws ec2 create-key-pair:
+  creates pem key pair. BUT only private key is given, public is silenlty 
+   uploaded to AWS
+  So probably it is better to use import-key-pair on another key-pair
+    generated beforehand
+  Params:
+   --output:
+    KeyFingerprint - SHA-1 digest of the DER encoded private key
+    KeyMaterial - unencrypted PEM encoded RSA private key
+    KeyName - name of the key pair
+   Docs:
+  https://docs.aws.amazon.com/cli/latest/reference/ec2/create-key-pair.html
+   Example:
+  aws ec2 create-key-pair --key-name aws-me --query 'KeyMaterial' --output text > ~/.ssh/aws-me.pem
+
+aws ec2 describe-key-pairs:
+  display info about key pairs
+  Params:
+   --key-name - name of keys to be displayed
+  Example:
+   --key-name aws-me - will display KeyName and KeyFingerprint of 'aws-me' key
+
+aws ec2 delete-key-pair:
+  delete pair
+   --key-name - name of keys to be deleted
+
+aws ec2 create-security-group:
+  create security group
+   Params:
+  --group-name <name> - name of the group
+  --description "<descr>" - description of the group in ""
+
+aws ec2 describe-security-groups:
+  describe security group, displays more details
+   Params:
+  --group-id <id> - id of the group to be displayed
+
+aws ec2 authorize-security-group-ingress:
+  adds ports for security group to be opened for Inbound (?)
+   Params:
+  --group-id <id>  - id of the group to apply opened address to
+  --protocol - protocol used for the adresses and port
+  --port - port to be opened
+  --cidr - ip ranges (Classless Inter-Domain Routing)
+  --source-group - security group id from which traffic will come
+	could be the same group, so seems that will allow only traffic from
+	inside the group(ec2 instances or something)
+==ecs-cli
+ecs-cli:
+
+ install:
+  download binary:
+  sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest 
+  check md5 (see linux_cheatsheet in curl: for explanations):
+  echo "$(curl -s https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest.md5) /usr/local/bin/ecs-cli" | md5sum -c -
+  grant exec permissions:
+  sudo chmod +x /usr/local/bin/ecs-cli
+
 docker-compose + aws
 https://medium.com/@peatiscoding/docker-compose-ecs-91b033c8fdb6

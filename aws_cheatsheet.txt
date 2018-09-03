@@ -1,5 +1,50 @@
+==cloud concepts
+==VPC
 ==aws
 ==ecs-cli
+
+
+  Main simplified concepts [ELI5]:
+   https://www.youtube.com/watch?v=_V3dqC80FHU&list=PLv2a_5pNAko2Jl4Ks7V428ttvy-Fj4NKU&index=3
+  
+  AWS Essentials:
+  https://www.youtube.com/watch?v=eiTYqcsU6VI&index=3&list=PLv2a_5pNAko0Mijc6mnv04xeOut443Wnk
+
+  Scaling Docker in AWS:
+  https://www.udemy.com/scaling-docker-on-aws/learn/v4/t/lecture/4691758?start=0
+  https://www.youtube.com/watch?v=7CZFpHUPqXw - Great about scaling docker
+  https://medium.com/@peatiscoding/docker-compose-ecs-91b033c8fdb6 - same 
+  http://containertutorials.com/docker-compose/flask-simple-app.html - Dockerize
+	  Flask
+
+
+==cloud concepts
+  
+  Main benefits\terms:
+ High Availability - once in the cloud the data is available everywhere where
+  the internet connection is around
+ Fault tolerance - cloud hard drive wont fail, data could be easely backupped
+  and stuff
+ Scalability/Elasticity - computing resources could be shrinked or enlarged 
+  easely with support of growing coputing needs or vice versa
+ Instance - virtual server, instance of the AMI snapshot of the virtual machine
+  which is istantiated and acts as Web Hosting server or such
+
+
+==VPC
+  A VPC is an isolated portion of the AWS cloud.
+  Private network where stuff like ec2 instances and RDS(database) is located.
+  Like a page on a Facebook where each user can do what ever he wants and
+  grant or restrict access to it for other users by friending them etc.
+
+==S3
+  Storage - like a harddrive, or DropBox(which is actually s3 lol)
+   It is split into Buckets, like different repos in gitHub
+
+==Aws general Architecture
+  Regions include 1+ Availability Zones which are separate datacenters and 
+  located some kilometers/tens of away from each other. All the Amazon 
+  services work on those servers within the datacenters
 
 ==aws
 aws:
@@ -349,8 +394,17 @@ aws s3api create-bucket
   for instance s3
 ====== Group
  Policies could be groupped into a Group for easier management and consistency
+ Also users is attached to the group to get those access given by bunch of
+ policies
 ====== Role
- Identity and Access Management Role
+ Roles are given for services, to act on behalf of a user
+ Roles have Policies attached which grants some access
+  Example:
+ Role for EC2 could be created, this role will have policies to use S3
+  If EC2 Instance would be given that Role - software from that Instance will
+ be able to access S3.
+  So Roles is similar to Groups which are given Policies and then is given to
+ a User or Users, but Roles are given to another services and stuff, not users
   
 
 ==ecs-cli

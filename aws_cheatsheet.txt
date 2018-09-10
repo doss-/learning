@@ -1,3 +1,423 @@
+==cloud concepts
+==VPC
+==aws
+==ecs-cli
+
+
+  Main simplified concepts [ELI5]:
+   https://www.youtube.com/watch?v=_V3dqC80FHU&list=PLv2a_5pNAko2Jl4Ks7V428ttvy-Fj4NKU&index=3
+  
+  AWS Essentials:
+  https://www.youtube.com/watch?v=eiTYqcsU6VI&index=3&list=PLv2a_5pNAko0Mijc6mnv04xeOut443Wnk
+
+  Scaling Docker in AWS:
+  https://www.udemy.com/scaling-docker-on-aws/learn/v4/t/lecture/4691758?start=0
+  https://www.youtube.com/watch?v=7CZFpHUPqXw - Great about scaling docker
+  https://medium.com/@peatiscoding/docker-compose-ecs-91b033c8fdb6 - same 
+  http://containertutorials.com/docker-compose/flask-simple-app.html - Dockerize
+	  Flask
+
+
+==cloud concepts
+  
+  Main benefits\terms:
+ High Availability - once in the cloud the data is available everywhere where
+  the internet connection is around
+ Fault tolerance - cloud hard drive wont fail, data could be easely backupped
+  and stuff
+ Scalability/Elasticity - computing resources could be shrinked or enlarged 
+  easely with support of growing coputing needs or vice versa
+ Instance - virtual server, instance of the AMI snapshot of the virtual machine
+  which is istantiated and acts as Web Hosting server or such
+
+
+==VPC
+  A VPC is an isolated portion of the AWS cloud.
+  Private network where stuff like ec2 instances and RDS(database) is located.
+  Like a page on a Facebook where each user can do what ever he wants and
+  grant or restrict access to it for other users by friending them etc.
+
+==S3
+  Storage - like a harddrive, or DropBox(which is actually s3 lol)
+   It is split into Buckets, like different repos in gitHub
+
+==Aws general Architecture
+  Regions include 1+ Availability Zones which are separate datacenters and 
+  located some kilometers/tens of away from each other. All the Amazon 
+  services work on those servers within the datacenters
+
+==aws
+aws:
+ Docs:
+ https://docs.aws.amazon.com/cli/latest/reference/index.html#cli-aws
+
+ install aws command line interface:
+ easiest way is to use pip, which is python package manager:
+ 
+ pip install awscli --upgrade --user
+ --upgrade - will upgrade all packages required for awscli
+ --user - will install it in user directory so it wont interfee with system libs
+ Read more:
+ https://docs.aws.amazon.com/cli/latest/userguide/installing.html
+
+aws iam list-users:
+  list all configured IAM users for aws command line in configured format
+  JSON by default
+
+aws ec2:
+  Docs:
+  https://docs.aws.amazon.com/cli/latest/reference/ec2/index.html#cli-aws-ec2
+
+aws ec2 create-key-pair:
+  creates pem key pair. BUT only private key is given, public is silenlty 
+   uploaded to AWS
+  So probably it is better to use import-key-pair on another key-pair
+    generated beforehand
+  Params:
+   --output:
+    KeyFingerprint - SHA-1 digest of the DER encoded private key
+    KeyMaterial - unencrypted PEM encoded RSA private key
+    KeyName - name of the key pair
+   Docs:
+  https://docs.aws.amazon.com/cli/latest/reference/ec2/create-key-pair.html
+   Example:
+  aws ec2 create-key-pair --key-name aws-me --query 'KeyMaterial' --output text > ~/.ssh/aws-me.pem
+
+aws ec2 describe-key-pairs:
+  display info about key pairs
+  Params:
+   --key-name - name of keys to be displayed
+  Example:
+   --key-name aws-me - will display KeyName and KeyFingerprint of 'aws-me' key
+
+aws ec2 delete-key-pair:
+  delete pair
+   --key-name - name of keys to be deleted
+
+aws ec2 create-security-group:
+  create security group
+   Params:
+  --group-name <name> - name of the group
+  --description "<descr>" - description of the group in ""
+
+aws ec2 describe-security-groups:
+  describe security group, displays more details
+   Params:
+  --group-id <id> - id of the group to be displayed
+
+aws ec2 authorize-security-group-ingress:
+  adds ports for security group to be opened for Inbound (?)
+   Params:
+  --group-id <id>  - id of the group to apply opened address to
+  --protocol - protocol used for the adresses and port
+  --port - port to be opened
+  --cidr - ip ranges (Classless Inter-Domain Routing)
+  --source-group - security group id from which traffic will come
+	could be the same group, so seems that will allow only traffic from
+	inside the group(ec2 instances or something)
+
+aws ec2 delete-security-groups
+  deletes security group
+   Params:
+  --group-id <id>  - id of the group to be deleted
+
+aws ec2 run-instances
+  creates an instance with given params
+   Params:
+  --image-id <ami-2b3b6041>  - ID of the AMI image from which ec2 instance will
+	be created from 
+  --count <1> -  q-ty of instances to create
+  --instance-type <t2.micro> - type of the instance(cpu\ram etc.)
+  --iam-instance-profile <Name=ecsInstanceRole_and_s3>  -  IAM role name to be
+	used by this instance (permissions that instance will have to interact 
+	with outer world of AWS, in other words where credentials will be 
+	supplied)
+  --key-name <aws-me>  - name of ssh key pair
+  --security-group-ids <sg-06bdb4b77c473c2f6>  - ID of security groups which
+	will be applied for the instance
+  --user-data <file://copy-ecs-config-to-s3>  - custom config for ec2 instance
+	initialization or working process. For instance config for Container
+	Agent
+   --user-data file example:
+  #!/bin/bash
+  #this is regular bash script so provide bash interpreter
+
+  #soft could be installed too
+  #yum install -y aws-cli
+  #copy ecs.config for Container Agent before start the agent
+  aws s3 cp s3://dos-deepdive/ecs.config /etc/ecs/ecs.config
+  #install Container Agent and its dependencies
+  yum install -y ecs-init
+  #start Docker Daemon which Container Agent depends on 
+  #(sysinit in Amazon linux)
+  service docker start
+  #start Container agent itslef, 'start' is part of sysinit tools
+  start ecs
+   run-instances Example:
+   Example:
+  aws ec2 run-instances --image-id ami-0ff8a91507f77f867 --count 1 --instance-type t2.micro --iam-instance-profile Name=ecsInstanceRole_and_s3 --key-name aws-me --security-group-ids sg-06bdb4b77c473c2f6 --user-data file://copy-ecs-config-to-s3
+  !! NOTE: !!
+  !! AMI need to have Container agent pre installed in order to use config file
+  !! in case AMI is not have Container Agent installed it need to be installed
+  !! and started manually in script passed to '--user-data' param
+
+aws ec2 describe-instances
+  list all instances and its info, like InstanceID
+
+aws ec2 describe-instance-status
+  displays instance status of given instance
+   Params:
+  --instance-id <id>  - ID of the instance to be checked
+   Example:
+  aws ec2 describe-instance-status --instance-id i-03ef567752be1ccf2
+
+aws ec2 terminate-instances 
+  terminate running instane
+   Params:
+  --instance-ids <instance_id> - id of the instance to terminate
+   instance id example: i-03ef567752be1ccf2
+
+aws ecs:
+
+aws ecs create-cluster
+  creates a cluster - returns output with info about cluster and its status
+  should be 'ACTIVE'
+   Params:
+  --cluster-name <name> - name for cluster to be created
+  
+aws ecs list-clusters
+  lists all clusters , probably visible for current IAM user configured see
+  ~/.aws/credentials for config details
+
+aws ecs describe-clusters
+  gives more detailed(than list-clusters command) info about clusters.
+  similar output to when cluster is created
+   Params:
+  --clusters <cluster_name> - returns description of a given cluster
+
+aws ecs delete-cluster
+  delete cluster - returns same output as creation, but with updated status to
+  'INACTIVE'
+   Params:
+  --cluster <name>  - delete given cluster
+
+aws ecs list-container-instances
+  lists the container instances(ec2 instances) in the cluster
+   Will return error if no ec2 instances available and no Cluster is specified
+   Will return emtpy list if ec2 instances are available but no Cluster
+	is specified
+   Will return list of ec2 instance arns with cluster specified
+    Arn is some kind of uniq identifier used by Amazon:
+    arn:aws:ecs:us-east-1:474383222596:container-instance/006724f3-941e-4544-9f8e-6d768e706d2a
+   Params:
+  --cluster <cluster_name> - specify cluster to be listed with ec2 instances
+   Example:
+  aws ecs list-container-instances --cluster deepdive  - list ec2 instances
+	wokring in the cluster 'deepdive'
+
+aws ecs describe-container-instances
+  describes(means - in detail) ec2 instances for the given cluster
+   Params:
+  --cluster <cluster_name> - specify cluster whose instances will be described
+  --container-instances <arn>  - arn of particular container instance
+
+aws ecs register-task-definition
+  creates new task definition.
+  Task definition has a Revision, it is incremented each time new task
+  definition is created, later on Family+Revision is the name to use in
+  'describe-task-definition'  command
+   Params:
+  --cli-input-json <file://file_name.json>  - accepts json formatted file
+	with configuration info about particular container instance, similar
+	to docker-compose.yml
+   File Example:
+     {
+       "containerDefinitions": [
+         {
+	#Name of the container
+           "name": "nginx",
+	#Image in DockerHub to be used
+           "image": "nginx",
+	#Ports to be exposed(ports also need to be opened in SecurityGroup )
+           "portMappings": [
+             {
+               "containerPort": 80,
+               "hostPort": 80
+             }
+           ],
+	#Maximum memory for the container, if exceeded container is killed
+	# thus preventing memory leaks
+	#In case task definition is a service - container will be restarted
+           "memory": 50,
+	#maximum CPU usage out out 1024, so 102 is 10% of CPU
+           "cpu": 102
+         }
+       ],
+	#Family name of task definitions, like a custom group..
+       "family": "web"
+     }
+
+  !!NOTE: aws provides empty skeleton for json file used to register task
+	definitions, use following parameter:
+    --generate-cli-skeleton
+     Example:
+    aws ecs register-task-definition --generate-cli-skeleton  - will output to
+	STDOUT empty skeleton of JSON file used during regular registartion
+	from cli (using --cli-input-json parameter)
+
+aws ecs list-task-definition-families
+  List all task definition group(families) names available
+
+aws ecs list-task-definitions
+  lists all task definitions Arns (and Family:Revision)
+   (output similar to list-container-instances for the given cluster)
+ 
+aws ecs describe-task-definition
+  list full details of the Task Definition
+   Params:
+  --task-definition <Family:Revision>  - describes full details about given 
+	family:revision. Revision could be omitted to use latest one
+   Example:
+  aws ecs describe-task-definition web:1 - will return detailed output about
+	family called 'web' of the revision '1'
+  ..... -defition web - will return detailed output about latest revision
+
+aws ecs deregister-task-definition
+  delete task definition or its Revision
+   Params:
+  --task-definition <family:revision> -- deletes given task definition 
+   Example:
+  aws ecs deregister-task-definition --task-definition web:2 - will delete
+	second revision of 'web' task definition
+
+ HELP help Help
+   add help in the end of the command to see regular 'man' article
+   about given command:
+  aws ecs register-task-definition help
+  aws ecs help
+  aws ec2 help
+  aws s3 help
+  aws help
+ 
+
+aws s3:
+  command line to directly interact with s3 storage (see s3api for managing s3
+   below)
+  s3 is region free, and same for all the regions of AWS
+
+aws s3 cp
+  copy file from local machine into s3 bucket storage 
+  using s3 [transfer] protocol
+   Example:
+  aws s3 cp ecs.config s3://dos-deepdive/ecs.config - will upload local file
+	into the bucket under given path, and output back upload info
+
+aws s3 ls
+  list files in the given s3 bucket
+   Example:
+  aws s3 ls s3://dos-deepdive  - will list last modified, size(Bytes), name
+	of files in the bucket
+
+
+aws s3api:
+  command line api for s3(storage space for files)
+
+aws s3api create-bucket
+  bucket is something like disk\repo\namespace for files to be stored
+   Params:
+  --bucket <name>  - name of the bucket to be created(underscores _ not allowed)
+
+==ECS:
+ Amazon Elastic Container Service
+  basically container management system, which manages its on its own
+
+  Main aspects:
+=   Cluster - group of Container instances which act as a single computing 
+ 	resource
+=   Container instance - _ec2 instance_ which was registered to be a part of a 
+	specific Cluster. Connects to a cluster using Container agent
+	Life Cycle:
+	'ACTIVE' and 'connected' - when container agent is connected to cluster
+	'ACTIVE' and 'disconnected' - when connection status is 'false'
+		when Container Instance is stopped.
+		moves back to 'connected' when container agent is able to
+		connect to Cluster and able to run the tasks again
+	'INACTIVE' - when Container Instance is Deactivated or Terminated
+		Such instance is not seen as part of the cluster
+=   Container agent - open source application on ec2 instance which ensures that
+	ec2 instance can register into Cluster, and runs tasks on the instance
+	which is given from a ECS(or cluster..)
+	It is included into AMI(amazon machine image from wchi ec2 instance is
+	generated), but also could be taken from official amazon git hub repo
+	or pulled from docker hub:
+	https://github.com/aws/amazon­ecs­agent 
+	https://hub.docker.com/r/amazon/amazon­ecs­agent/ 
+         How To Install:
+	https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-agent-install.html
+	 Bootstrap container agent:
+	https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html#bootstrap_container_agent
+	Could be configured through Env vars and Config files, Amazon has
+	documentation for all the switches and stuff:
+	http://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs­agent­config.html 
+	Custom config could be created to be used when new container instances 
+	are started
+=   Task definition - JSON file that describes how docker images should be run
+	Basically ;docker compose file on steroids;
+	
+	Task Definition documentation:
+     https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html
+	
+=   Scheduler - decides which instance in a cluster is best to run a task or a
+	service
+=   Service - long running task such as a web application. Based on a Task 
+	definition.
+	I can specify how many instances of a Service will run, and ECS will
+	ensure that it is running
+=   Task - end result of running a tak definition, similar to Service but is not
+	running continuously, it is one time job
+=   Amazon ECR - private registry (Amazon's docker hub)
+=   Amaxon ECS CLI - open source tool for managing ECS through console (like aws)
+
+====IAM
+====== User
+ User that is not Root(which is the billing holder and stuff). 
+  Different users can have different priveleges and acess to different modules.
+ Access to resources is given to particular users through Policies
+  Like change password is only available if 'IAMUserChangePassword' policy is 
+  attached to the user.
+ Another way is to add user to a Group which will have its own policies.
+  Policy and Group could be created manually in addition to already 
+  existing ones
+====== Policy
+ Permission to do something basically.
+  Like change password, or see billing information, or use particular service
+  for instance s3
+====== Group
+ Policies could be groupped into a Group for easier management and consistency
+ Also users is attached to the group to get those access given by bunch of
+ policies
+====== Role
+ Roles are given for services, to act on behalf of a user
+ Roles have Policies attached which grants some access
+  Example:
+ Role for EC2 could be created, this role will have policies to use S3
+  If EC2 Instance would be given that Role - software from that Instance will
+ be able to access S3.
+  So Roles is similar to Groups which are given Policies and then is given to
+ a User or Users, but Roles are given to another services and stuff, not users
+  
+
+==ecs-cli
+ecs-cli:
+
+ install:
+  download binary:
+  sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest 
+  check md5 (see linux_cheatsheet in curl: for explanations):
+  echo "$(curl -s https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest.md5) /usr/local/bin/ecs-cli" | md5sum -c -
+  grant exec permissions:
+  sudo chmod +x /usr/local/bin/ecs-cli
+
 docker-compose + aws
 https://medium.com/@peatiscoding/docker-compose-ecs-91b033c8fdb6
 

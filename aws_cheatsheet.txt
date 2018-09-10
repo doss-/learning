@@ -1,2 +1,23 @@
 docker-compose + aws
 https://medium.com/@peatiscoding/docker-compose-ecs-91b033c8fdb6
+
+login to aws guide
+https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799
+
+AWS Regions:
+https://docs.aws.amazon.com/general/latest/gr/rande.html
+
+ecs-cli:
+ Command line interface to work with Elastic Container Storage(or something), install tool manual:
+ https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_CLI_installation.html
+
+ Configure the tool:
+ https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ECS_CLI_Configuration.html
+  Note:
+   During profile creation use 'Account Id:' from account settings from web gui as --access-key
+ Also use following command:
+  configure:
+   configure ecs cli, cluster, region, launch type
+  https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cmd-ecs-cli-configure.html
+
+  

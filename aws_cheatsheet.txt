@@ -22,9 +22,10 @@
   
   Main benefits\terms:
  High Availability - once in the cloud the data is available everywhere where
-  the internet connection is around
+  the internet connection is around, and all the time in whole
  Fault tolerance - cloud hard drive wont fail, data could be easely backupped
-  and stuff
+  and stuff. Service is alaways available and even during a crash comes back
+  shortly or w/o downtime at all using mirrors and backups
  Scalability/Elasticity - computing resources could be shrinked or enlarged 
   easely with support of growing coputing needs or vice versa
  Instance - virtual server, instance of the AMI snapshot of the virtual machine
@@ -37,9 +38,57 @@
   Like a page on a Facebook where each user can do what ever he wants and
   grant or restrict access to it for other users by friending them etc.
 
-==S3
+====Internet Gateway (IGW)
+
+====Route Tables (RTs)
+
+====Network Access Control Lists (NACLs)
+  Provides optional security on Subnet level.
+   Works like firewall in the Router - in contrast to Security Groups that are
+  like firewall on the particular Compoter inside network - SG should be
+  attached to particular EC2 Instance
+   Whereas NACLs are assigned to Subnets, Or rather Subnets are assigned 
+  to NALCs
+   NACL consists of Inbound and Oubound Rules
+   Rules have priority (from higher priority 0 to lower 100)
+   After rule is triggered evaluations stops.
+    Which means that if port 80 is allowed and is rule number 81, other 82-100 
+   rules wont evaluate for this traffic.
+  Also there is undeletable rules that DENY everything for inbound and outbound.
+   That rules are the lowest priority so anything could be allowed.
+   This rule is called Catch rule, it catched everything that other rules missed
+  But anything that is not allowed explicitly will be Denied.
+   For NEW rules Everything is DENIED by default
+  SUbnet could only have one NACL attached to it
+
+====Subnet
+
+====Availability Zones
+  Geographically separate data centers inside the Region.
+  Subnets are created inside AZ
+  Every Subnet cannot cover more that 1 AZ, means that particular subnet
+   can not spanover more than one AZ
+  EC2 instances are spawned in AZ, to which instance's subnet belongs to.
+   Good practice are to have mirorred infrastructure on another Availability
+  Zone, to increase Fault Tolerance and High Availability.
+
+==S3 (Simple Storage Service)
   Storage - like a harddrive, or DropBox(which is actually s3 lol)
    It is split into Buckets, like different repos in gitHub
+
+ Main components are:
+  S3 Buckets
+  S3 Folders
+  S3 Objects
+
+====Bucket
+  Root level folder
+
+====Folder
+  Any other than root folder
+
+====Object
+  Files in a folder
 
 ==Aws general Architecture
   Regions include 1+ Availability Zones which are separate datacenters and 

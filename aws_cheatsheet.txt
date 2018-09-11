@@ -78,17 +78,59 @@
 
  Main components are:
   S3 Buckets
+     Bucket names have to be totally uniq across all AWS in the world
+     Name should be from 3 to 63 chars, [a-z0-9] and - are accepted
+     Must not be formatted as an IP address
   S3 Folders
+     Any subfolder in a Bucket
   S3 Objects
+     File, basically, any type
 
-====Bucket
-  Root level folder
+====Storage class
+  Represents 'classification' assigned to each Object in S3
 
-====Folder
-  Any other than root folder
+   Storage classes are:
+  Standard (default)
+   Most expensive
+   Maximum durable ('eleven nines' > 99.999999999%)
+   Very available - 99.99%
+  Reduced Redundancy Storage(RRS)
+   Less expensive
+   Very durable - 99.99%
+   Very available - 99.99%
+   Used for non critical objects that are reproducible
+  Infrequent Access(S3-IA)
+   Even more cheaper
+   Maximum durable - ('eleven nines')
+   Less available - 99.90%
+   Used for objects accessed infrequently, but when do it is immidiately 
+   available
+  Glacier
+   Cheapest
+   Maximum durable
+   Could takes hours to days to take object back when accessed, request need to 
+   be filled for that
 
-====Object
-  Files in a folder
+  Object Durability:
+   11 nines - 99.999999999% means that there is a 0.0000000001% chance that
+   file could be lost in a year
+    Example:
+   for 10k files there is chance to lose 1 in every 10 million years
+
+  Object Availability:
+   for 99.99% there is 0.01% chance to lose access to a file once a year
+    Example:
+   for 10k hours of usage, there is 1 houre of file being unavailable
+  
+  Each storage class has various attributes, which is represented by:
+   Storage Cost $
+   Object availability
+   Object durability
+   Frequency of access to the object
+
+  Each object myst be assigned a storage class (Standard is the default)
+
+  Usually storage class could be changed
 
 ==Aws general Architecture
   Regions include 1+ Availability Zones which are separate datacenters and 

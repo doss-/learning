@@ -89,8 +89,24 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
     Destination: 172.31.0.0/16
     Target: local
 
-====Network Accsess Control List (NACL)
-  Firewall basically
+====Network Access Control Lists (NACLs)
+  Provides optional security on Subnet level.
+   Works like firewall in the Router - in contrast to Security Groups that are
+  like firewall on the particular Compoter inside network - SG should be
+  attached to particular EC2 Instance
+   Whereas NACLs are assigned to Subnets, Or rather Subnets are assigned 
+  to NALCs
+   NACL consists of Inbound and Oubound Rules
+   Rules have priority (from higher priority 0 to lower 100)
+   After rule is triggered evaluations stops.
+    Which means that if port 80 is allowed and is rule number 81, other 82-100 
+   rules wont evaluate for this traffic.
+  Also there is undeletable rules that DENY everything for inbound and outbound.
+   That rules are the lowest priority so anything could be allowed.
+   This rule is called Catch rule, it catched everything that other rules missed
+  But anything that is not allowed explicitly will be Denied.
+   For NEW rules Everything is DENIED by default
+  SUbnet could only have one NACL attached to it
 
 ====Subnets
   Sub section of network.
@@ -119,30 +135,6 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    Additionaly if default Routing table has no IGW attached, every newly
    created Subnet will have no internet access by default, thus be secure.
 
-====Internet Gateway (IGW)
-
-====Route Tables (RTs)
-
-====Network Access Control Lists (NACLs)
-  Provides optional security on Subnet level.
-   Works like firewall in the Router - in contrast to Security Groups that are
-  like firewall on the particular Compoter inside network - SG should be
-  attached to particular EC2 Instance
-   Whereas NACLs are assigned to Subnets, Or rather Subnets are assigned 
-  to NALCs
-   NACL consists of Inbound and Oubound Rules
-   Rules have priority (from higher priority 0 to lower 100)
-   After rule is triggered evaluations stops.
-    Which means that if port 80 is allowed and is rule number 81, other 82-100 
-   rules wont evaluate for this traffic.
-  Also there is undeletable rules that DENY everything for inbound and outbound.
-   That rules are the lowest priority so anything could be allowed.
-   This rule is called Catch rule, it catched everything that other rules missed
-  But anything that is not allowed explicitly will be Denied.
-   For NEW rules Everything is DENIED by default
-  SUbnet could only have one NACL attached to it
-
-====Subnet
 
 ====Availability Zones
   Geographically separate data centers inside the Region.

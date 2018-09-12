@@ -31,11 +31,92 @@
   which is istantiated and acts as Web Hosting server or such
 
 
-==VPC
+==VPC (Virtual Private Cloud)
   A VPC is an isolated portion of the AWS cloud.
   Private network where stuff like ec2 instances and RDS(database) is located.
   Like a page on a Facebook where each user can do what ever he wants and
   grant or restrict access to it for other users by friending them etc.
+  
+====Internet Gateway (IGW)
+   Analog of modem in local network
+  IGW is the thing that allows communication of whole VPS and its resources
+  and services to the outside World(Internet). 
+  With default VPC created it also has its own default IGW
+   Has 2 states 
+    attached to VPC
+    detached from VPC
+  IGW could be attached to a VPC, only 1 at a time
+  VPC could have only 1 IGW attached 
+  If VPS have services running IGW can not be detached
+
+====Route Tables (RTs)
+  See detailed documentation here:
+https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
+   Basically is analog of a router in local network, which is connected to
+  a modem(IGW), and to which other devices(services) are connected
+   Default VPC already has default 'main' route table
+  Rout tables contains set of rules called 'routes' that are used to 
+  determine where network traffic is directed.
+  Route Destination:
+   the CIDR block inside VPC where traffic will be routed from the Gateway
+  Route Target:
+   the Gateway to be used, to route traffic from into the VPC
+  Route Status:
+   Active - works ok
+   Black Hole - routes traffic from VPC to nowhere
+    This could be when IGW is detached from VPC but IGW still routes
+   traffic to it
+  There could be Main Routing Table.
+   Every subnet not explicitly associated with a Routing Table will be
+  associsated with Main Routing Table
+   Routing Table that has Subnets associated cat not be deleted
+   Main Routing Table can not be deleted, but could be replaced with new
+  To use IPv4 and IPv6 each of those need to have its own CIDRs like:
+   0.0.0.0/0 for IPv4
+   ::/0 for IPv6
+  Each Route Table has 'local' route for communication within the VPC.
+  Seems like this needed to when  even if IGW will go out to Black Hole,
+  the 'local' routes keep VPC work in place even offline, as per all the
+  services will communicate to each other directly w/o using IGW
+   'local' communication will be created for each CIDR in the VPC.
+     So if VPC have 2 IPv4 CIDRs and 2 IPv6 CIDRs then each Route Table 
+     will also have 'local' routes for those CIDRs.
+   'local' routes can not be deleted or modified
+    Example:
+   VPC has IPv4 CIDR block: 172.31.0.0./16
+    Each Route Table will have 'local' route like:
+    Destination: 172.31.0.0/16
+    Target: local
+
+====Network Accsess Control List (NACL)
+  Firewall basically
+
+====Subnets
+  Sub section of network.
+  So VPC has its own network, and inside that network there could be another 
+  section (included in the overall VPC's network), and this will be subnet
+   Like 172.31.0.0/16 is VPC
+   And 172.31.1.0/24 - is Subnet 
+  SUbnets could be Private or Public
+    Public subnets have Route Table they attached to with row where Destination
+   Points to particular subnet IP ranges and Target is pointed to Internet 
+   Gateway
+    Private subnets are those subnets that have no row poining to Internet
+   Gateway, and only has  the defaul undeletable row that points to 'local'
+   as Target
+
+  Public\Private general meaning:
+   Application is in Public SUbnet, which is Public because is associated to 
+   Routing table that has Internet Gateway attached to it.
+   Database is in Private Subnet, which is private because is associated to 
+   Routing table that has no IGW attached to it.
+   Application and Database could communicate to each other because all part of
+   VPC Network, and has 'local' communication set in every RT.
+   Application is available from outside world
+   Database is not available from outside world, only through the Application
+   API itself.
+   Additionaly if default Routing table has no IGW attached, every newly
+   created Subnet will have no internet access by default, thus be secure.
 
 ==S3
   Storage - like a harddrive, or DropBox(which is actually s3 lol)

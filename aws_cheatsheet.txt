@@ -257,7 +257,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
   New versions COULD NOT INHERIT STORAGE CLASS from their anscestors, which 
   means that Standard storage class will be used (which is costly)
 
-====EC2 Elastic Compute Cloud
+==EC2 Elastic Compute Cloud
   simple virtual machine in the Amazon cloud, like VPS - virtual private server
    
    Purchasing options:
@@ -352,6 +352,32 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    By Default 
     all Inbound traffic is DENIED (it has no rules basically)
     all Outbound traffic is ALLOWED
+  
+====IP Addressing
+  COuld be private and public
+
+  by Default each EC2 instance have Private IP address
+   Private IP address allow instances to communicate with each other as long
+  as they are located in the same VPC
+
+   Public IP depends on settings of VPC\Subnet
+  Without Public IP instance wont be able to communicate with Internet
+
+  Default VPC and Subnets configured so that new instances will have Public IP
+  addresses
+
+  Whole stuff require for Instance to be able to communicate with Internet:
+  - Public IP address
+	settings taken from Subnet that allow Instance to have Public IP
+  - Security group
+	should allow inbound\outbound traffic for particular address\port
+  - Network Access Control List
+	should allow inbound\outbound traffic for particular address\port
+  - Rout Table
+	should be pointed to Internet Gateway
+  - Internet Gateway
+	should be attached to VPC
+
   
 
 ==Aws general Architecture

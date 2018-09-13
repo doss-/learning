@@ -246,6 +246,32 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    So additional 'Grantees' need to be added to that BUcket so that users will
    be able to List\Edit\Permissions in that particular Bucket\Folder\File
 
+---Versioning
+  Stores all versions of an object
+
+  Controlled at Bucket level
+  Could be turned ON or OFF
+  Once turned ON could only be Suspended - NOT turned OFF
+   Suspend - means stop versioning new versions, but old versions will persist
+
+  New versions COULD NOT INHERIT STORAGE CLASS from their anscestors, which 
+  means that Standard storage class will be used (which is costly)
+
+====EC2 Elastic Compute Cloud
+  simple virtual machine in the Amazon cloud, like VPS - virtual private server
+   
+   Purchasing options:
+  On-Demand:
+   Most expensive
+   Most flexible - turn it on or off when i need it
+   Pay only when i use it (between on and off)
+  Reserved:
+   Cheaper than On-Demand (probably much cheaper)
+   Reserved for 1 or 3 years, it will work all that time regardeless of whether
+    i need it or not
+   Whole time of 1 or years must be paid
+  Spot:
+
 ==Aws general Architecture
   Regions include 1+ Availability Zones which are separate datacenters and 
   located some kilometers/tens of away from each other. All the Amazon 

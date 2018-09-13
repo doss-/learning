@@ -205,6 +205,47 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
 
   Usually storage class could be changed
 
+====Lifecycle
+  Lifecycle of the object - is automated transition of object between different
+  Storage classes determined by time period passed, which purpose is to reduce
+  cost of using the service
+  Lifecycle could be applied to whole Bucket, a Folder or a Object(File) 
+   Example:
+   File is used every day for first month
+    It is in Standard Storage class for first 0-29 days
+   After that period passes we expect file to be used once a week
+    So lifecycle is configured for the file to be moved into a Infrequent
+    Access Storage class after 29th day passes file is moved to S3-IA Storage
+    class
+   After another 60 days we expect to do not use file at all but want to keep
+   it for another 1000 days
+    So after 90 days in total passes file's Storage class is changed to
+    Glacier class and is deleted after 1090 days in total.
+
+   Thus cost for S3 usage is minimized for that file - because importance of the
+   file and frequency of need to access it is taken into account and
+   corresponding Storage Classes are used.
+
+====Permissions
+  Permissions for a user of S3:
+   View contents (List)
+   Edit contents (Write) - upload\delete
+   View permissions (Read bucket permissions) - view the permissions themselves
+   Edit permissions (Write bucket permissions) - change the permissions
+ 
+  Files and Folders have only 3 permission
+   Read File\Folder (download too probably)
+   Read Permissions of File\Folder
+   Change Permissions of File\Folder
+  Files also could be made Public Available, need to read more about it
+ 
+  NOTE:
+   Even if regular user has IAM permission to access S3, this user will not be
+   able to access Buckets created by other users.
+   Because during Bucket creation only user-creator have permissions by default
+   So additional 'Grantees' need to be added to that BUcket so that users will
+   be able to List\Edit\Permissions in that particular Bucket\Folder\File
+
 ==Aws general Architecture
   Regions include 1+ Availability Zones which are separate datacenters and 
   located some kilometers/tens of away from each other. All the Amazon 

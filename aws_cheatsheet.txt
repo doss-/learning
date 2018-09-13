@@ -271,6 +271,88 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
     i need it or not
    Whole time of 1 or years must be paid
   Spot:
+   Cheapest, regulated by user defined 'bids'
+   Provisioned when price decreases to or below the bid, and shutdowned when
+   price rises above the bid
+    If bid is $0.2 per hour, and price is decreased to that level the instance
+   will be provisioned, and user will have access to it until price is equal or
+   less than bid ($0.2). As soon as price goes up, instance is shot down.
+   Time available is unpredictable
+
+   This is the way for AWS to utilize machine time that is not used at
+   the moment of the machines that are used for EC2 stuff
+   
+====AMI (Amazon Machine Instance)
+  Image of an machine including OS, software and settings for the particular
+  hardware where AMI is spinned up
+  
+   Components:
+  Root Volume Template:
+   Operation system
+   Software\applications
+  Launch Permissions
+  Block Device mapping
+   which is mapping to EBS which is basically harddrive
+
+  AMI can be created by user and used fo rfurther EC2 instances setup and
+  start
+   It works pretty same as docker basically:
+  Spin up an EC2 instance from some standard AMI
+  Set up all the deeded software packages
+  Save this as AMI
+  Spin up multiple instances from this new custom AMI
+
+  AMI categories:
+   Quick Start - some preconfigured AMI with some software
+   My AMI, for custom user created AMI
+   Community AMI - free to use, basic AMI w/o software(probably)
+   AWS Marketplace AMI - only paid AMI customized for some specific usage
+
+----EBS (Elastic Block Storage)
+  Basically hard drive for EC2 instances (volumes)
+  Independent of life of the EC2 Instance
+
+  Every EC2 instance MUST have 'root' volume, which could be EBS
+  or other type of storage defice
+  
+  IOPS - Input Output Operations (per second)
+   unit of measure
+  caped for 256 KiB for SSD volumes
+   and 1024 KiB for HDD volumes
+  The more IOPS points - the better
+  The more EBS size is - the more IPOS volume will have
+
+  Could be created manually from AWS console or during EC2 creation
+  By default EBS storage volumes are deleted after EC2 instance shut down
+   But could be set to persist
+
+  Another EBS volume could be attached to EC2 instance during or after its
+  creation
+
+ Snapshots:
+  Snapshot of EBS volumes, could be used as backup
+  New EBS volume could be created from Snapshot
+  Snapshot could not be attached to an instance
+  Cheaper than having an EBS volume 
+
+====Security Groups (SG)
+  Same to Network Access Control List(NACL) - firewall for particular EC2
+  instances when NACL is a firewall for whole Subnet inside VPC
+   It regulates traffic in and out of EC2 instance by
+  creating rules based on Protocol\IPAddress\Port
+  
+  One or more SG could be associated to EC2 instance
+  Update of the SG will immidiately take effect for all the EC2 instances it
+  is assigned to
+
+  Unlike NACL all the rules from Security Groups merged together and applied
+  for the traffic, w/o any priority like in NACL
+
+  Inbound\Outbound:
+   By Default 
+    all Inbound traffic is DENIED (it has no rules basically)
+    all Outbound traffic is ALLOWED
+  
 
 ==Aws general Architecture
   Regions include 1+ Availability Zones which are separate datacenters and 

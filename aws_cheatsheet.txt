@@ -136,6 +136,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    created Subnet will have no internet access by default, thus be secure.
 
 
+
 ====Availability Zones
   Geographically separate data centers inside the Region.
   Subnets are created inside AZ
@@ -378,6 +379,81 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
   - Internet Gateway
 	should be attached to VPC
 
+==RDS (Relational Database Service)
+  SQL database service provided by Amazon
+   Amazon Aurora
+   MySQL
+   MariaDB
+   PostgreSQL
+   Oracle
+   MSSQL
+  
+  Database also is instantiated like EC2 instance, having CPU\RAM and other
+  hardware characteristics that could vary and have different cost
+ 
+  Could be purchased on different terms, also like EC2 
+   On Demand
+   Reserved
+
+  Create Instace:
+   https://www.youtube.com/watch?v=OE25Sni15vo
+  Subnets could be grouped, in RDS Dashboard.
+  For this subnets could be even in different availability zones but should
+  be in one VPC
+
+  Pick database Engine(different sql db above, like MySql)
+
+  Make sure 'free tier' checkbox is selected
+
+  Pick instance type (db.t2.micro  i.e.)
+
+  Select schema name, root username and password
+
+  Pick VPC and Subnet Group, Availability Zone will be take from SUbnets by
+  default
+   In case this are private subnets , select NO in Publiccly Accessible
+ 
+  Add port 3306 to some existing Security Group or create new one , which will
+  have it opened by default
+  
+
+==DynamoDB 
+  NoSQL database service provided by Amazon
+   MongoDB
+   Cassandra DB
+   Oracle NoSQL
+  
+==SSH Tunneling
+   Creation of a SSH tunnel into the machine in private Subnet(subnet with Route
+  Table that has no specified Intenet Gate Way) using another machine located
+  in the same VPC but in public Subnet(subnet with Rout Table that has IGW 
+  specified). Thus machine in public subnet works as pass-through to the another
+  one inside the private subnet, which is unavailable from internet directly
+
+==SNS (Simple Notification Service)
+  Service to send email or text notification based on the Events happened in
+  the AWS account.
+   There are two groups of clients
+   Publishers(Producers) - communicate with Subscibers async, producing and 
+  sending messages to a topic which is a logical access point and communication
+  channge.
+   Subscribers(Consumers) - could be Web Servers, Email Addresses, Amazon SQS
+  queries, AWS Lambda functions, consume or receive the message or notification
+  over one of the supported protocols(Amazon SQS, HTTP/S, email, SMS, Lambda)
+  when they are subscribed to the Topic.
+   Subscribers are groupped into a Topic
+
+  Topics
+   Grouped Endpoints(Subscribers) which will receive the messages sent by SNS 
+  after some kind of a trigger to SNS
+
+  How It Works:
+    CloudWatch (another AWS service, all of a sudden) monitors , i.e. ec2 
+   instances, if any crashes it triggers a C.W. Alarm
+    CW Alarm or CloudWatch alarm, is set to trigger a message sending in
+   the SNS
+    SNS which in turn triggered by CW Alarm, then sends the message into
+   the topic to which particular users\services are subscribed
   
 
 ==Aws general Architecture

@@ -195,6 +195,9 @@ cat:
   cat <file1> <file2> >> <file3> - create new\append old file with joined
    contents of file1 and 2
 
+less:
+  lists output in separate 'window' does not adding history in the console
+  ALSO could be used like 'unzip' to view archives
 
 split:
   splits file into another files, like with collection variable
@@ -381,6 +384,12 @@ bash history:
    also inverts pipe exit code
     ls | bogus_command; echo $? # exit code: 127
     ! ls | bogus_command; echo $? # exit code: 0
+
+unzip:
+  utility to unzip files. Unzips in the current folder by default
+   Params:
+  -d - specify folder where to extract
+  -l - lists archive contents, 'less' tool does the same
 
 tar:
   tape archive - collects all files in archive, with savin all permissions
@@ -1010,6 +1019,11 @@ dpkg:
   -l - list of all installed packages(use grep for specific packages)
   -L <package> - list of all the files that were created during package 
 		 installation
+  -S <filename> - similar to 'yum provides' but only for Installed packages
+		it returns list of all packages that contain the string:
+		-S less will return also 'serverless' word.. 
+	Another option is to use web interface on Ubuntu:
+	https://packages.ubuntu.com/
 
 aptitude:
   frontend of dpkg, GUI in commandline

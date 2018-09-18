@@ -391,6 +391,27 @@ unzip:
   -d - specify folder where to extract
   -l - lists archive contents, 'less' tool does the same
 
+zip: 
+  creates zip archive, could also create encrypted archives(with password)
+  --encrypt - will promt for password during arch creation:
+   Example:
+  zip --encrypt archive.zip files
+   Less secure example:
+  zip --password (password) file.zip files
+  
+  NOTE: zip encyption is very weak, use additional or other encription like gpg
+
+gnupg: gpg:
+  Gnu PG could encrypt documents, basically all files
+   See docs for encription here:
+  https://www.gnupg.org/gph/en/manual/x110.html
+
+  basic example w/o using Public-key cryptography:
+   gpg --output <encrypted_file.gpg> --symmetryc <file_to_encrypt> - this will 
+	ask for passphrase and its done
+
+  
+
 tar:
   tape archive - collects all files in archive, with savin all permissions
    and user's ownership

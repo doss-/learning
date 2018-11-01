@@ -705,7 +705,7 @@ aws ecs deregister-task-definition
   aws ecs deregister-task-definition --task-definition web:2 - will delete
 	second revision of 'web' task definition
 
- HELP help Help
+ HELP help Help man MAN manual
    add help in the end of the command to see regular 'man' article
    about given command:
   aws ecs register-task-definition help

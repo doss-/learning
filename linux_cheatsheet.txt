@@ -323,6 +323,14 @@ cp:
   ............/.* . - will not work
   ............/.*.* . - will copy '..' which is parent directory to current one
 
+wget:
+  non interactive network downloader
+   Params:
+  -q - quiet, turns off wget output
+  -i file / --input-file=file - reads URLs from a file
+   Example:
+  wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb - will download .deb file in current directory w/o any output
+
 curl:
   tool for view-download web pages and content
    -o - output, redirects output to a file, usefull when downloading files

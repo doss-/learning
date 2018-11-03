@@ -1,0 +1,108 @@
+hashicorp webinar about Terraform in AWS:
+https://www.youtube.com/watch?v=TFLQcgZr0no
+
+introdution blogs about:
+https://aws.amazon.com/blogs/apn/terraform-beyond-the-basics-with-aws/
+https://hackernoon.com/introduction-to-aws-with-terraform-7a8daf261dc0
+
+also:
+github.com/terraform-community-modules - examples of the community
+terraformbook.com - commmunity
+O'Railly - also has a book lol
+
+installation:
+ download archive from official site https://www.terraform.io/downloads.html
+ unzip and move to /usr/bin/terraform. Make sure has +x chmod
+ create new user in AWS IAM with enough access(i.e. admin)
+ add access key and secret key into ~/.aws/credentials:
+  [terraform]
+   aws_access_key_id = ""
+   aws_secret_access_key = ""
+ create main.tf
+  initialize provider, region, and path to credentials file along with which
+  profile to use:
+   provider "aws" {
+    region                  = "eu-west-3"
+    shared_credentials_file = "/home/eon01/.aws/credentials"
+    profile                 = "terraform"
+   }
+ execute 'terraform init'
+
+
+basic syntax:
+resource "<resource strict type>" "<custom name in terraform>" {
+
+resource "aws_instance" "web" {
+
+  #<attributes list. Key = value>
+  #attributes are specific for each type
+
+ ami = "ami-9a562df2"
+ instance_type =  "t2.micro"
+  # special Terraforms variable - cout
+ count = "4"
+  # if used at the end of the resource, and equals to 0, terraform will skip
+  # resource creation
+  # TODO: recheck above, it was somewhere in the links above, i believe
+
+
+}
+
+resource "aws_elb" "web" {
+ # ... other attributes
+
+  # create links between resources - load balancer is linked to ec2 instance
+ instances = ["${aws_instance.web.id}"]
+  #this will add ec2 instance created above into load balanced cluster of ELB
+  #if there are several instances in 'web' index need to be used
+  #or just *:
+  # instances = ["${aws_instance.web.*.id}"] - will return id of every instance
+
+resource types are strict and could be any of AWS or other cloud provider things
+like:
+ aws_instance - ec2 instance
+ aws_elb - aws ELB thing
+
+custom name could be any
+it is visible only in terraform, not clund providers, so only for terraform
+
+
+==PLAN
++ - indicates creation of resource
+- - destroyed resource
+~ - resource updated in-place (w/o destroying)
+-/+ - destroyed and newly created resource
+
+terraform plan - will read main.tf and display what is gonna happen
+
+-var - adds/override variables into main.tf (like Properties in MSBuild)
+	key-value pairs. 
+	Could override existing variables
+	Need add '-var' before every new entry
+   Example:
+  terraform plan -var region=eu-central-1 -- will override default variable
+	'region', when it has us-west-1
+	in Plan output it could be seen by using different AMIs
+   Example1:
+  terraform plan -var region=eu-central-1 -var profile=default
+
+==APPLY
+
+executes the .tf script creating stuff described in the file
+
+--------------
+Learn:
+
+Parametrization:
+ -Variables
+ -Outputs
+
+Interpolation Funcions:
+something like work with strings - change, parse, cut etc. built-in terraform
+engine
+
+Modules:
+encapsulates(seems like even private) configuration: DRY and shareble
+
+Remote State:
+

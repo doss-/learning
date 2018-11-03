@@ -1,5 +1,6 @@
 #ignore everything in Dockerfiles directory for now
 /Dockerfiles/WebFarm/
+/terraform/.terraform
 
 #except those Dockerfiles i need
 #!/Dockerfiles/docker-compose/env_var

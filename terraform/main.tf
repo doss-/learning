@@ -1,14 +1,8 @@
-variable "region" {
-  default = "us-east-1"
-}
+variable "region" {}
 
-variable "shared_credentials_file" {
-  default = "/home/dos/.aws/credentials"
-}
+variable "shared_credentials_file" {}
 
-variable "profile" {
-  default = "terraform"
-}
+variable "profile" {}
 
 provider "aws" {
   region                  = "${var.region}"
@@ -18,16 +12,16 @@ provider "aws" {
 
 variable "my_ami" {
   type = "map"
-  default = {
-    us-east-1 = "ami-0ff8a91507f77f867"
-    eu-central-1 = "ami-0233214e13e500f77"
-  }
-  description = "North Virginia and Frankfurt"
 }
+variable "key_name" {}
 
 resource "aws_instance" "web" {
   ami = "${lookup(var.my_ami, var.region)}"
   instance_type = "t2.micro"
+
+  #seems like something is wrong here
+  #key_name = "${var.key_name}"
+
   tags {
     Name = "terraformed"
   }

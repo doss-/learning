@@ -28,6 +28,27 @@ installation:
    }
  execute 'terraform init'
 
+-var-file=/path/to/file.tfvars
+  pass variables from another file splitting execution and parametrization
+   Example:
+  variables.tfvars:
+   my_ami = {
+    us-east-1 = "ami-0ff8a91507f77f867"
+    eu-central-1 = "ami-0233214e13e500f77"
+   }
+  main.tf:
+   variable "my_ami" {
+    type = "map"
+   }
+
+Example of the Terraform file to create VPC, subnets, tables and stuff:
+https://github.com/hashicorp/terraform/issues/1851
+Example of ssh key application:
+https://stackoverflow.com/questions/46099329/error-with-keys-when-running-terraform-apply
+
+  So values are taken from the file .tfvars, other parts of the variable is 
+  still in main.tf - its type "map" for instance.
+
 
 basic syntax:
 resource "<resource strict type>" "<custom name in terraform>" {

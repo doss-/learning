@@ -27,6 +27,11 @@ installation:
     profile                 = "terraform"
    }
  execute 'terraform init'
+ Note: to use exact version of terraform add this into the main.tf:
+ terraform {
+  #this will not install 0.9.5 but install any 0.9.3 and up
+  required_version = ">= 0.9.3, != 0.9.5"
+ }
 
 -var-file=/path/to/file.tfvars
   pass variables from another file splitting execution and parametrization
@@ -127,3 +132,11 @@ encapsulates(seems like even private) configuration: DRY and shareble
 
 Remote State:
 
+---
+some conventions and good practices:
+- inputs goes into variables.tf file, not hardcoded in main.tf and stuff
+  In main.tf add description(kinda comments ok?)
+- outputs of the module goes into outputs.tf, so people know what a module
+  returns
+- resources creation goes into main.tf
+- documentation about stuff goes into readme.md

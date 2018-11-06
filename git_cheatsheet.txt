@@ -22,6 +22,10 @@ https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
    --mixed  (default) - moves state of 2 Trees
 	Staging area
 	Commit history
+          Example:
+     git reset HEAD~    -- moves back one commit:
+      HEAD~ or HEAD^ means the commit before head 
+     git reset <hash of the commmit TO MOVE TO! >
    --soft - moves state only of 1 Tree
 	Commit history
 

@@ -749,8 +749,12 @@ aws s3api create-bucket
   Main aspects:
 =   Cluster - group of Container instances which act as a single computing 
  	resource
+	Different types of EC2 Instances could be included into a cluster
+	Instances from different Availability zondes could be in the
+	cluster.
 =   Container instance - _ec2 instance_ which was registered to be a part of a 
 	specific Cluster. Connects to a cluster using Container agent
+	Instance could be assigned to only One cluster
 	Life Cycle:
 	'ACTIVE' and 'connected' - when container agent is connected to cluster
 	'ACTIVE' and 'disconnected' - when connection status is 'false'

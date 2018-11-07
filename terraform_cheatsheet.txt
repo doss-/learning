@@ -248,3 +248,8 @@ some conventions and good practices:
   returns
 - resources creation goes into main.tf
 - documentation about stuff goes into readme.md
+
+==IoT
+
+https://github.com/hashicorp/terraform/issues/6138 - started here
+https://github.com/terraform-providers/terraform-provider-aws/issues/143  - completed here, still no iotAnalytics support it seems

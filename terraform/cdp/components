@@ -1,0 +1,120 @@
+= IoT
+ - e-seal
+ - RSSIRule
+ - OversterssRule
+ - SensorsRule
+ - SensorsIoTPolicy
+ - RssiIoTPolicy
+= Lambda
+ - ProcessRssi
+ - ProcessSensors
+ - ProcessOversterss
+ - ProcessBeaconProvisioning
+== Labmda_iot_vpc_role
+  - Attached policies
+  - Inline policies
+== Rethink_db_lambda_vpc
+  - Attached policies
+  - inline policies
+
+
+= IoT
+ - e-seal
+  Type: AWS::IoT::ThingType
+  Definition:
+  {
+      "thingTypeName": "e-seal",
+      "thingTypeProperties": {
+          "searchableAttributes": [
+              "bd_addr",
+              "asset_number"
+          ],
+          "thingTypeDescription": "e-seal device type"
+      }
+  }
+
+ - RSSIRule
+ Type: AWS::IoT::TopicRule
+  {
+      "ruleArn": "arn:aws:iot:us-west-2:437565535100:rule/RSSIRule", 
+      "rule": {
+          "awsIotSqlVersion": "2015-10-08", 
+          "sql": "SELECT * FROM 'RSSI/+'", 
+          "ruleDisabled": false, 
+          "actions": [
+              {
+                  "iotAnalytics": {
+                      "roleArn": "arn:aws:iam::437565535100:role/service-role/eseal_sensors_chanel_role", 
+                      "channelName": "eseal_rssi"
+                  }
+              }, 
+              {
+                  "lambda": {
+                      "functionArn": "arn:aws:lambda:us-west-2:437565535100:function:ProcessRssi"
+                  }
+              }
+          ], 
+          "ruleName": "RSSIRule"
+      }
+  }
+
+ - OversterssRule
+
+
+....
+ - SensorsRule
+ Type: AWS::IoT::TopicRule
+ {
+     "ruleArn": "arn:aws:iot:us-west-2:437565535100:rule/SensorsRule", 
+     "rule": {
+         "awsIotSqlVersion": "2015-10-08", 
+         "sql": "SELECT * FROM 'sensors/+'", 
+         "ruleDisabled": false, 
+         "actions": [
+             {
+                 "lambda": {
+                     "functionArn": "arn:aws:lambda:us-west-2:437565535100:function:ProcessSensors"
+                 }
+             }, 
+             {
+                 "iotAnalytics": {
+                     "roleArn": "arn:aws:iam::437565535100:role/service-role/eseal_sensors_analytics", 
+                     "channelName": "eseal_sensors"
+                 }
+             }
+         ], 
+         "ruleName": "SensorsRule"
+     }
+ }
+
+
+
+ - SensorsIoTPolicy
+  Type: AWS::IoT::Policy
+  {
+  	"Type" : "AWS::IoT::Policy",
+  	"Properties": {
+  		"PolicyDocument": {
+  			"Version": "2012-10-17",
+  			"Statement": [
+  				{
+  					"Effect": "Allow",
+  					"Action": "iot:Publish",
+  					"Resource": {
+  						"Fn::Join": [ "",
+  							[
+  								"arn:aws:iot:",
+  							 { "Ref": "AWS::Region" },
+  							 ":",
+  							 { "Ref": "AWS::AccountId" },
+  							 ":topic/",
+  							 { "Ref": "MQTTSensorsTopicName" },
+  						   "/+"
+  							]
+  						]
+  					}
+  				}
+  			]
+  		}
+  	}
+  },

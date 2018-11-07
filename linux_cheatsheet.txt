@@ -195,6 +195,9 @@ cat:
   cat <file1> <file2> >> <file3> - create new\append old file with joined
    contents of file1 and 2
 
+less:
+  lists output in separate 'window' does not adding history in the console
+  ALSO could be used like 'unzip' to view archives
 
 split:
   splits file into another files, like with collection variable
@@ -320,6 +323,14 @@ cp:
   ............/.* . - will not work
   ............/.*.* . - will copy '..' which is parent directory to current one
 
+wget:
+  non interactive network downloader
+   Params:
+  -q - quiet, turns off wget output
+  -i file / --input-file=file - reads URLs from a file
+   Example:
+  wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb - will download .deb file in current directory w/o any output
+
 curl:
   tool for view-download web pages and content
    -o - output, redirects output to a file, usefull when downloading files
@@ -381,6 +392,33 @@ bash history:
    also inverts pipe exit code
     ls | bogus_command; echo $? # exit code: 127
     ! ls | bogus_command; echo $? # exit code: 0
+
+unzip:
+  utility to unzip files. Unzips in the current folder by default
+   Params:
+  -d - specify folder where to extract
+  -l - lists archive contents, 'less' tool does the same
+
+zip: 
+  creates zip archive, could also create encrypted archives(with password)
+  --encrypt - will promt for password during arch creation:
+   Example:
+  zip --encrypt archive.zip files
+   Less secure example:
+  zip --password (password) file.zip files
+  
+  NOTE: zip encyption is very weak, use additional or other encription like gpg
+
+gnupg: gpg:
+  Gnu PG could encrypt documents, basically all files
+   See docs for encription here:
+  https://www.gnupg.org/gph/en/manual/x110.html
+
+  basic example w/o using Public-key cryptography:
+   gpg --output <encrypted_file.gpg> --symmetryc <file_to_encrypt> - this will 
+	ask for passphrase and its done
+
+  
 
 tar:
   tape archive - collects all files in archive, with savin all permissions
@@ -1010,6 +1048,11 @@ dpkg:
   -l - list of all installed packages(use grep for specific packages)
   -L <package> - list of all the files that were created during package 
 		 installation
+  -S <filename> - similar to 'yum provides' but only for Installed packages
+		it returns list of all packages that contain the string:
+		-S less will return also 'serverless' word.. 
+	Another option is to use web interface on Ubuntu:
+	https://packages.ubuntu.com/
 
 aptitude:
   frontend of dpkg, GUI in commandline

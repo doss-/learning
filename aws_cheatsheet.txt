@@ -821,6 +821,61 @@ aws s3api create-bucket
   So Roles is similar to Groups which are given Policies and then is given to
  a User or Users, but Roles are given to another services and stuff, not users
   
+==IoT iot IOT Internet of Things
+representation of device in the cloud, its shadow is always there and keeps
+track of state, when real one comes online shadow delivers state
+also has rules , cerificates(uploaded on device) policies and stuff
+
+Guide link:
+https://docs.aws.amazon.com/iot/latest/developerguide/iot-gs.html
+
+===Device
+device need to be registered in the registry
+Device is key-value paired list of device properties
+it could have Type
+With type device could have up to 50 pairs
+
+===Certificate
+Certificate X.509 is used for secure connection
+it need to be first created then uploaded on the real device
+also together with certificate priv/pub key pair is created for same secure
+reason
+Certificates need to be Activated.
+
+Certificate with Attached Policy then
+ need to be attached to a Thing
+
+===AWS IoT Policies
+similar to IAM Policies - those grants unhuman things privileges to do
+something for user , on user behalf
+ Example:
+IoT Policy could grant subscribing or publishing to MQTT topics
+
+Certificate is used for authentification whereas Policy grants device the
+privileges to do something after it is authentificated
+
+Policy has Statements that consist of
+  Action which is granted by it, like Connecto to IoT
+  Resource ARN - which device to apply the policy to
+   * - will apply to everyone
+    ARN structure:
+   arn:aws:iot:your-region:your-aws-account:client/<my-client-id>
+    your-region - AWS region, like us-east-1
+    your-aws-account - account id like 47438111111...
+    my-client-id - id of the IoT device requesting policy
+     Example:
+    arn:aws:iot:us-east-1:474383222596:client/replaceWithAClientId
+  Effect - Allow\Deny - this action for given ARN
+
+  For different Actions ARNs could be different - for Connect it is 'clients'
+  for Publish this is topics
+
+Policy could have several Statements
+
+!Policies are attached >>> to Certificates!
+  Attaching IoT policy to a certificate gives the device the permissions 
+  specified in the policy
+ 
 
 ==ecs-cli
 ecs-cli:

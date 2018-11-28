@@ -527,6 +527,39 @@ sftp:
   get <remote_filename> <new_local_name>
  ls also works, ALIASES from bashrc do not work
 
+shutdown:
+ shutdown or reboot or halt etc the computer
+  by default shutdowns in 1 minute, also could be scheduled:
+   Example:
+  shutdown "21:45" - will shutdown at 21:45
+  shutdown "+25" - will shutdown in 25 minutes from 'now'
+  shutdown - will shutdown as 'shutdown +1'
+  shutdown now - probably will shutdown now
+
+at:
+ need to be installed, daemon
+ schedules to do something _at_ some time:
+ There are three ways to use it:
+  Example 1:
+ echo "shutdown" | at now + 1 min - will execute what echo will return
+  	at time of now + 1 minute - echo will return stuff in ''
+  Example 2:
+ echo "shutdown" > cmd.txt
+ at now + 1 min < cmd.txt - it will redirect STDIN from cmd.txt , will read
+	from there, and shutdown 
+  Example 3: 
+ at now + 1 min
+ at> shutdiwn     - will wait for input in STDIN
+ ctrl+d           - to exit, and wait given time before execute shutdown
+
+  Time could be like:
+ [[CC]YY]MMDDhhmm[.ss]
+  Example: 
+ at -t 201403142134.12 < script.sh
+ 
+
+   
+
 ===general
 
 

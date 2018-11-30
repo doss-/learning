@@ -558,8 +558,79 @@ at:
  at -t 201403142134.12 < script.sh
  
 
-   
+cron:
+ task scheduler
 
+ *     *     *     *     *  command to be executed
+ -     -     -     -     -
+ |     |     |     |     |
+ |     |     |     |     +----- day of week (0 - 6) (Sunday=0)
+ |     |     |     +------- month (1 - 12)
+ |     |     +--------- day of month (1 - 31)
+ |     +----------- hour (0 - 23)
+ +------------- min (0 - 59)
+
+ So, for example, this will run ls every day at 14:04:
+ 
+ 04 14 * * * ls
+ 
+ To set up a cronjob for a specific date:
+ 
+     Create a new crontab by running crontab -e. This will bring up a window of 
+	your favorite text editor.
+ 
+     Add this line to the file that just opened. This particular example will 
+	run at 14:34 on the 15th of March 2014 if that day is a Friday (so, OK,
+ 	it might run more than once):
+ 
+     34 14 15 5  /path/to/command        
+ 
+     Save the file and exit the editor.
+ 
+awk:
+ stuff to worh with text, programming language kind of
+  Example: 
+ awk 'BEGIN {printf "title"} {print "line"} END {printf "end"}' textfile.txt
+  this will print 'title'
+  then 'line' for every line in textfile
+  and print 'end' at the end
+
+ check out tutorial here:
+ https://www.tutorialspoint.com/awk/awk_basic_syntax.htm
+
+ workflow is Read, Execute, Repeat with tear up and tear down executed once:
+ BEGIN
+  Read line
+  Execute user code
+  Repeat if not EOF
+ END
+
+ Begin block executes only once, Tear Up, syntax:
+  BEGIN {awk-commands}
+ Optional
+ 
+ Body block, which is actual stuff to do for every line matched by pattern:
+  /pattern/ {awk-commands}
+ Pattern is optional
+
+ End block executes only once, Tear Down, syntax:
+  END {awk-commands}
+ Optional
+
+ Also gets input from a file:
+  -f <file_path>
+    Example:
+  command.awk:
+   BEGIN {printf "start\n"}
+   {print}
+   END {printf "end\n"}
+
+  awk -f command.awk textfile.txt   - this will read from command.awk and print
+   'start' at 1st line
+   then print every line
+   then print 'end' and the latest line
+ 
+ 
 ===general
 
 

@@ -10,4 +10,8 @@ my_ami = {
 
 key_name = "aws_me.pem"
 
+
+
+
 s3_bucket = "dos-deepdive"
+app_version="1.0.1"

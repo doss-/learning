@@ -6,6 +6,10 @@ variable "s3_bucket" {
   description="the bucket name"
 }
 
+variable "app_version" {
+  description = "app version - dir name in s3"
+}
+
 #VARIABLES END
 
 provider "aws" {
@@ -13,13 +17,12 @@ provider "aws" {
 }
 
 
-
 resource "aws_lambda_function" "example" {
   function_name = "ServerlessExample"
 
   # bucket name and path inside it to the source code to be run in Lambda
   s3_bucket = "${var.s3_bucket}"
-  s3_key = "lambda/v1.0.0/lambda_example.zip"
+  s3_key = "lambda/v${var.app_version}/lambda_example.zip"
 
   # "main" is the filename within the zip file (main.js) and "handler"
   # is the name of the property under which the handler function was
@@ -120,3 +123,15 @@ resource "aws_api_gateway_deployment" "example" {
   rest_api_id = "${aws_api_gateway_rest_api.example.id}"
   stage_name = "test"
 }
+
+resource "aws_lambda_permission" "apigw" {
+  statement_id = "AllowAPIGaewayInvoke"
+  action = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.example.arn}"
+  principal = "apigateway.amazonaws.com"
+
+  # The /*/* portion grants access from any method on any resource
+  # within the API Gateway "REST API"
+  source_arn = "${aws_api_gateway_deployment.example.execution_arn}/*/*"
+}
+

@@ -811,6 +811,16 @@ aws s3api create-bucket
  Permission to do something basically.
   Like change password, or see billing information, or use particular service
   for instance s3
+ Policies could be Versioned (different version than one in JSON element, see below)
+
+========IAM Policy Variables and tags
+  Variables are like dynamically interpolated username later on execution:
+   ${aws:username} - will be expanded differently for each logged user
+  Works in 2012 version of Policy langiage:
+   "Version": "2012-10-17"
+  Version(JSON element) must be specified, default one is 2008, and is deprecated.
+  
+  
 ====== Group
  Policies could be groupped into a Group for easier management and consistency
  Also users is attached to the group to get those access given by bunch of
@@ -824,7 +834,8 @@ aws s3api create-bucket
  be able to access S3.
   So Roles is similar to Groups which are given Policies and then is given to
  a User or Users, but Roles are given to another services and stuff, not users
-  
+ 
+
 ==IoT iot IOT Internet of Things
 representation of device in the cloud, its shadow is always there and keeps
 track of state, when real one comes online shadow delivers state

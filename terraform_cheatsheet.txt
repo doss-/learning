@@ -129,6 +129,15 @@ syntax bullet point ref:
 Variables syntax:
 https://www.terraform.io/docs/configuration/variables.html
 
+AWS Policy Variables
+ have same syntax as Terraform, to avoid errors AWS variables
+ need to be escaped with extra $ :
+  ${aws:username} ==> $${aws:username}
+
+ Way to use and configure AWS policies in Terraform could vary, 
+ several implementations are available:
+  https://www.terraform.io/docs/providers/aws/guides/iam-policy-documents.html#choosing-a-configuration-method
+
 variable "foo" {
   #this block configures single input variable
   #name(foo) is used to assign value via CLI (-var 'foo=bar' )

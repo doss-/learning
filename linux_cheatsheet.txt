@@ -409,6 +409,17 @@ zip:
   
   NOTE: zip encyption is very weak, use additional or other encription like gpg
 
+Encryption 
+public private keys ssl , stuff
+https://www.devco.net/archives/2006/02/13/public_-_private_key_encryption_using_openssl.php
+
+Create CRS - certificate signing request (csr)
+https://www.sslshopper.com/what-is-a-csr-certificate-signing-request.html
+openssl req -new -newkey rsa:2048 -nodes -out servername.csr -keyout servername.key 
+
+General info about Keys, Key Pairs, Key Storages and stuff:
+https://info.townsendsecurity.com/definitive-guide-to-encryption-key-management-fundamentals#How-Encryption-Key-Systems-Work
+
 gnupg: gpg:
   Gnu PG could encrypt documents, basically all files
    See docs for encription here:

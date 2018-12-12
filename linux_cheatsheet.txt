@@ -71,7 +71,12 @@ grep:
   grep <params> <regex> <filepath>
   -v - inverts results
    ps aux | grep bash |grep -v grep - will return only real bash w/o grep 
-			process listed
+	process listed
+   '[b]ash' will also do the trick, dunno why
+    why it works: 
+     https://askubuntu.com/questions/153419/how-does-this-tricky-bracket-expression-in-grep-work
+    TL;DR - basically string 'grep [f]irefox'(returned by ps aux) will not be 
+	matched by regular expression '[f]irefox' (executed by grep)
   -i  - case INsensitive
   <filepath> - is not required if used in pipe
   -c - Count matched lines, return number of lines matched
@@ -1059,6 +1064,21 @@ kill:
   -l - lists all the signals available with their names and numbers(minus SIG
    prefix)
   NOTE: only owner of the process(or root) could kill the process
+  %JOB_SPEC - kills job with appropriate number
+   Examle:
+  kill %1 - will kill the job with JOB_SPEC [1]
+
+ kill all processes:
+  kill -9 $(ps aux | grep '/usr/lib/firefox' | grep -v grep | awk '{print $2}')
+   $() will be expanded. if list is returned will iterate over every item
+	in the list
+   grep -v - invert grep results (excluding own grep process from ps aux)
+   awk will print second column from the list - PID
+	as per grep matched several lines(List de-facto) every line will be 
+	rinted. And sent out of $() into kill -9 as argument
+
+killall:
+ kills all instances of the process
 
 nice: renice:
   changes priority of the process
@@ -1679,6 +1699,22 @@ alias:
 
 sleep:
   just regular sleep, stops current thread for amount of given seconds
+
+  Experiments:
+  sleep 10 & - will stop the thread for 10 seconds and move it to background
+
+jobs:
+  built-in command
+  shows jobs in background, running, stopped
+   More read:
+  https://unix.stackexchange.com/questions/116959/there-are-stopped-jobs-on-bash-exit
+
+fg:
+  moves job to the foreground
+  fg JOB_SPEC
+   Example:
+  fg 1 - moves job [1] to the foreground
+  Ctrl+z will move it back, but 'paused'
 
 bash:
   man bash

@@ -6,10 +6,24 @@ variable "MQTTSensorsTopicName" {
   default = "sensorsTopic"
 }
 
+#will use default profile from credentials file if none explicitly specified 
+variable "profile" {
+  description = "profile from under which Terraform operates"
+}
+
+#seems that shared_credentials_file is checked against default location
+#where i have it
+#but anyway it is always better to point it out explicitly
+variable "shared_credentials_file" {
+  description = "path for credentials file"
+}
+
 #VARIABLES END
 
 provider "aws" {
   region="${var.region}"
+  shared_credentials_file = "${var.shared_credentials_file}"
+  profile = "${var.profile}"
 }
 
 data "aws_iam_policy_document" "iot_policy_sensors" {

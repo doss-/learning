@@ -6,6 +6,12 @@ variable "s3_bucket" {
   description="the bucket name"
 }
 
+variable "profile" {
+  description = "profile to use instead of default, i suppose"
+}
+
+#uses shared credentials file default location
+
 variable "app_version" {
   description = "app version - dir name in s3"
 }
@@ -14,6 +20,7 @@ variable "app_version" {
 
 provider "aws" {
   region="${var.region}"  
+  profile = "${var.profile}"
 }
 
 

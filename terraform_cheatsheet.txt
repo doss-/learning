@@ -262,3 +262,20 @@ some conventions and good practices:
 
 https://github.com/hashicorp/terraform/issues/6138 - started here
 https://github.com/terraform-providers/terraform-provider-aws/issues/143  - completed here, still no iotAnalytics support it seems
+
+==misc
+
+call other exe\scripts in scope of terraform:
+resource "null_resource" "attach_thing_to_certificate" {
+  triggers {
+    certificate_arn = "<certificate_arn>"
+  }
+
+  provisioner "local-exec" {
+    command = "aws iot attach-thing-principal --thing-name <thing_name> --principal <certificate_arn> --region <region>"
+  }
+}
+
+terraform aws provider changes history
+
+https://github.com/terraform-providers/terraform-provider-aws/blob/master/CHANGELOG.md

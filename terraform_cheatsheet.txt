@@ -26,12 +26,42 @@ installation:
     shared_credentials_file = "/home/eon01/.aws/credentials"
     profile                 = "terraform"
    }
+
+!!IMPORTANT
+ Always use profile and shared_credentials file in 'provider' section
+ Otherwise default values are gonna be used, which could differ
+
  execute 'terraform init'
  Note: to use exact version of terraform add this into the main.tf:
  terraform {
   #this will not install 0.9.5 but install any 0.9.3 and up
   required_version = ">= 0.9.3, != 0.9.5"
  }
+
+!!Version
+ Terraform has version
+ Providers have versions
+ Both are available by
+   terraform -version
+ List of used providers in particular directory(tfstate?) could listed by:
+   terraform -providers
+  Versioning for terraform and providers are different 
+  support of a provider(like AWS) basically is  done inside Provider 
+ code part, which stored in different repo and has different releases. 
+  In case some feature is added - it will be PR/Merged into 
+ main branch of a Provider, and then released.
+  In case of difficulties source code of a Provider could give answers for
+ behavior and stuff.
+
+!!Providers update:
+ https://danielcompton.net/2017/11/25/how-to-upgrade-a-terraform-provider
+  terraform init -upgrade 
+   upgrades providers , which are distributed separately from the terraform 
+  binary (i dunno where are they stored tho, because during install one
+  just downloads single binary) 
+
+  terraform get -update
+   upgrades modules..
 
 -var-file=/path/to/file.tfvars
   pass variables from another file splitting execution and parametrization

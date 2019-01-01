@@ -42,6 +42,7 @@ Contents
 =====Bash Scripting
 ===Nginx
 ===Networking
+====Ports checks
 
 
 
@@ -193,6 +194,16 @@ ls:
   -l - list format
   -a - all, show hidden files
 
+
+update-alternatives:
+  manages symbolic links i.e.:
+   sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.5 1 - python3.5 as first list item
+   sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 2 - python3.6 as second list item
+   sudo update-alternatives --config python3 - will print the list and ask
+	for number to point to for default usage, 2 will pick python3.6 for
+	python3 entry
+  See here: 
+   http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
 
 cat:
   concatenate, return file contents on screen
@@ -1328,6 +1339,10 @@ apt-file:
 	   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
 	   $(lsb_release -cs) \ - returns distro name
 	   stable" - list of repos, test, edge could be added for docker
+
+	Another example:
+	sudo add-apt-repository ppa:jonathonf/python-3.7
+	sudo apt-get update
 	
    
 
@@ -2057,3 +2072,51 @@ ip:
 		bridge_ports dummy0	#some mock stuff
 		bridge_stp off
 		bridge fd 0 		#frame 0
+====Ports checks
+read more:
+https://www.cyberciti.biz/faq/how-do-i-find-out-what-ports-are-listeningopen-on-my-linuxfreebsd-server/
+https://www.maketecheasier.com/check-open-ports-linux/
+
+netstat:
+  find open ports
+   Params:
+  -l / --listen - displays ports that are in LISTEN state (lots of)
+  -vatn - opened ports and established TCP connections
+   - v - ?
+   - a - All - show all sockets
+   - t - TCP connections
+   - u - UDP connections
+   - n - short DNS hostname. will display dns names/ports w/o it
+   - p - show related PID and Program Name
+  Example:
+   netstat -vat - display used porta and established connections
+
+lsof:
+  also checks ports, could display processes that are using
+   port, and files used by the process
+
+   Params:
+  -i - displays processes and ports used, and connection
+ 	with friendly names
+   - 4 - ipv4
+   - tcp - display tcp (cant use 4 and tcp in the same time, it seems)
+  
+nmap:
+  Network Mapped, detects open ports on my system
+   -s - Scan, there are lots of it
+    -sT - scan TCP
+    -sn - disable port scan, just 'ping'
+    -stuff, see 'man nmap'
+   -O - OS detection
+   -T - TCP
+   -U - UDP
+
+  NOTE: 
+   Read MAN - it has examples and lots of stuff:
+    scanme.nmap.org/24 - will scan 256 IP in C network class of
+	scanme network - CRAZY!!111
+
+  Example:
+   nmap -sT -O localhost    - [s]cans [T]CP on localhost
+ 	
+

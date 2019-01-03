@@ -15,6 +15,8 @@ key_name = "aws_me.pem"
 
 s3_bucket = "dos-deepdive"
 rssi_ver = "0.1"
+overstress_ver = "0.1"
+sensors_ver = "0.1"
 
 
 

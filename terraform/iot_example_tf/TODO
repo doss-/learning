@@ -21,16 +21,11 @@ IoT Analytics is not attached
  Topic Rule - Overstress Rule
  Topic Rule - Sensors Rule
 
-Attach Lambda Call 
- Topic Rule - Overstress Rule
- Topic Rule - Sensors Rule
- 
-
 UNDONE
 Lambda
  Process Beacon Provisioning
 Probably API GateWay
 IAM Role
- IoT VPS (all for Lambdas + IoT)
+ IoT VPC (all for Lambdas + IoT)
  Lambda (all for Lambdas)
  

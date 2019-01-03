@@ -10,8 +10,32 @@ variable "MQTTRSSITopicName" {
   default = "RSSI"
 }
 
+variable "rethinkdb_user" {
+  default = "eseal"
+}
+
+variable "rethinkdb" {
+  default = "172.31.34.156"
+}
+
+variable "rethinkdb_name" {
+  default = "eseal"
+}
+
+variable "rethinkdb_password" {
+  default = "eseal"
+}
+
 variable "rssi_ver" {
   description = "rssi lambda source version - dir name in s3"
+}
+
+variable "overstress_ver" {
+  description = "overstress lambda source version - dir name in s3. upload it manually: aws s3 cp overstress_example.zip s3://dos-deepdive/lambda/iot_overstress_0.1/"
+}
+
+variable "sensors_ver" {
+  description = "overstress lambda source version - dir name in s3. upload it manually: aws s3 cp overstress_example.zip s3://dos-deepdive/lambda/iot_overstress_0.1/"
 }
 
 
@@ -122,6 +146,14 @@ resource "aws_iot_topic_rule" "RSSIRule" {
   #probably need to edit rule manually over some script
   #better to call script somehow in scope of terraform
   #need to find out how to call script by terraform
+
+/*
+  #call this in every Topic Rule created, that needs to communicate to
+  #IoT Analytics too
+  provisioner "local-exec" {
+    command = "aws iot <create IoT analytics stuff here>"
+  }
+*/
 }
 
 resource "aws_iot_topic_rule" "OverstressRule" {
@@ -132,6 +164,9 @@ resource "aws_iot_topic_rule" "OverstressRule" {
   sql = "SELECT * FROM '${var.MQTTSensorsTopicName}/+'"
 
   #call lambda Process Overstress
+  lambda {
+    function_arn = "${aws_lambda_function.overstress_lambda.arn}"
+  }
 
   #also need to call iotAnalytics
 }
@@ -144,6 +179,9 @@ resource "aws_iot_topic_rule" "SensorsRule" {
   sql = "SELECT * FROM '${var.MQTTSensorsTopicName}/+'"
 
   #call lambda ProcessSensors
+  lambda {
+    function_arn = "${aws_lambda_function.sensors_lambda.arn}"
+  }
 
   #also need to call iotAnalytics
 }
@@ -159,10 +197,18 @@ resource "aws_lambda_function" "rssi_lambda" {
   runtime = "python3.6"
 
   role = "${aws_iam_role.iam_lambda_exec.arn}"
+  environment {
+      variables = {
+          rethinkdb_user = "${var.rethinkdb_user}", 
+          rethinkdb = "${var.rethinkdb}", 
+          rethinkdb_name = "${var.rethinkdb_name}", 
+          rethinkdb_password = "${var.rethinkdb_password}"
+      }
+  }
 }
 
 # allow triggering from IoT Topic Rule 
-resource "aws_lambda_permission" "allow_iot" {
+resource "aws_lambda_permission" "allow_iot_rssi" {
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.rssi_lambda.function_name}"
   principal     = "iot.amazonaws.com"
@@ -178,6 +224,52 @@ Quote:
 Instead of using a Lambda function policy, you can create another IAM role that grants the event sources (for example, Amazon S3 or DynamoDB) permissions to invoke your Lambda function. However, you might find that resource policies are easier to set up and make it easier for you to track which event sources have permissions to invoke your Lambda function. 
 */
 
+resource "aws_lambda_function" "overstress_lambda" {
+  function_name = "Overstress_Lambda"
+
+  s3_bucket = "${var.s3_bucket}"
+  s3_key = "lambda/iot_overstress_${var.overstress_ver}/overstress_example.zip"
+
+  handler = "overstress_example.my_logging_handler"
+  runtime = "python3.6"
+
+  role = "${aws_iam_role.iam_lambda_exec.arn}"
+}
+
+# allow triggering from IoT Topic Rule 
+resource "aws_lambda_permission" "allow_iot_overstress" {
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.overstress_lambda.function_name}"
+  principal     = "iot.amazonaws.com"
+}
+
+resource "aws_lambda_function" "sensors_lambda" {
+  function_name = "Sensors_Lambda"
+
+  s3_bucket = "${var.s3_bucket}"
+  s3_key = "lambda/iot_sensors_${var.sensors_ver}/sensors_example.zip"
+
+  handler = "sensors_example.my_logging_handler"
+  runtime = "python3.6"
+
+  role = "${aws_iam_role.iam_lambda_exec.arn}"
+
+  environment {
+      variables = {
+          rethinkdb_user = "${var.rethinkdb_user}", 
+          rethinkdb = "${var.rethinkdb}", 
+          rethinkdb_name = "${var.rethinkdb_name}", 
+          rethinkdb_password = "${var.rethinkdb_password}"
+      }
+  }
+}
+
+# allow triggering from IoT Topic Rule 
+resource "aws_lambda_permission" "allow_iot_sensors" {
+  action        = "lambda:InvokeFunction"
+  function_name = "${aws_lambda_function.sensors_lambda.function_name}"
+  principal     = "iot.amazonaws.com"
+}
 
 #IAM ROLE
 resource "aws_iam_role" "iam_lambda_exec" {

@@ -16,10 +16,16 @@ IoT Policy
 
 
 Partially done
-IoT Analytics is not attached
+IoT Analytics is not attached, not implemented in terraform
+  and Topic Rule can only be replaced, not updated with new\extra Action
  Topic Rule - RSSI Rule
  Topic Rule - Overstress Rule
  Topic Rule - Sensors Rule
+Lambda
+ Add permissions to be called only by specific rule, which is omitted in 
+  terraform. And seems like it is not realized in CLI too
+ Seems like have to look into IAM filtering for Lambda calls, else it 
+  wont work out automated
 
 UNDONE
 Lambda
@@ -28,4 +34,6 @@ Probably API GateWay
 IAM Role
  IoT VPC (all for Lambdas + IoT)
  Lambda (all for Lambdas)
- 
+Investigate IAM Lambda permissions
+ https://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#intro-permission-model-access-policy 
+Probably also need to create IoT Analytics Channel, if required 

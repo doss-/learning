@@ -153,6 +153,21 @@ resource "aws_iot_topic_rule" "RSSIRule" {
   provisioner "local-exec" {
     command = "aws iot <create IoT analytics stuff here>"
   }
+
+  seems like i can not update Topic Rule, neither from
+  SDK https://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/IoT/TReplaceTopicRuleRequest.html
+  API https://docs.aws.amazon.com/iot/latest/apireference/API_ReplaceTopicRule.html
+  CLI https://docs.aws.amazon.com/cli/latest/reference/iot/replace-topic-rule.html
+
+  i can only Replace it, which seems to be totally useless in case of terraform.
+  it seems that much easier would be provision whole Topic Rule using command
+  line 'aws iot' in case of creation of something else related to IoT
+
+!  Important! Topic Rule is linked only in Lambda COndition, which i cant 
+   implement either. And if IAM will work out, probably will be linked there
+   If will be linked in IAM , Replace could work our - i will know the ARN
+   and will be able to link the Topic Rule, else probably will jsut
+   create it as provisioning in whole
 */
 }
 
@@ -217,7 +232,7 @@ resource "aws_lambda_permission" "allow_iot_rssi" {
 this is confgured w/o COndition section, where specific user and
 TOpic Rule are mentioned, but in general it works
 Terraform (and seems CloudFOrmation too) cant set it up
-Need to do it manually or move all Function Policy into IOT
+Need to do it manually or move all Function Policy into IAM
 see here the main idea:
 https://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#intro-permission-model-access-policy
 Quote:

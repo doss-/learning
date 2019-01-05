@@ -81,6 +81,9 @@ data "aws_iam_policy_document" "iot_policy_rssi" {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
+
 #RESOURCES START
 
 resource "aws_iot_thing_type" "eseal"{
@@ -227,6 +230,8 @@ resource "aws_lambda_permission" "allow_iot_rssi" {
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.rssi_lambda.function_name}"
   principal     = "iot.amazonaws.com"
+  source_account = "${data.aws_caller_identity.current.account_id}" 
+  source_arn = "${aws_iot_topic_rule.RSSIRule.arn}"
 }
 /*
 this is confgured w/o COndition section, where specific user and
@@ -256,6 +261,8 @@ resource "aws_lambda_permission" "allow_iot_overstress" {
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.overstress_lambda.function_name}"
   principal     = "iot.amazonaws.com"
+  source_account = "${data.aws_caller_identity.current.account_id}" 
+  source_arn = "${aws_iot_topic_rule.OverstressRule.arn}"
 }
 
 resource "aws_lambda_function" "sensors_lambda" {
@@ -284,6 +291,8 @@ resource "aws_lambda_permission" "allow_iot_sensors" {
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.sensors_lambda.function_name}"
   principal     = "iot.amazonaws.com"
+  source_account = "${data.aws_caller_identity.current.account_id}" 
+  source_arn = "${aws_iot_topic_rule.SensorsRule.arn}"
 }
 
 #IAM ROLE

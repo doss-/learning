@@ -4,6 +4,7 @@ Lambda
  RSS
  Overstress
  Sensors
+  Permissions, i misread documentation, its source_acc and source_arn
 Thing - E-seal
 Certificate
 Topic Rule
@@ -21,11 +22,8 @@ IoT Analytics is not attached, not implemented in terraform
  Topic Rule - RSSI Rule
  Topic Rule - Overstress Rule
  Topic Rule - Sensors Rule
-Lambda
- Add permissions to be called only by specific rule, which is omitted in 
-  terraform. And seems like it is not realized in CLI too
- Seems like have to look into IAM filtering for Lambda calls, else it 
-  wont work out automated
+  Need to create/replace TopicRule manually and pass its ARN to Lambda
+  permission
 
 UNDONE
 Lambda

@@ -54,6 +54,41 @@ check linux distro:
   lsb_release - command that returns info about distro
   cat /proc/version - file with linux version info
 
+directories structure:
+ / - root
+ /bin - binaries for system boot
+ /boot - kernel boot files and RAM disc with drv 
+  for boot, and boot program itself
+  /boot/grub/grub.conf - boot config
+  /boot/vmlinuz - kernel
+ /dev - all devices are here
+ /etc - configs all here
+  /ect/crontab - cron config
+  /etc/fstab - mounts config
+  /etc/passwd - users list
+ /home - contains all users' dis
+ /lib - shared by various programs libraries(DLLs), probably for /bin's
+ /lost+found - if HDD feels bad, some stuff could appear here
+ /media - user-related mount points for flash, hdd, cd etc 
+   which are mounted manually
+ /opt - optional installed software and other stuff
+   mostly used for commercial software
+ /proc - files to peek at kernel things
+ /root - root's home dir
+ /sbin - same as /bin
+ /tmp - temp used by various programs, could be cleaned at boot
+ /usr - programs and files used by users
+ /usr/bin - standard programs , almost everythign installed goes here
+ /usr/lib - shared libraries for /usr/bin programs
+ /usr/local - empty by default, available for all users on system
+  /usr/local/bin - locally compiled bins should go here
+ /usr/sbin - probably same as /usr/bin
+ /usr/share - shared stuff(configs, files, images) except shared libs
+ /usr/share/doc - mans for installed soft go here
+ /var - variables, most changed dir, contains DBs, buffers, emails
+ /var/log - all logs go here
+ 
+
 man:
   man [section] <command>
   man sections:
@@ -65,6 +100,50 @@ man:
    6. Games and screensavers
    7. Miscellanea
    8. System administration commands and daemons
+
+apropos:
+  searches through man by keyword and returs matched in format:
+   article (secion) - line matched
+
+whatis:
+  returns first line from man of given command
+   Example:
+  dos:~$ whatis ls
+  >ls (1)               - list directory contents
+
+info:
+  same as 'man' for GNU software
+
+pwd:
+  print working directory 
+  returns string with current path location
+
+cd:
+  change directory
+   Params:
+  <path/to/folder> - changes dir to the folder
+  -/<none>   - changes to current homedir
+  ~username - changes to username homedir
+
+ls:
+  list files in given directory or current one
+   Params:
+  -l - long format (list basically)
+    Columns:
+    access rights | hard links qty | owner | owner group | 
+    | size | data changed | name
+  -a - show all files including hidden 
+  -d - show only directories 
+  -r - reverse sorting order
+  -S - sort by size
+  -t - sort by date changed
+  -F - adds slash to dirs in list
+  -h - human readable sizes (mb, gb etc)
+
+file:
+ short info about a file, file type etc.
+  Linux does not have extensions for files so this is 
+ the sure way to acquire such info
 
 grep:
   Global Regular Expression Print
@@ -212,6 +291,7 @@ cat:
    contents of file1 and 2
 
 less:
+  pager, upgraded version of 'more' command
   lists output in separate 'window' does not adding history in the console
   ALSO could be used like 'unzip' to view archives
 
@@ -324,7 +404,19 @@ mkdir:
   mkdir <params> <path>
   -p - creates every unexisting dir along the path, return no errors
    mkdir -p /not_exist1/not_exist2 - will create both not existing dirs 
+  mkdir <dir1> <dir2> <dir3> - will create 3 separate directories
 
+wildcards(not a command:
+ * - any number of symbols
+ ? - any symbol
+ [ab1,] - one symbold from a list (same to regex)
+ [!ab1,] - none of listed symbols([^] in regex)
+ [[:class:]] - one symbol from a class
+  :alnum: - digits and letters (\w in regex)
+  :alpha: - letters (similar to  Unicode character property class \p{L} in regex)
+  :digit: - digits (\d in regex)
+  :lower: - lowercase
+  :upper: - uppercase
 
 cp:
   copy stuff
@@ -332,12 +424,60 @@ cp:
   cp -rf ../source/* .
    -r - recursive copy
    -f - overwrite everything 
+   -i - will ask for overwrite
+   -a - archive - keep original access rights and owners
+   -u - if overwrite - will copy only newer files
+   -v - verbose
    . - current directory with saving all the names and paths from source
   NOTE: to copy hidden files, those star with . , need to escape dot(.) as it is
   regular expression:
   cp /etc/skel/\.* . - will copy all hidden files to current directory
   ............/.* . - will not work
   ............/.*.* . - will copy '..' which is parent directory to current one
+
+mv: 
+  see cp: above , pretty same, except it moves\renames files
+
+rm:
+  remove stuff, does not delete dirs and not empty dirs w/o additinal params
+  rm <params> <source>
+  rm -r <dirname>
+   -r - recursive, also deletes directory at the end
+   -d - deletes EMPTY directory
+   -f - force
+   -i - interactive - will ask before do
+   -v - verbose
+
+ln:
+  create hard link by default
+  ln <param> <path> <link name>
+  -s - create soft link
+  
+  Hard link: every file has 1 , create another one in different place
+   it will has size of its name, and will point to place on HDD for original file
+   File can not be deleted until all Hard links deleted.
+   Note: ls -i will return memory block of a place where link points
+    so file and is hard links will all point in the same place, thus having 
+    same number next to it.
+   ONly can be created in the same filesystem (disk drive)
+
+  Soft link: upgraded hard link, could be created anywhere, orig file can be
+   deleted > link will become broken
+
+type: 
+  returns how given command is interpreted
+   Example:
+  dos:~$ type ls
+  >ls is aliased to `ls --color=auto'
+   Example:
+  dos:~$ type cd
+  >cd is a shell builtin
+   Example:
+  dos:~$ type apt
+  >apt is /usr/bin/apt
+
+
+
 
 wget:
   non interactive network downloader
@@ -358,13 +498,6 @@ curl:
       will display path to local ecs-cli, which will go into pipe to md5 sum
       which will compare given md5 and md5 from file under given path, and will
       return OK if everything if fine
-rm:
-  remove stuff, does not delete dirs and not empty dirs w/o additinal params
-  rm <params> <source>
-  rm -r <dirname>
-   -r - recursive, also deletes directory at the end
-   -d - deletes EMPTY directory
-
 
 du:
   disk usage
@@ -372,14 +505,6 @@ du:
   dy -hs dirname
    -h - human readable
    -s - summary
-
-ln:
-  create link
-  soft links
-  hard links
-  ln <param> <path> <link name>
-  -s - create soft link
-
 
 diff:
   checks differences between two files
@@ -1711,6 +1836,7 @@ alias:
  new aliasws workws only for current session
  alias <new name>="<command>" - adds command as alias
  alias <old name> - shows command
+ alias - shows all aliases for current session
 
 sleep:
   just regular sleep, stops current thread for amount of given seconds
@@ -1757,6 +1883,7 @@ history:
 
 which:
   shows location of a command and its alias if exists
+   Does not show built-ins
   can search by alias too
   which <command\alias>
    i.e.

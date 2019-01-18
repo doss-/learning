@@ -289,6 +289,8 @@ cat:
   cat <filename> <filename> - will return contents of both to screen
   cat <file1> <file2> >> <file3> - create new\append old file with joined
    contents of file1 and 2
+  cat file.* > file - will combine lots of files
+  cat > newfile - will create a new file and promt for input 
 
 less:
   pager, upgraded version of 'more' command
@@ -300,6 +302,34 @@ split:
   split -l 2 <file name> -  will split the file by 2 Lines into new files named
 			    xaa, xab, xac, etc.
 
+uniq:
+  deletes duplicates from output
+   Params: 
+  -d - displays only duplicets (kind inversion)
+ 
+  !Note: to get comparable output use 'sort' otherwice could display stuff in a
+	way whcih will be not comparable. see ls examples below 
+
+   Example:
+  ls /bin /usr/bin | sort | uniq | less - will display combined unique files in
+	both directories, in sorted order
+  ls /bin /usr/bin | sort | uniq -d | less - will display only duplicated files
+	in both dirs, in sorted order
+
+wc: 
+  word count, returns number of lines, chars\bytes and words
+   -l - count lines
+
+head:
+  returs top of the file - 10 lines by default
+   Params:
+  -n <num> - change number of returned lines
+
+tail:
+  returns bottom of the file - 10 lines by default
+   Params:
+  -n <num> - number of returned lines
+  -f  - follow, will update file if any
 
 df:
   display all mounted devices with size\free\used\paths etc
@@ -388,11 +418,13 @@ https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-s
 tee:
   reads from STDIN and writes to STDOUT and File
   Overrides existing file by default , to append use -a
+   Good for saving in the middle of pipe
   tee <params> file1 file2
   -a - append file
     Example:
   ls dir1 | tee file1 - will display ls on dir1 and write output to file1
-  ls dir2 | tee -a file1 - display dir2 and append ls output to file1
+  ls dir2 | tee -a file1 | less - display dir2 and append ls output to file1
+	then moe along a pipe and 'less' with the same result as in file1
    
    
 nl:
@@ -686,7 +718,7 @@ shutdown:
   shutdown "21:45" - will shutdown at 21:45
   shutdown "+25" - will shutdown in 25 minutes from 'now'
   shutdown - will shutdown as 'shutdown +1'
-  shutdown now - probably will shutdown now
+  shutdown now - shutdown now
 
 at:
  need to be installed, daemon
@@ -972,6 +1004,8 @@ root# chown -R username:usergroup username/ - change recurse ownership of dir
 root# passwd username - create password for the user
 =====manual user creation end
 
+id:
+  returns info of current user - id, main group id, other groups, etc.
 
 groups:
   list groups of a user
@@ -1215,6 +1249,8 @@ kill:
 
 killall:
  kills all instances of the process
+  Example:
+ killall xlogo - will kill all instances of 'xlogo'
 
 nice: renice:
   changes priority of the process
@@ -1822,14 +1858,20 @@ https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks
 
 ===Bash
 =====Bash command line shortcuts
-ctrl + a - moves cursor on the beginning of the line
-ctrl + e - moved cursor on the End of the line
-ctrl + u - removes everything from cursor position to the beginning of line
-ctrl + k - removes everything from cursor position to the edn of the line
-ctrl + w - removes previous word(space separated)
-ctrl + l - cleares screen except of current command LINE
-ctrl + p - last executed command shown in command line, same as UP ARROW key 
-ctrl + c - terminate current process + exit\del current line by terminating it
+ctrl+a - moves cursor on the beginning of the line
+ctrl+e - moved cursor on the End of the line
+ctrl+u - removes everything from cursor position to the beginning of line
+ctrl+k - removes everything from cursor position to the edn of the line
+ctrl+w - removes previous word(space separated)
+ctrl+l - cleares screen except of current command LINE
+ctrl+p - last executed command shown in command line, same as UP ARROW key 
+ctrl+c - terminate current process + exit\del current line by terminating it
+ctrl+z - pause program, adding it to backgroud job. 'bg'\'fg' to continue run
+history:
+ctrl+r - bash history by typed command
+ctrl+r - again looks one matched line upwards
+ctrl+j - edit matched line
+ctrl+o - execute current command from history
 
 =====Bash Shell
 alias:
@@ -1844,18 +1886,40 @@ sleep:
   Experiments:
   sleep 10 & - will stop the thread for 10 seconds and move it to background
 
+background: (not command)
+  to start process in a background use & at the end
+   Example:
+  xlogo & - will start xlogo but cmd will return control to user
+   xlogo will run as a Job, with 'Running' state
+
 jobs:
   built-in command
   shows jobs in background, running, stopped
    More read:
   https://unix.stackexchange.com/questions/116959/there-are-stopped-jobs-on-bash-exit
+   Params:
+  -l - display PID
+
+  NOte: kill could also accept JOB_SPECs to kill jobs, instead of PIDs
 
 fg:
   moves job to the foreground
   fg JOB_SPEC
    Example:
   fg 1 - moves job [1] to the foreground
-  Ctrl+z will move it back, but 'paused'
+  Ctrl+z will move it back, but 'paused'- use bg to continue in background
+
+bg:
+  moves job to the background
+   If program is 'Stopped' like after executiong ctrl+z shortcut, bg <%num>
+  will continue its execution as a job, in the background
+   Params:
+  %job_spec - address numbered job
+
+script:
+  writes a session script - all executed commands and stuff
+   with time parameter will create file with timings of each command and could
+  play it afterwards using these two files
 
 bash:
   man bash
@@ -1880,6 +1944,8 @@ history:
   lists history, dumps .bash_history file into STDOUT, lines numbered
   -c - Clear history, but only in session, .bash_history remains the same
 	only in CentOS it seems, ubuntu does nothing
+   Example:
+  history | grep /usr/bin - look for only what matched
 
 which:
   shows location of a command and its alias if exists
@@ -1896,7 +1962,7 @@ whereis:
   whereis pwd - will return path for binary and path for man page
    -b - search only for binaries
 
-Streams and Redirects:
+Streams and Redirects. redirection:
  Linux\Unix philosophy is that 'everything is a file' but in fact this are not
   files but block defices stored in /dev or /proc directories, and not files but
   some stuff stored in RAM for instance
@@ -1949,6 +2015,8 @@ Redirect SDOUT and STDERR into two files in the same time:
 Redirect STDOUT and STDERR into single file:
   cat goodFile notExistingFile >mystdout 2>&1
 	mystdout will contain both STDOUT and STDERR
+    Or
+  cat goodFile notExistingFile &> mystdout
 
 noclobber:
   is an option set-up by 'set' command

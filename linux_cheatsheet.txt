@@ -824,10 +824,30 @@ env:
   very similar, prints environment variables to STDOUT
   printenv VAR - prints value of specified variable to STDOUT
 
+  Useful Env variables:
+  EDITOR - default text editor
+  SHELL - name of the shell
+  HOME - home path
+  LANG - chars and sort order for language
+  OLD_PWD - prev work dir
+  PWD - current working dir
+  PAGER - program for page view ( i.e. /usr/bin/less)
+  PS1 - current prompt string value
+	Example:   dos:~$: / root:~#:
+	Prompt string could be drastically changed
+	even including redraw of clocks in the cmd on every command entered
+        Example: \[\033[s\033[0;0H\033[0;41m\033[K\033[1;33m\t\033[0m\033[u\]<>$
+  TERM - type of the terminal
+  TZ - time zone, usually *nix has Coordinated Universal Time , and it
+	is corrected with current time zone upon display
+  USER - username
+  HISTCONTROL - with =ignoredups - will ignore duplicates in bash history
+  HISTSIZE - changes default 500 value of history line-length
 
 set:
   prints ALL variables - Shell vars, local vars, shell functions
-  Somewhy it does not have a man page for 'man set'
+  Builtin so use 'help set'
+
 
  Read more of set and printenv\env here:
 https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps
@@ -835,6 +855,20 @@ https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environment
 https://unix.stackexchange.com/questions/123473/what-is-the-difference-between-env-and-printenv
 
 How to set\export env variables in bash:
+  export - share variable for child processes started from current shell  
+   Example:
+  TEST=1 - will create var for current shell, will not be visible in processes
+	started from the shell
+  export TEST=1 - will create var for cur shell, and share it to processes
+	started from the shell
+  echo 'export TEST=1' >> ~/.bashrc - will create var at every non-login start 
+	of the shell, if .profile reads .bashrc - login shell also get it
+	 Usually for vars there are different file, which bashrc will read
+	see/update local .bashrc to do so.
+ 	 Just exported into bashrc vars will not be visible until shell restart
+	or source load:
+	 source ~/.bashrc - will add newly exported vars into current session
+
 Read export\env differences here:
  http://hackjutsu.com/2016/08/04/Difference%20between%20set,%20export%20and%20env%20in%20bash/
 
@@ -908,7 +942,10 @@ default homedir files are stored in
 see more: https://unix.stackexchange.com/questions/129143/what-is-the-purpose-of-bashrc-and-how-does-it-work
   ..../.profile - executed by command interpreter for login shells
 		  is not read if '.bash_login' or '.bash_profile' exists
+		Usually also reads /etc/bash.bashrc
+  ~/.profile - for login-shells also reads ~/.bashrc
   ..../.bash_logout - executed by bash when login shell ended
+
 
 unlike files in /etc/skel changes to this files will affect even existing users
 changes from here will be applied with every re-login to every 

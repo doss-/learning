@@ -331,10 +331,6 @@ tail:
   -n <num> - number of returned lines
   -f  - follow, will update file if any
 
-df:
-  display all mounted devices with size\free\used\paths etc
-    Stands for: Disk Free
-  df -h - human readable sizes
 
 
 ifconfig:
@@ -646,6 +642,47 @@ gzip:
    will substitute 'archive.tar' by 'archive.tar.gz'
   Could be called by 'tar' command using 'z' key, will works the same
 
+lsblk:
+   List Block Devices
+  list all devices mounted and not
+   Params:
+  -f\--fs - list fylesystems
+
+block device types:
+ /dev/fd* - floppy drives
+ /dev/hd* - hard drives
+ /dev/lp* - printers
+ /dev/sd* - SCSI, including PATA/SATA in modern kernels, flash and usb, digital
+	    cameras, players and stuff. 
+ /dev/sr* - cd/dvd
+
+block device naming:
+ old motherboards had 2 IDE channgels, with cable for 2 devices (master\slave)
+ devices are named by alphabet
+ partitions are named by numbers
+ first channel master - a - sda
+  first partition on sda - 1 - sda1
+  second partition on sda - 2 - sda2
+ first channel slave - b - sdb
+ second channel master - c - sdc
+ second channel slave - d - sdd
+
+df:
+  display all mounted devices with size\free\used\paths etc
+    Stands for: Disk Free
+  df -h - human readable sizes
+
+how to get block device name, partition, mount it and unmount after:
+  tail -f /var/log/messages 	- open messages and follow
+  #mount disk, recheck messages for something like:
+  "sdb: sdb1"
+  "sd 3:0:0:0 [sdb] attached SCI removable disk"
+  fdisk /dev/sdb
+   p 				- see all partitions
+  mkdir ~/mounted_stuff
+  mount /dev/sdb1 ~/mounted_stuff
+  umount /dev/sdb
+
 mount:
   mount drive (disk, usb, floppy etc)
   mount -o rw,remount /
@@ -653,6 +690,14 @@ mount:
    rw - seems to be read\write
    remount - pretty clear at first glance
    / - what to remount
+
+    Example:
+   lsdlk -f     - view all devices
+   mount /dev/sda5 /path/to/mount/point - mount device
+   umount /dev/sda5   - unmount (Notice N letter absent in commnad name)
+    Example:
+    mount ISO image
+   mount -t iso9660 -o loop image.iso /path/to/mountpoint
 
   -a - mount all lines added to /etc/fstab
   
@@ -664,6 +709,41 @@ mount:
   LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async
   labels or UUID could be taken from 'blkid' command
 
+fdisk:
+  manipulates disk partitions tables
+   Usage:
+  fdisk <block device name>
+   Commands:
+  m - manual/help
+  p - show all partitions
+  l - list all known filesystems (use one in mkfs )
+   Example:
+  fdisk /dev/sda
+  > m 	- see what could do
+  > p 	- see all partitions of the device 
+
+mkfs:
+  create new filesystem
+   Params:
+  -t fylesystem type
+   Example:
+  mkfs -t ext3 /dev/sdb1
+
+fsck:
+  filesystem check and repair (lost+found dir will have repaired files)
+   Example:
+  fsck /dev/sdb1
+
+genisoimage:
+  creates ISO images
+   Parameters:
+  -o <file.iso> - output to
+  -R - for long file names and access rights for files in POSIX style
+  -J - similar long names but for Windows
+   Example:
+  genisoimage -o cd-rom.iso -R -J ~/cd-rom-files
+   where cd-rom-files is a directory with files to be added into ISO image
+  
 
 scp:
   secure copy using ssh protocol

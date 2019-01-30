@@ -100,6 +100,9 @@ man:
    6. Games and screensavers
    7. Miscellanea
    8. System administration commands and daemons
+  Example:
+   man 2 stat - will display manual for hashed 'stat'
+	man has stat(1) and stat(2), which are different commands..
 
 apropos:
   searches through man by keyword and returs matched in format:
@@ -139,6 +142,7 @@ ls:
   -t - sort by date changed
   -F - adds slash to dirs in list
   -h - human readable sizes (mb, gb etc)
+  -i - inode number, address where contents is located, same for all hard links
 
 file:
  short info about a file, file type etc.
@@ -185,18 +189,117 @@ egrep:
    {3} - match 3 times exactly
 
 
+stat: 
+  returns status info about given file, if it dir, or file, when it was changed,  its size and stuff
+   man 2 stat - for details
+
 find:
   find <path> <params> <name mask>
-  ex:  find / -type f -name "one.txt" <-ls>
-   type:
+   !!!	ORDER IS IMPORTANT
+   Example:
+  find / -type f -name "one.tx*" <-ls>
+
+   Operations:
+  -ls - will output results as in 'ls -l'
+  -delete - delete found file. Better check first with -print, then -delete
+  -print - prints full path to stdout, Default operation
+  -print0 - changes delimiter to null character (0 code in ASCII), useful for 
+	filenames with spaces, when need to use another delimiter. 
+	Together with 'xargs' with --null, will go fine:
+	 find -name '*.jpg' -print0 | xargs --null ls -l
+  -quit - quits after first match
+  -ok - ask before execution, same as exec, see below
+  -exec command '{}' \; - executes a command for _EVERY_ match, so 100 matches
+	is 100 times executed commands, substitutes found value in {}
+	with ; as a command end delimiter.
+	{} and ; are special for Bash, so need to be escaped by '' or \ 
+	 Use + instead of ; in the end to concatenate results and execute 
+	command just once
+	 Also instead of + 'xargs' command could be used
+ 	 This could be helpful as command line has limit on arguments (xargs
+	restarts when arguments limit is reached until everything done)
+     Example:
+   find . -name "test*" -exec stat '{}' \;
+    will find files and folders and display results of hashed 'stat' for 
+    every matched item
+     Example:
+   find . -name "test*" -exec stat '{}' +
+    will do the same as above, but 'stat' will be executed only once with list
+    of found files - stat testmatch1 testmatch2 testmatch3
+     Example:
+   find . -name "test*" | xargs stat
+
+   Checks:
+  -type f:
 	d - dir
 	f - file
 	l - sym link
-	-ls - will output results as in 'ls -l'
+	b - block device (like /dev/sda)
+	c - char device (also in /dev , dunno what it is tho)
+  -name "name*" - name or wildcard in "" - to prevent bash expansion
+  -iname "Name*" - case Insensitive
+  -size nM:
+	b - block, default,            512 bytes
+	c - char(byte)			 1 byte
+	w - words (two bytes)		 2 bytes
+	k - kilobytes, block         1 024 bytes
+	M - megagytes, block     1 048 576 bytes
+	G - gigabytes, block 1 073 741 824 bytes
+    Example:
+   find . -size +10M  - will find with size more than 10 megabytes
+   find . -size 10M - will find exactly of 10 megabytes
+   find . -size -10M - will find with size less than 10 megabytes
+  -cmin n - files\dirs with attrs\contents changed exactly n minutes ago
+	supports +\ \- like -size
+  -mmin n - files\dirs whos contents changed n minutes ago
+  -cnewer name: files\dirs with attrs\contents changed later than 
+	given file name
+  -newer name: files\dirs with contents changed later than given
+	file name
+  -ctime n - same as cmin, but n*24 hours is used
+  -mtime n - same as mmin
+  -empty - will match empty files and dirs
+  -inum n - search for files with inode n, useful to search for hard links
+  -samefile name - works same with -inum
+  -user name - files\dirs owned by given user
+  -nouser - files\dirs owned by noone, like deleted user
+  -group group_name - will search for files\dirs owned by given group
+  -nogroup - same but for groups
+  -perm 777 - search by permission
+
+    Operands:
+   Operands glues Checks\Operands and Groups of Checks:
+  -and\-a - logical AND - default value
+  -or\-o - OR
+  -not\-! - NOT
+  ( ) - group of Checks. Need to be Escaped, as per is special for bash.
+	By default checks goes from left to right, so
+    ORDER IS IMPORTANT
+   Example: 
+  find . \( -type l -or -type d \) -a \(-name "this" -or -name "that" \)
+   Example:
+  find . -type f -name "*.bak" -print
+   all files with name *.bak will be printed
+  find . -print -type f -name "*.bak"
+   print everytghint
+
+    Params:
+  -depth - process files first, then directories, Default for -delete
+  -maxdepth levels_number - how deep to dig
+  -mindepth levels_humber - go that deep before perform search
+	seems like value 2 will ignore current dir, and 1 will not
+  -mount - do not search in mounted directories
+	but still searches if explicitly set to search inside mounted dir
+  -noleaf - do not optimize search assuming its Unix filesystem
+	required for DOS\WIndows CD-ROM systems
+	But works fine without in on NTFS, probably required for exactly CD?
+  
+
+
    could search by: 
-	date:
+   -date:
 	  https://www.cyberciti.biz/faq/linux-unix-osxfind-files-by-date/
-	Ranges example
+   Ranges example:
 	  -m\a\ctime - modification\acces\creatioin? time <+\ \-days> 
 	  - m\a\cmin - minutes i.e.:
 	  find . -mtime -1 -ls - find files modified less than day ago
@@ -247,6 +350,21 @@ find:
    clear output of found stuff could be redirected to file. probably STDOUT
    while STDERR will keep appear on terminal window
 
+xargs:
+  takes arguments for given command from stdin and executes given command with
+   that arguments.
+  If amount of arguments are more than a limit of command line xargs will 
+   restart given command with what left of arguments list from stdin until 
+   handle everything.
+    Params:
+  --show-limits - will display various limits on the system - command length,
+	argument length, how many take the env vars, buffer size, etc.
+  --null - accepts null symbol as delimiter, useful when filenames have
+	spaces, and need to use another delimiter
+
+   Example:
+  find . -name "test*" | xargs ls -l
+   will construct ls -l test1 test2 test3 .... and execute it
 
 locate:
   find files by name.
@@ -262,16 +380,6 @@ update files:
  touch <filename> - will update access time of a file, or create new if none
  echo "" > <filename> - create\rewrite filename with blank line
  echo "text" >> <filename> - append existing file with line 'text'
-
-
-ls:
-  list files on the system
-  ls -<params> <path+wildcards>
-  ll - default bash alias which leads to:
-   ls -la - Ubuntu
-   ls -l - CentOs
-  -l - list format
-  -a - all, show hidden files
 
 
 update-alternatives:

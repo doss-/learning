@@ -144,6 +144,12 @@ ls:
   -h - human readable sizes (mb, gb etc)
   -i - inode number, address where contents is located, same for all hard links
 
+locale:
+  displays all Locale related env variables, like
+   LANG - set up during installation, picks install language
+   LC_MONETARY - currency? 
+   etc.
+
 file:
  short info about a file, file type etc.
   Linux does not have extensions for files so this is 
@@ -169,6 +175,9 @@ grep:
 		between square brackets in the file, standard regex
   -f <filename> - pass contents of filename as a pattern
   -l - search inside file contents and returns names of files found
+  -L - like -v but for -l - show only not matched files
+  -n - line number for matches
+  -h - no file names in output 
   -r - recurse search in a directory
       i.e.: grep -lr cron /etc - will return all file names which content has
 			'cron' pattern in whole /etc directory
@@ -187,6 +196,10 @@ egrep:
   it allows signs as:
    | ? + .* {} 
    {3} - match 3 times exactly
+    Example:
+  egrep 'AAA|BBB|CCC'   - will match either AAA BBB or CCC
+  egrep '^(AAA|BBB|CCC)'   - will match either AAA BBB or CCC on the beginning
+	of the line
 
 
 stat: 
@@ -208,6 +221,13 @@ find:
 	Together with 'xargs' with --null, will go fine:
 	 find -name '*.jpg' -print0 | xargs --null ls -l
   -quit - quits after first match
+  -regex - will search with regex, whole path need to be matched in order
+	to find it:
+	 Example:
+	find . -regex '.*[^-_./0-9a-zA-Z].*'
+	 will match whole path(.* at both sides), where files have spaces
+	 (spaces are not in [^....] group - files in the group are acceptable
+	 in a filename)
   -ok - ask before execution, same as exec, see below
   -exec command '{}' \; - executes a command for _EVERY_ match, so 100 matches
 	is 100 times executed commands, substitutes found value in {}
@@ -374,6 +394,12 @@ locate:
    i.e.
   locate kernel | grep /usr - will find any file contains 'kernel' in its name
    and grep /usr so it will show up only those which are in /usr dir(matched by)
+    Params:
+  --regex - search with regex
+    Example:
+   locate --regex '(^/|^/usr/)[s]?bin/(dz|gz|zip)'
+    will search in /usr/bin or sbin or /bin or sbin for files having dz or gz or
+   zip in their names
 
 
 update files:
@@ -392,13 +418,74 @@ update-alternatives:
   See here: 
    http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
 
+sort:
+  sorts by alphabet by default
+   Synopsis:
+  Sort [option] file
+   Params:
+  -r - reverse
+  -n - sort by numbers
+  -b - ignore leading blanks i.e. '   a'
+  -f - ignore case
+  -k - key i.e. -k 1, or --key=1
+	-k 5 (or --key=5) - use column 5
+	 Example: ls -l /usr/bin | sort -k 5 -rn
+	will sort files by field 5 (size) by Numberic and Reverse
+	--key=1,1 - column from 1 to 1
+	--key=2nr  - use second column to sort groups after first key
+		    accepts short params after column num: b, n, r
+	 Example: sort --key=1,1 --key=2n file.txt
+	sorts by column 1(diapason is important), then sorts by second field
+	numerically - will resort each just sorted group by second field:
+	 abc 1   - w/o --key=2n this will be second line
+	 abc 10
+	--key=3.7 - column number.symbol number. Use b, just in case
+	 Example: sort -k 3.7nbr > t.txt ... dates
+	will sort by third column and 7th symbol in it, by year 01.01.2006 in 
+	this dd.mm.yyyy format
+  -m - merge sorted files i.e. sort -m file1 file2 file3 > merged_file
+  -o - output to file i.e. -o=file
+  -t - change separator, default is 'space' and 'tab'
+	 Example:
+	sort -t ':' -k 7 /etc/passwd
+	will sort by 7th column using : as field separator
+
+uniq:
+  deletes duplicates from SORTED output
+   Params: 
+  -d - displays only duplicets (kinda inversion)
+  -c - displays number of matches and line (displays all lines) 
+	 Example:
+	sort test.txt | uniq -c
+	will return lines in format '<tab><duplicate count> <duplicate line>'
+  -f n - ignore(forward to) n fields in each line, 
+	delimiter is as in 'sort' but CANNOT be changed
+  -i - ignore case
+  -s n - skip n symbols in line
+  -u - unique lines only
+ 
+  !Note: to get comparable output use 'sort' otherwice could display stuff in a
+	way whcih will be not comparable. see ls examples below 
+
+   Example:
+  ls /bin /usr/bin | sort | uniq | less - will display combined unique files in
+	both directories, in sorted order
+  ls /bin /usr/bin | sort | uniq -d | less - will display only duplicated files
+	in both dirs, in sorted order
+
 cat:
-  concatenate, return file contents on screen
+  concatenate, return file contents on screen. GNU
   cat <filename> <filename> - will return contents of both to screen
   cat <file1> <file2> >> <file3> - create new\append old file with joined
    contents of file1 and 2
   cat file.* > file - will combine lots of files
   cat > newfile - will create a new file and promt for input 
+   Params:
+  -A - shows all hidden\meta symbols
+	^I - tab
+	$ - end of the line
+  -n - show line numbers
+  -s - squeeze blank lines, leaves only 1 blank if 1+ exists concequently
 
 less:
   pager, upgraded version of 'more' command
@@ -410,19 +497,46 @@ split:
   split -l 2 <file name> -  will split the file by 2 Lines into new files named
 			    xaa, xab, xac, etc.
 
-uniq:
-  deletes duplicates from output
-   Params: 
-  -d - displays only duplicets (kind inversion)
- 
-  !Note: to get comparable output use 'sort' otherwice could display stuff in a
-	way whcih will be not comparable. see ls examples below 
+ln:
+  number lines, 
+  number lines by pages(number from 1 on second page)
+  number only regex matched lines (-b regex)
+  add header(\:\:\:) and footer(\:) between body(\:\:)
 
+fold:
+  split lines in two if length is exceeded
+   Params:
+  -w n - n length of w until move to another line
    Example:
-  ls /bin /usr/bin | sort | uniq | less - will display combined unique files in
-	both directories, in sorted order
-  ls /bin /usr/bin | sort | uniq -d | less - will display only duplicated files
-	in both dirs, in sorted order
+  echo "long line of text and stuff" | fold -w 6
+  >long line 
+  >of text an
+  >d stuff
+
+fmt:
+  format text, like 'fold' but saves emtpy lines, spaces and tabs
+   Params:
+  -w n - how long line should be (same to fold) , but screws up spaces and tabs
+  -c - unscrews up spaces and tabs
+   Example:
+  fmt -cw 50 text.txt
+   will format file with lines of 50 long, saving empty lines and tabs
+
+printf:
+  format string, like String.format(). has no new line \n, gotta add it manually
+  % - conversion specificator:
+   s - string
+	Example:
+   printf "variable: %s; and another %s\n" var ano
+  >variable: var; and another ano
+   d - digit negative or positive (1 or -1)
+   f - float, with comma - (1,1 > 1,100000)
+   o - octal number (1-8, like 8 bites in 1 byte, or chmod 777)
+	Example:
+	 "octal 1 is %0 octal 9 is %0)" 1 9 > 1 .... 11
+   x - hex number (1-9a-f < lowercase)
+   % - escapes % (printf "%%")
+   
 
 wc: 
   word count, returns number of lines, chars\bytes and words
@@ -643,8 +757,13 @@ du:
    -s - summary
 
 diff:
-  checks differences between two files
-  i.e.:
+  checks differences two files or whole directories
+   could recursevly dig into dirs for diffs, and generate patch files with
+  differences, to be applied by 'patch' command
+   Params:
+  -c - context diff format (easier to read than standard POSIX diff)
+  -u - unified diff format (less text, even more easier)
+   Example:
   diff packages.list packages.list2
     packages.list:
      pkg1
@@ -652,13 +771,46 @@ diff:
     packages.list2:
      pkg2
      pkg3
-   output:
-     < pkg1
-     ---
-     > pgk3
-   read output:
+   POSIX compliant output:
+    1d0
+    < pkg1
+    2a2
+    > pkg3
+    read output:
    < - only first file has pkg1, it was on the left in the params list
    > - only second file has it, and it was on the right
+
+  -c output:
+   *** pkg1.lst	2019-02-02 02:22:25.312819822 +0200
+   --- pkg2.lst	2019-02-02 02:22:36.984692484 +0200
+   ***************
+   *** 1,2 ****
+   - pkg1
+     pkg2
+   --- 1,2 ----
+     pkg2
+   + pkg3
+
+  -u output:
+   --- pkg1.lst	2019-02-02 02:22:25.312819822 +0200
+   +++ pkg2.lst	2019-02-02 02:22:36.984692484 +0200
+   @@ -1,2 +1,2 @@
+   -pkg1
+    pkg2
+   +pkg3
+
+   Symbols:
+   (none) - line match
+   -      - line removed from first file
+   +      - line added into second file
+   !      - line changed (only -c mode)
+
+patch:
+  'diff' generated patch apply
+   generated patch file already has file names, so no need to say anything
+  just apply:
+   patch < patchfile.txt
+  Just kidding - use VCS
 
 bash history:
   ! - invokes the Bash history mechanism
@@ -706,7 +858,27 @@ gnupg: gpg:
    gpg --output <encrypted_file.gpg> --symmetryc <file_to_encrypt> - this will 
 	ask for passphrase and its done
 
-  
+rsync:
+  Remote Syncs files\dirs locally or remote-local\local-remote
+   Synopsis:
+  rsync [-params] /source/path [/another/source] /receiver/path
+   Source-Receiver could be:
+  - local file or dir
+  - remote file or dir [user@]hostname:/path/to/file
+  - remote server rsync, URI - rsync://[user@]hostname[:port]/path/to/file
+   Source or Receiver MUST be local, BOTH Remotes NOT WORK
+    Params:
+  -a - archive, recursive and saves files attributes
+  -v - verbose
+  --delete - remove files that are in Receiver but not in SOurce
+  --rsh=<shell> - remote shell, i.e. ssh - will transfer files via network
+	in secure way (secure ssh tunnel)
+   Example:
+  rsync -av --delete --rsh=ssh /etc /home /usr/local remotesys:/backup
+    Will archive(recurse and save file attrs) with verbose output , deleting
+    files absent in source dirs and present in remote:/backup, copy different 
+    from source dirs files via ssh tunnel to remotesys network location under
+    path /backup
 
 tar:
   tape archive - collects all files in archive, with savin all permissions
@@ -717,13 +889,14 @@ tar:
    -v - verify\verbose
    -f - files
    -t - view archive , or something like that
-   -r - append retular file to the end of an archive i.e:
+   -r - append regular file to the end of an archive i.e:
      tar -rvf uncompressed.tar mybkup/mytest.txt
    -z - zip. tells tar that working with zips and not archives; 
         used for zipping, unzipping, viewing zip,
           if 'czvf' - creates .gz archive, compress same as 'gzip'
           if 'tzvf' - lists zip contents
           if 'zxvf' - extracts zip contents
+   -j - zup but with bzip2 instead of gzip
    -p - preserve permissions
    another params:
     !! could be anywhere in the command, before or after other params
@@ -749,6 +922,35 @@ gzip:
   gzil archive.tar
    will substitute 'archive.tar' by 'archive.tar.gz'
   Could be called by 'tar' command using 'z' key, will works the same
+   Params:
+  -c - compressed output to STDOUT(console), original file is left untouched
+  -d - decompress file, same as 'gunzip'
+  -f - force compresses even if .gz with same name already exists
+  -h - help
+  -l - list files in archive, with compress ratio and orig sizes
+  -t - test compressed file for integrity
+  -v - verbose
+  -1 - set compress ratio 1 to 9, where ()
+	1 - fast and little uncompressed and (also --fast)
+	9 - slow and super compressed (also --best)
+	6 - default value
+
+gunzip:
+ g unzip, unzips .gz files
+  -c - cat, same as in gzip - writes to STDOUT leaves original files unchanged
+
+zcat: 
+ shipped with gzip, is like 'cat' but with z
+  could be used instead of:
+ gunzip -c file.gz | less
+
+zless: 
+ shipped with gzip, is like 'less' but with z
+  could be used instead of:
+ zcat file.gz | less
+
+zgrep:
+ grep for search in .gz compressed files
 
 lsblk:
    List Block Devices
@@ -2251,21 +2453,40 @@ noclobber:
 
 pipe: |:
   redirects standard output of first program into standard input of another
-  
+
+expand:
+  changes Tabs to Spaces in files from argument or stream from STDIN
+   Example:
+    cat -A test   >>> ^Ia ^Ia    a^Ia$
+    expand test | cat -A  >>>        a       a    a  a$
+  will change all tabs in file to spaces.
+
+unexpand:
+  change Spaces to Tabs - vice versa of 'expand'  
+
 cut:
-  Removes section from each line from a File
+  Removes section from each line(column in fact) from a File
    Or parses each line in file by delimiter(Default is TAB) and could retreive
    only selected columns, or bytes - this is for -f option
   cut <param> <filename>
   See more: https://www.computerhope.com/unix/ucut.htm
+  -d '<delim>' - change delimiter to <delim, ' - to prevent bash expansion of
+	meta characters, if * or similar is delimiter. 
+	-d ':' - safe way 
+	  or
+	-d: - will work too, but could fuck up a little
    Example:
   cut -f1 -d: passwd - will get only first field(-f1) from a file passwd
 		fields are created by delimiting by colon(-d:)
   -b --bytes=LIST - cuts out bytes
   -c --characters=LIST - cuts out characters(in different encodings 1 character
 	could be more than 1 byte, which is 8 bits)
+	 Example:
+	10/01/2007 - '-c 7-10' will cut out '2007'
   -f --fields=LIST - uses delimiter(default TAB) to parse each line by it then
 	it could return columns mentioned in the list by numbers from 1
+	 Example:
+	abc<tab>10.1<tab>10/01/2007 - '-f 3' will cut out '10/01/2007'
   How LIST works:
    !List of Integers
    !Starts from 1
@@ -2296,6 +2517,14 @@ cut:
 	users that use /bin/bash as their default shell, and prints out 
 	username and user home directory
 	So cut accepts STDIN redirection
+
+paste:
+ vice versa of 'cut' - pastes columns in files
+
+join:
+ sql join but for text files
+  in case of need to use this, use man\google, i'm to lazy to document
+ Sorry.
 
 bash escapes:
 special symbols:

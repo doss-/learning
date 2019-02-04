@@ -56,7 +56,7 @@ check linux distro:
 
 directories structure:
  / - root
- /bin - binaries for system boot
+ /bin - binaries for system boot, goes with distro
  /boot - kernel boot files and RAM disc with drv 
   for boot, and boot program itself
   /boot/grub/grub.conf - boot config
@@ -66,7 +66,8 @@ directories structure:
   /ect/crontab - cron config
   /etc/fstab - mounts config
   /etc/passwd - users list
- /home - contains all users' dis
+ /home - contains all users' dirs
+  ~/bin - bins of particular user, add to PATH to use
  /lib - shared by various programs libraries(DLLs), probably for /bin's
  /lost+found - if HDD feels bad, some stuff could appear here
  /media - user-related mount points for flash, hdd, cd etc 
@@ -78,11 +79,12 @@ directories structure:
  /sbin - same as /bin
  /tmp - temp used by various programs, could be cleaned at boot
  /usr - programs and files used by users
- /usr/bin - standard programs , almost everythign installed goes here
+ /usr/bin - programs from distro, almost everythign already installed goes here
  /usr/lib - shared libraries for /usr/bin programs
  /usr/local - empty by default, available for all users on system
-  /usr/local/bin - locally compiled bins should go here
- /usr/sbin - probably same as /usr/bin
+  /usr/local/bin - locally compiled\created bins should go here
+  /usr/local/sbin - locally created system bins for administration
+ /usr/sbin - System bins, come with distro, i suppose
  /usr/share - shared stuff(configs, files, images) except shared libs
  /usr/share/doc - mans for installed soft go here
  /var - variables, most changed dir, contains DBs, buffers, emails
@@ -107,6 +109,13 @@ man:
 apropos:
   searches through man by keyword and returs matched in format:
    article (secion) - line matched
+
+echo:
+  accepts input from params or STDIN and returns in expanded to STDOUT
+  accepts multyline input, and will return it in the same manner:
+   echo "this is firstline
+	this is second line
+	this is third line"
 
 whatis:
   returns first line from man of given command
@@ -981,6 +990,7 @@ df:
   display all mounted devices with size\free\used\paths etc
     Stands for: Disk Free
   df -h - human readable sizes
+  df / - will show info about root partition - where / is mount point
 
 how to get block device name, partition, mount it and unmount after:
   tail -f /var/log/messages 	- open messages and follow

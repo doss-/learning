@@ -50,13 +50,30 @@ expansion:
    
 
 variables:
+  AKA Global Variables - are visible everywhere in shell environment
+   if 'export'ed - will be visible in subshells created from the shell
+   'local' variables are local for funcions - see below
   is converted to 'String' class by default
   Initializate variable by = sign w/o leading or trailing spaces
   Access variable by $
-  Also could be int, if used with 'declare':
-   declare -i variable=1
-  COuld be readonly:
-   declare -r READONLY="this is constant, in uppercase by convention"
+   Also could be int, if used with 'declare':
+  declare -i variable=1
+   COuld be readonly:
+  declare -r READONLY="this is constant, in uppercase by convention"
+   Variables definitions:
+  a=z		- assign string "z" to var 'a'
+  b="a string"	- assign "a string" w/ space to var 'b'
+  c="a string and $b" - expansion works in "" so 'c' value 
+			is "a string and a string"
+  d=$(ls -l foo.txt)  - result of command is assigned to 'd'
+  e=$((5 * 7)) 	- result of ariphmetic result is assigned to 'e'
+  f="\t\tastring \n" - escaped sequences also works in "" here:
+			\t - tab
+			\n - new line
+   More than one variable could be declined in 1 line:
+  a=5 b="a string" - will create two variables with
+		     values "5" and "a string", probably 5 is int.ToString()
+
   To preserve spaces and stuff use quotas with string vars initialization
    example:
   my_str_var="string w/ spaces goes in quotas"
@@ -77,7 +94,75 @@ variables:
 	> ls
 	$ echo ${variable1:+ls} - variable unset - empty line used
 	> 
+   Arithmetic expressions syntax $((arithmetics go here)):
+  echo $((2+3)) >> 5
 
+local variables:
+  local variables are declared in functions, and visible only there
+  local variables overwrite globals with the same name
+   Syntax:
+  local variable_name[=optional_value]
+   values are optional , probably, in order to delete some global vars inside
+  a function(i.e. vars are used as standard in\out params of a command)
+   Example:
+  foo=0
+  func() {
+   local foo
+   foo=1
+   echo "in func $foo"
+  }
+  func
+  echo "in script $foo"
+   Result:
+  >in func 1
+  >in script 0
+
+here doc here docs here-document here script :
+  allows multiline input and it WILL expand even if in ''.
+   But will not expand if escaped - \$
+   Syntax:
+  command << indicator
+  text
+  indicator
+
+   where:
+  command is a command like, 'cat' or anything else (doesn't work with 'echo')
+  where text between 'indicators' is expanded by shell and sent to STDIN of
+  the command
+   Note that also <<- could be used, with it bash will ignore leading
+  tabs in 'indicator'
+   Note that seconds 'indicator' has to be on separate line and 
+  Must have no spaces before or after it, otherwise bash interpreter will 
+  conntinue to look for 'indicator' ignoring the one with leading/trailing 
+  spaces
+   Value of 'indicator' could be any but 'EOF' is preffered
+
+   Example:
+  $ foo="text"
+  $ cat << _EOF_
+  >$foo
+  >"$foo"
+  >'$foo'
+  >\$foo
+  >_EOF_
+   Result:
+  text
+  "text"
+  'text'
+  $foo
+   
+   Example of use with 'ftp'
+  ftp -n << EOF
+  open $FTP_SERVER_ADDRESS
+  user anonymous username@hostname
+  cd $FTP_PATH
+  hash
+  get $REMOTE_FILE
+  exit
+  EOF
+  ls -l $REMOTE_FILE - will display downloaded from ftp remote file, all the
+  	commands are passed from inside the here-document
+  
 
 if:
   Condition tests in IF should be inside square brackets - [], which are just a
@@ -238,4 +323,50 @@ Pseudo-terminal will not be allocated because stdin is not a terminal.
 hBs
 login_shell     on    
 
- 
+functions:
+  shell could have functions, funcions MUST BE declared before its call,
+  otherwise shell will interpret funcion names as regular commands
+   Functions could be executed and calld from shell, added to scripts or 
+  bashrc/profile files so will be available in cmd as regular command
+  'return' command in optional
+   Function MUST has at least one command, in order to mock\stab 'return'
+  command could be used.
+
+   Syntax:
+  function name {
+    <commands>
+    return
+  }
+   Or equivalent:
+  name() {
+   <commands>
+   return
+  }
+
+    Example:
+  script.sh:
+  function func {
+   echo "step 2"
+   return
+  }
+  echo "step 1"
+  func
+  echo "step 3"
+  
+   Result:
+  >step 1
+  >step 2
+  >ste 3
+
+   Example .bashrc:
+  ds() {
+   echo "disk space utilization for $HOSTNAME"
+   df -h
+  }
+
+   Result after shell restarted 
+   (after source .bashrc ds looped and crashed shell):
+  $ ds
+  > disk space utili....
+  > ...output of df -h....
+  

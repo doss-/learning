@@ -986,6 +986,15 @@ block device naming:
  second channel master - c - sdc
  second channel slave - d - sdd
 
+tune2fs:
+  adjust filesystem params
+   Params:
+  - l <filesystem> - list file system info
+   Example:
+  tune2fs -l $(df / | grep '/' | awk '{print $1}') | grep 'created'
+   will return Filesystem created date, means when system was installed
+  because looking at name of '/' root filesystem
+
 df:
   display all mounted devices with size\free\used\paths etc
     Stands for: Disk Free

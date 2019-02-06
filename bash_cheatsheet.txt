@@ -173,40 +173,172 @@ if:
   if [ <some test> ] && [ <other test> ] || [ <yet again test> ]
   then
     <commands>
-  elif [ <some test> ]
+  elif [ <some test> ]		# else if, onliner gotta be ; ended
   then
     <different commands>
-  else
+  else				# one liner gotta be ; ended
     <other commands>
   fi
 
   lots info here:
   https://ryanstutorials.net/bash-scripting-tutorial/bash-if-statements.php
 
+&& ||:
+  allowed inside bash shell logical AND and OR:
+   Example:
+  mkdir test && cd test
+   will create and than change dir to 'test'
+  [ -d test ] || mkdir test && cd test
+   will check whether 'test' exists, returns 0 or 1
+   || continues only if 1 was returned by 'test' and proceeds with mkdir
+   && continues only if 0 was returned by 'mkdir' and proceeds with cd
+
 test:
+  Tests whether expression returns 0 or not
+  after evaluation command 'test' returns 1 if true and 0 if false
    test 100 -eq 100 - test whether 100 equals 100
   or [<thing to test>]
    if [ 100 -eq 100 ]
   used to test conditions
 
+  Logical operators:
+   -a - AND
+   -o - OR
+   ! - NOT
+    Example:
+  [ ! \( FALSE -o TRUE \)   -- (TRUE) but [ FALSE]
+   note the escaped parentheses
+   note that 'false' and 'true' command will behave differently , bcs returns
+  interegs 1 and 0 respectively
+
+  Requires shell expansion symbols $ 
+   Example:
+  if [ $num1 -lt $num2 ]; then echo 'int 1 less than int2'; fi
+
+  BEWARE!!!!!!
+  shell creates empty variable if it is not defined
+  and $num1 -lt $num2 will return TRUE if both undefined
+
+  CHECK YOUR VARIABLES BEFORE USE
+
+   Test Strings\Ints:
   Operator 	Description
   ! EXPRESSION 	The EXPRESSION is false.
   -n STRING 	The length of STRING is greater than zero.
   -z STRING 	The lengh of STRING is zero (ie it is empty).
-  STRING1 = STRING2 	STRING1 is equal to STRING2
-  STRING1 != STRING2 	STRING1 is not equal to STRING2
+  STRING1 == STRING2 		STRING1 is equal to STRING2 (= also allowed)
+  STRING1 != STRING2 		STRING1 is not equal to STRING2
+  STRING1 > STRING2		STRING1 is alphabetically greater than STRING2
   INTEGER1 -eq INTEGER2 	INTEGER1 is numerically equal to INTEGER2
+  -ne				integers are not equal
+  -le				are less or equal
+  -ge				greater or equal
   INTEGER1 -gt INTEGER2 	INTEGER1 is numerically greater than INTEGER2
   INTEGER1 -lt INTEGER2 	INTEGER1 is numerically less than INTEGER2
-  -d FILE 	FILE exists and is a directory.
+   
+   Test Files:
+  FILE -ef FILE1 - both files are hard links (point to same inode)
+  FILE -nt FILE1 - FILE newer than FILE1
+  FILE -ot FILE1 - FILE older than FILE1
   -e FILE 	FILE exists.
+  -f FILE 	FILE exists and is file
+  -s FILE 	FILE exists and its size greater than 0
+  -L FILE 	exists and is soft symblic link
+  -d FILE 	FILE exists and is a directory.
+  -b FILE	exists and is Block device (i.e /dev/sda1)
+  -c FILE 	exists and char device
   -r FILE 	FILE exists and the read permission is granted.
   -s FILE 	FILE exists and it's size is greater than zero (ie. not empty).
   -w FILE 	FILE exists and the write permission is granted.
   -x FILE 	FILE exists and the execute permission is granted.
-!  NOTE:
-  = - does a string comparision
+  -G FILE 	exists and file belongs to existing group
+  -O FILE 	exists and belongs to existing user
+  
+   NOTE:
+  == - does a string comparision
   -eq - does numerical comparison
+  
+   Escaping:
+  symbols < > ( ) need to be escabed by \ or be between ''
+  because [ ] is just command test, and bash will try to use them as its own 
+  meta symbols (< > are stdout\in redirecton, so could be a MESS)
+
+
+[[ ]]:
+  improved 'test' command but not POSIX compatible
+    Differences\Features:
+
+    Does not need expansion symbol $, expands just fine w/o it
+   UNLESS IS A STRING, then use "$VAR", to expand and prevent empty values
+    Example:
+   $ if [[ $num1 -lt num2 ]]; then echo "$num1 less than $num2"; fi
+   > 1 less than 2
+    NOTE:
+   $num1 and num2 are both fine as per expansion works in some other way
+   
+   BEWARE OF UNDEFINED VARIABLES
+   IF BOTH ARE UNDEFINED 0 WILL BE RETURNED!!
+
+    Can compare regex. 
+   Seems like gotta match full line, not just some part.
+   uses Extended Regex (ERE)
+    Requires $ symbol to expand variable value
+    use "" to prevent empty values
+   No need to escape bash meta symbols like \ or *
+    Example:
+   $ if [[ "$string_var" =~ \w+? ]]; then echo "good"; fi
+   > good
+
+    Can use wildcards , or similar to it..
+   When using == equation
+    Example:
+   $ FILE=foo.txt
+   $ if [[ $FILE == foo.* ]]; then echo "matches pattern"; fi
+   > matches pattern
+
+   Logical operators:
+   && - AND
+   || - OR
+   ! - NOT
+    Example:
+   if [[ ! ( FALSE || TRUE )]]; --- in (will be TRUE) but ! will invert to FALSE
+    Note that 'false' and 'true' are not commands, commands return 1 and 0
+   and behavios incorrectly
+
+
+(( )):
+  Permits Arithmetic expansion and Evaluation for 
+  Works only with Integers (no float dot like in Double or Float types)
+   Note:
+  bash syntax part, not a command
+  also does expansion w/o $ symbol before var name
+
+  Arithmetic expansion examples
+   a=$(( 5 + 3 )) or a=$((5+3)) - assign result of addition to variable 'a'
+   C style manipulations:
+   (( var++ )) or $(( var++ )) or ((var++)) - display then increment by 1
+   (( ++var ))  - increment by 1 then display
+   (( --var ))  - same manner decrement
+   (( var-- ))  - display then decrement
+   Assignment:
+   $((b+=a)) - add 'a' to 'b' and assign result to 'b' - b=$a+$b
+
+   Evaluation:
+   if ((10>=5)); then echo "10 greater or equal 5"; fi
+      ((var1>=var5))  - same byt with variables
+  
+  Logical operators:
+   same as in [[ ]] - && , || , !
+
+  (()) returns 'true' if integer inside of it greater than 0
+   Example:
+  dos:bash$ if ((1)); then echo "true"; fi
+  >true
+  dos:bash$ if ((0)); then echo "true"; fi
+  dos:bash$
+
+  
+
 
 Loops:
 for:
@@ -232,12 +364,18 @@ while:
   done < myhosts.txt
 
   will read from myhosts.txt while there are lines, each line will reinit $host
-  
+
+exit status:  
 exit code:
-  bash scripts ALWAYS returns exit code.
+  bash scripts ALWAYS returns exit code. 'exit' is optional
+  commands ALWAYS return exit code too. 
+  Functions ALWAYS return exit code too. 'return' is optional
+  seems like everything returns exit code.
+  Even bash shell 'exit'ed with number will return this number
   to manually return exit code:
   exit nnn - to return nnn
 	!!   nnn - MUST be an INTEGER in range 0-255 !!
+  return nnn - to return nnn but from Function
   exit $? or exit or omitting the 'exit':
    with no params exit code is taken from latest command executed in the script
     Exit code values:
@@ -251,6 +389,25 @@ exit code:
 	    executed script 
   more reading:
   http://tldp.org/LDP/abs/html/exit-status.html
+
+true:
+  command that always return 0
+   Example:
+  exit $(true)   - will return 0 exit code
+   or Function:
+  return $(true) - will return 0 after Function
+   or:
+  true   	 - will return 0 exit code
+   or Funcion:
+  test() {
+   true
+  }
+  test 		 - this will return 0 in script, and if last line - script
+		   will return this same 0 to caller (i.e. bash shell)
+   Same works for False
+
+false: 
+  command that always return 1
 
 incrementation: increment: i++:
   counter_var=0

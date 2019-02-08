@@ -116,6 +116,9 @@ echo:
    echo "this is firstline
 	this is second line
 	this is third line"
+   Params:
+  -n - supress new line after output, like '.Write()' vs '.WriteLine();
+  -e - enable interpretation of \ escaped stuff
 
 whatis:
   returns first line from man of given command
@@ -145,7 +148,13 @@ ls:
     access rights | hard links qty | owner | owner group | 
     | size | data changed | name
   -a - show all files including hidden 
-  -d - show only directories 
+  -d - show only current directory, if given another directory - shows only it
+       if given a wildcard that will match directories only - will return only
+       the directories, w/o -d it will return every directory and its contents
+	Example:
+     ls -lda */ - will return list of directories
+	Example:
+     ls -la */ - will return contents of each directory within a separate list
   -r - reverse sorting order
   -S - sort by size
   -t - sort by date changed
@@ -436,6 +445,7 @@ sort:
   -n - sort by numbers
   -b - ignore leading blanks i.e. '   a'
   -f - ignore case
+  -h - sor human readable format, like 1M 1K 1G
   -k - key i.e. -k 1, or --key=1
 	-k 5 (or --key=5) - use column 5
 	 Example: ls -l /usr/bin | sort -k 5 -rn
@@ -761,9 +771,16 @@ curl:
 du:
   disk usage
   du <params> <file/dir name>
-  dy -hs dirname
+   Does not accept input from pipe, seems like
+    use 'xargs'
+  du -hs dirname
    -h - human readable
-   -s - summary
+	Example:
+       ls -d */ | xargs du -hs  - will display size of all subdirs of of 
+				current dir
+	Or:
+	ls -d */ | xargs du -hs | sort -hr | head -20 - top 20 biggest dirs
+   -s - summary for every directory w/o listings its contents
 
 diff:
   checks differences two files or whole directories
@@ -2502,7 +2519,8 @@ cut:
 	could be more than 1 byte, which is 8 bits)
 	 Example:
 	10/01/2007 - '-c 7-10' will cut out '2007'
-  -f --fields=LIST - uses delimiter(default TAB) to parse each line by it then
+  -f --fields=LIST - field to cut. or fields.
+		uses delimiter(default TAB) to parse each line by it then
 	it could return columns mentioned in the list by numbers from 1
 	 Example:
 	abc<tab>10.1<tab>10/01/2007 - '-f 3' will cut out '10/01/2007'

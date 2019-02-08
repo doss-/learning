@@ -409,10 +409,6 @@ true:
 false: 
   command that always return 1
 
-incrementation: increment: i++:
-  counter_var=0
-  counter_var=$(( $counter_var + 1 ))
-
 help:
   lists all built-in commands
    help <built-in command>
@@ -527,3 +523,33 @@ functions:
   > disk space utili....
   > ...output of df -h....
   
+|:
+  pipe character
+  creates new subshell, executes what goes after pipe there, then returns
+  back to parent shell. subshell can not change parent shell - so 'read' command
+  will not work in pipe
+
+read:
+  reads line from keyboard input, accepts here-strings, does not work with |
+  By default saves entered value into $REPLY global variable
+   Synopsis:
+  read [-params] [variable1 variable2 variable3 ...]
+
+  Accepts more than 1 variable to save keyboard input
+   Default separator is space or tab or new line(\n)
+  If less variables are given to save data, all excessive data (delimited 
+  fields) will be saved in last variable (like msbuild do when too many params)
+  When too many variables is given - unpopulated vars remain empty string
+
+   Params:
+  -a - array, saves input into the array 
+  -d <delim> - delimiter, by default space\tab\newline
+  -e - use Readline, behaves like keyboard input in bash
+  -n <num> - read num symbols from keyboard input
+  -p <promt> - display promt befor cursor on the same line (like bash promt)
+  -r - do not inerpret \ symbols
+  -s - silent, do not display entered data, like in password field
+  -t - time out for wait of entry
+  -u <descriptor> - use file with given descriptor as STDIN
+
+   

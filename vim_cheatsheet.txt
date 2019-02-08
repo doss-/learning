@@ -117,11 +117,6 @@ Open several files:
  :r - read other file, and paste it after cursor WHOLE FILE 
   
 
-
-number lines:
-  :set number
-
-
 go to line:
   <line number>G
    or
@@ -141,13 +136,26 @@ change case:
   guaw  - change all of current WORD Upper > Lower
   gUw   - change to end of current WORD Lower > Upper
   gUaw  - change all of current WORD Lower > Upper
-  
+
+:syntax on - highlight syntax
+	file need to have #!/path/to/interpreter so vim would know which 
+	syntax is used
+  :set syntax=sh - if 'syntax on' doesnt work, sh is for shell
+:set hlsearch - highlight search (all entries at once)
+:set tabstop=4 - qty of spaces in tab (default is 8), usually devs use 4
+:set autoindent - continue indention on next line (like keep tab)
+	CTRL+D to cansel autoindent
+:set number - number lines
 :scriptnames - displays all the file locations of all the configs loaded for
   vim instance running
 :e $MYVIMRC  - open & edit the current .vimrc that you are using, then use 
   Ctrl + G to view the path in status bar.
 
 .vimrc - main config file
+	accepts regular settings from above, but w/o leading ':'
+	Example:
+set autoindent - will turn on autoindention
+set number
 
 
 Colors:

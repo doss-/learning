@@ -779,7 +779,10 @@ du:
        ls -d */ | xargs du -hs  - will display size of all subdirs of of 
 				current dir
 	Or:
-	ls -d */ | xargs du -hs | sort -hr | head -20 - top 20 biggest dirs
+       ls -d */ | xargs du -hs | sort -hr | head -20 - top 20 biggest dirs
+	Or:
+       du -sh */ | sort -hr  - du also accepts wildcards, so no need
+				to use ls for supplying list to du
    -s - summary for every directory w/o listings its contents
 
 diff:
@@ -1038,7 +1041,7 @@ mount:
    / - what to remount
 
     Example:
-   lsdlk -f     - view all devices
+   lsblk -f     - view all devices
    mount /dev/sda5 /path/to/mount/point - mount device
    umount /dev/sda5   - unmount (Notice N letter absent in commnad name)
     Example:

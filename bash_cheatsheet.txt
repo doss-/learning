@@ -97,6 +97,24 @@ variables:
    Arithmetic expressions syntax $((arithmetics go here)):
   echo $((2+3)) >> 5
 
+  IFS - variable that containes field separator, 
+	by default is space/tab/new line
+	Could be changed
+
+  Temporary variables:
+   Bash supports variables change/assignment before command execution
+  Variables assigned before command execution (on the same line) will be
+  changed only for env with which command will be executed:
+   IFS=":" read field1 field2 ... <<< "$line_from_passwd"
+    Equals to:
+   OLD_IFS="$IFS"
+   IFS=":"
+   read field1 field2 .... <<< "$line_from_passwd"
+   IFS="$OLD_IFS"
+  !Note:
+   it works weird - only in example from bood, need to research and update
+   
+
 local variables:
   local variables are declared in functions, and visible only there
   local variables overwrite globals with the same name
@@ -162,13 +180,37 @@ here doc here docs here-document here script :
   EOF
   ls -l $REMOTE_FILE - will display downloaded from ftp remote file, all the
   	commands are passed from inside the here-document
+
+here-line:
+  same as here-doc but onliner:
+   $read field1 field2 <<< "test in put"
+   $echo $field1  ---> test
+   $echo $field2  ---> in put  < because put is 3rd field, and we have only 2
+				all excess fields goes into last 'field2'
+    Profid of here-line here is that commands with pipe
+   $echo "test in put" | read   
+	will not work because subshell will be created for 'read' where $REPLY
+	will be created and assigned, but after that subshell ends, and
+	subshell can not change parent shell's env, such as REPLY value
   
 
 if:
   Condition tests in IF should be inside square brackets - [], which are just a
   reference for commant 'test'. see MAN page for TEST for details.
    example:
-  if [ 100 -eq ]; then - semicolon is needed in case of single line w/o /n
+  if [ 100 -eq 100 ]; then - semicolon is needed in case of single line w/o /n
+   -or-
+  if [ 100 == 100 ] - seems like this also should work
+   -or-
+  if $(test $(echo "$REPLY" | grep '^[0-3]$'))
+	tests whether value of REPLY is mathced- if not, grep return 1(error)
+	then test returns 1 and 'if' will not work
+	if value matched then grep returns 0 (good), then test returns 0 and
+	'if' will work
+   -or-
+  if test $(echo "$REPLY" | grep '^[0-3]$')
+	same as above, but $() outside 'test' is unnecessary in fact
+	but works in both ways so keep both examples here
    -or-
   if [ <some test> ] && [ <other test> ] || [ <yet again test> ]
   then
@@ -223,12 +265,12 @@ test:
 
    Test Strings\Ints:
   Operator 	Description
-  ! EXPRESSION 	The EXPRESSION is false.
-  -n STRING 	The length of STRING is greater than zero.
-  -z STRING 	The lengh of STRING is zero (ie it is empty).
-  STRING1 == STRING2 		STRING1 is equal to STRING2 (= also allowed)
-  STRING1 != STRING2 		STRING1 is not equal to STRING2
-  STRING1 > STRING2		STRING1 is alphabetically greater than STRING2
+  ! <expr> 	The EXPRESSION is false.
+  -n str 	The length of STRING is greater than zero.
+  -z str 	The lengh of STRING is zero (ie it is empty).
+  str1 == str2 		STRING1 is equal to STRING2 (= also allowed)
+  str1 != str2 		STRING1 is not equal to STRING2
+  str1 > str2		STRING1 is alphabetically greater than STRING2
   INTEGER1 -eq INTEGER2 	INTEGER1 is numerically equal to INTEGER2
   -ne				integers are not equal
   -le				are less or equal

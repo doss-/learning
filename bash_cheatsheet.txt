@@ -5,6 +5,52 @@ there is no need in that because there already an interpreter in place.
 i.e.:
 #!/bin/bash
 
+
+Bash Scripts accepts data from stdin and its direct redirection or pipe
+! 'read' command need to be used.
+ Example:
+  >script:
+  >read -p "enter any *.txt"
+  >echo "${PWD}${REPLY}"
+ $cd ~ && ls test.txt | ./read_and_expect_txt_files.sh
+  /home/dos/test.txt
+ Example:
+ $echo "test.txt" > try.txt
+ $./read_and_expect_txt_files.sh < try.txt
+  /home/dos/test.txt
+	
+
+Debugging:
+#!/bin/bash -x
+  will start debugging tracert - with display of all values expanded and
+  lines as bash sees them and will execute them
+
+set -x
+  echo $var
+set +x
+  will enable debugging tracert only between set -/+ x displaying only
+ commands in between with such debug info
+
+shell variables:
+$FUNCNAME - contains name of the function being executed(like reflection)
+$PS4 env var, is Promt String for debugging tracert
+$LINENO - is standard variable with line number
+PS4="$LINENO +" - will display line number during debugging tracert
+
+Defensive programming:
+Make sure everything is expanded and is executed in right place:
+ Instead of:
+  $cd $path
+  $rm *
+ Use secure defensive way:
+  [[ -d "$path" ]] && cd "$path" && echo rm *
+   where -d - make sure path exists and is Directory
+   "$.." - in double quotes to avoid null expansion if var does not exist
+	it will be expanded in empty string in that way - ""
+   && - will execute next command if previous returned 0 exit code
+   echo .. * - will echo expanded by bash shell wildcard, displaying what
+	exactly is going to happen with actual 'rm *'
+
 Naming Coventions:
     Variable Names: Lower-case, with underscores to separate words. Ex: my_variable_name
     Constants and Environment Variable Names: All caps, separated with underscores, declared at the top of the file. Ex: MY_CONSTANT
@@ -48,6 +94,68 @@ expansion:
    To rename file to 'some/file1' use {}:
    mv $foo {$foo}1
    
+positional parameters:
+positional params:
+params:
+  Bash supports positional params for the script.
+  default ones are $0-$9 , other params are listed by ${10} and so on:
+   Params:
+  $0 - contains full path of the script being executed
+	does not count as parameter in list $#
+	so [ $# -gt 0 ] will return false if $1 is empty
+  $1+ - are actual parameters
+
+  Parameters are passed as usual
+   Example:
+  script.sh param1 param2
+   in script.sh:
+  echo $0  #/path/to/script.sh
+  echo $1  #param1
+  echo $2  #$param2
+  echo $3  # this would be empty uninitialized param with null value
+ 
+  Paraters could be passed using wildcards like 
+   Example:
+  script.sh * 	- will pass everything matched, basically it would be a
+		list of files in PWD
+
+  Params Arrays:
+   $# - .Count, stores number of arguments passed into the script
+	does not count $0 in it, so is not 0 based
+   $* - stores all arguments - ($1 $2 ...), if args has spaces those
+	would be treated as separate params, so params 
+	("param1" "param with spaces" would be
+	$1=param1 $2=param $3=with $4=spaces
+   "$*" - all params expanded between ("$1 $2" ...), with delimiter of first
+	symbol in $IFS variable, it becomes one single parameter:
+	("param1" "param with spaces") would be
+        $1="param1 param with spaces" (leaving quotes behind in the end)
+   $@ - same as $*
+   "$@" - stores all arguments in quotas ("$1" "$2" ...), thus handling
+	spaces in variables.
+  	("param1" "param with spaces") would be
+	$1="param" $2="param with spaces" 
+
+
+shift:
+  shifts params backwards so $2 would be $1 and old $1 would vanish
+  using this command each parameter could be handled one by one
+   Example:
+  while [[ $# -gt 0 ]]; do
+   echo "Parameter is $1"
+   shift
+  done
+
+  This will echo out all parameters given as per shift will consequentially
+  move all parameters into $1 position one by one
+
+basename:
+  returns file name from latest node in the path
+   Example:
+  $/home/dos/scripts/some_script.sh
+  in script >> echo basename $0
+  will return 'some_script.sh'
+  
 
 variables:
   AKA Global Variables - are visible everywhere in shell environment
@@ -142,6 +250,9 @@ here doc here docs here-document here script :
   command << indicator
   text
   indicator
+
+  <<-  - work as << but accepts TAB before enclosing 'indicator'
+	'space' will still return error
 
    where:
   command is a command like, 'cat' or anything else (doesn't work with 'echo')
@@ -358,7 +469,8 @@ test:
   Arithmetic expansion examples
    a=$(( 5 + 3 )) or a=$((5+3)) - assign result of addition to variable 'a'
    C style manipulations:
-   (( var++ )) or $(( var++ )) or ((var++)) - display then increment by 1
+   (( var++ )) or ((var++)) - display then increment by 1
+     $(( var++ )) - increments and saves var but also produses errors
    (( ++var ))  - increment by 1 then display
    (( --var ))  - same manner decrement
    (( var-- ))  - display then decrement
@@ -398,14 +510,34 @@ for:
   do and done are the braces
 
 while:
-  infinity loop while control is true
+  infinity loop while exit code of command\expression is 0 
+  could read from file(stdin) line by line with STDIN redirect or pipe:
+    Example:
+   while read field1 field2 field3
+    ..
+   do < file_to_read_from.txt
+    Example:
+   cat file_to_read_from.txt | while read field1 field 2 field3; do ... ; done
+
+
     example:
   while read host ...; do... - or like this if in 1 line
   do
     ping -c 3 $host
+    if [[ $call_continue ]]; then
+      continue			 # will pass further iteration and start over
+    fi
+    if [[ $call_break ]]; then
+      break			# break loop and go out of it at all
+    fi
   done < myhosts.txt
 
+  
+
   will read from myhosts.txt while there are lines, each line will reinit $host
+
+  break: will stop loop from execution - just regular break as ususal
+  continue: will pass iteration and start next iteration - also standard one
 
 exit status:  
 exit code:
@@ -420,6 +552,9 @@ exit code:
   return nnn - to return nnn but from Function
   exit $? or exit or omitting the 'exit':
    with no params exit code is taken from latest command executed in the script
+  Variable that contains exit code:
+  $? - contains latest exit code, overriden after any next execution
+	even 'echo $?' will override it with 0
     Exit code values:
   0-255 allowed
     By convetion
@@ -431,6 +566,30 @@ exit code:
 	    executed script 
   more reading:
   http://tldp.org/LDP/abs/html/exit-status.html
+
+case:
+  check whether one of condition matches the 'word' in case, if so it
+ executes code in particular case and terminates
+  Syntax:
+ case $word in		# value of $word will be compared against
+  <ptrn1>|<ptrn2>) cmd1 # the <pattern> and if tru command1
+	     cmd2   # and command2 will be executed
+	     ;;		# this ends particular case block
+  *) 	     exit 1     # * match anything, last case 'catch'
+     	     ;;		# ends 'catch' block values of '$word' either
+			#+ matched by previous cases or this one
+			#+ nothing is left 'case' block unmatched this way
+ esac			# this ends whole case, after 1 of the cases 
+			#+ matched, or none matched
+ Case uses wildcards as pattern:
+ ? - one character
+ * - anything of any length
+ [ABC] - 1 letter - either A, B or C
+ [0-9] - 1 number in 0 - 9 range - any digin with length of 1
+ a - letter 'a'
+ *.txt - anything that ends with '.txt'
+
+ Good practice is 
 
 true:
   command that always return 0
@@ -526,9 +685,18 @@ functions:
   'return' command in optional
    Function MUST has at least one command, in order to mock\stab 'return'
   command could be used.
+   Basically every script could be converted into a function just by
+  copuint all the contents after she-bang in between function declaration
+  which is in Syntax below. And replace 'exit' with 'return' keywords
+   Variables in the Function could be set as 'local' overriding outer
+  global variables.
+   $0 in fuction contains name of the script being executed
+   $FUNCNAME - contains name of the function being executed
 
    Syntax:
   function name {
+    local VAR
+    local VAR2=value
     <commands>
     return
   }

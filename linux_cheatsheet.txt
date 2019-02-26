@@ -168,6 +168,29 @@ locale:
    LC_MONETARY - currency? 
    etc.
 
+time:
+  seems like calculates time of how long command takes to execute
+  like StopWatch
+   Syntax:
+  time <command\script_name>
+   Example:
+  time some_script.sh
+  > real 0m14.169s	#i spend 14 seconds (script uses 'read')
+  > user 0m0.005s	#this two seems to calculate actual time of
+  > sys	 0m0.005s	#+ calculations required, except manual intput
+
+date:
+  returns current date - weekday, day, month, year, time, time-zone
+   Could be formatted like:
+  date +"%x %r %Z"
+   where
+   x - short date in American format like '20.02.2019' - dot delimited
+   r - time hh:mm:ss (dunno whether its 12 hours or 24 hours format)
+   Z - short name of time zone like 'EET' for Eastern European Time
+
+cal:
+  calendar, spans for several lines , looks like ok calendar
+
 file:
  short info about a file, file type etc.
   Linux does not have extensions for files so this is 
@@ -545,9 +568,9 @@ printf:
   format string, like String.format(). has no new line \n, gotta add it manually
   % - conversion specificator:
    s - string
-	Example:
-   printf "variable: %s; and another %s\n" var ano
-  >variable: var; and another ano
+     Example:
+    printf "variable: %s; and another %s\n" var ano
+    >variable: var; and another ano
    d - digit negative or positive (1 or -1)
    f - float, with comma - (1,1 > 1,100000)
    o - octal number (1-8, like 8 bites in 1 byte, or chmod 777)
@@ -555,6 +578,7 @@ printf:
 	 "octal 1 is %0 octal 9 is %0)" 1 9 > 1 .... 11
    x - hex number (1-9a-f < lowercase)
    % - escapes % (printf "%%")
+   %50s - formated string max 50 chars wide
    
 
 wc: 

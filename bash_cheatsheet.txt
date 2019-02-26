@@ -135,6 +135,7 @@ params:
 	spaces in variables.
   	("param1" "param with spaces") would be
 	$1="param" $2="param with spaces" 
+	See 'variable substitution' for more use - ${@:2} (w/o " works same)
 
 
 shift:
@@ -183,14 +184,28 @@ variables:
 		     values "5" and "a string", probably 5 is int.ToString()
 
   To preserve spaces and stuff use quotas with string vars initialization
-   example:
+   Example:
   my_str_var="string w/ spaces goes in quotas"
   echo "stuff is: $my_str_var" > stuff is: string w/ spa.....
   echo 'stuff is: $my_str_var' > stuff is: $my_str_var
-   Bash modifiers:
-  ${variable:-word} - if 'variable' is set, the result will be its value
+
+variable substitution:
+substitutuin:
+   Bash supports various variables substitutions:
+  $a - will be substituted with 'a' value
+  ${a} - same as $a but could be concatenated w/ string w/o spaces:
+    ${a}.txt - will be expanded in a_value.txt
+  ${11} - 11th positional parameter given to script from shell
+  ${var:-word} - if 'variable' is set, the result will be its value
 	if 'variable' is unset - the result will be 'word'
-  ${variable:+word} - if 'variable' is set, the result will be 'word',
+  $(var:=word} - if variable is set results in its value substituted
+	if variable is unset, it will be assigned to 'word'
+	such assignment will not work for positinal params(see 'shift')
+	and other special variables
+  ${var:?word} - if variable is unset error with reason 'word' will be
+	generated, exit code of such construct will be 1
+  ${var:+word} - if 'variable' is set, the result will be 'word',
+	(but variable's value will not be changed)
 	otherwise result will be EMPTY string
   Example:
 	$ echo ${variable:-ls} - variable unset - ls used
@@ -202,7 +217,131 @@ variables:
 	> ls
 	$ echo ${variable1:+ls} - variable unset - empty line used
 	> 
-   Arithmetic expressions syntax $((arithmetics go here)):
+  ${!prefix*} or ${!prefix@} - returns NAMES of existing variables
+	that starts from 'prefix.
+   Example:
+   	$ echo ${!BASH*}
+	> BASH BASHOPTS BASHPID BASH_ALIASES BASH_ARGC BASH_ARGV BASH_CMDS
+
+string variables substitution:
+  ${#var} - returns length of string in variable's value
+	Example:
+   $ var=123456789   #this could be interpreted as a string too now
+   > 9		     #string length is 9
+
+  ${#} or $# or ${#@} or ${#*} - returns number of positional parameters
+	of the script being executed
+
+  ${var:number} - return string from number to the end, spaces trimmed
+		  variable is unchanged.
+	Example:
+   $ var="This string is to long."
+   $ echo ${var:5}		   #returns string from 5th symbol
+   > string is to long.
+	Example: spaces are trimmed:
+   $ echo ${var:5} | wc -c 	   #count chars
+   $ 19
+   $ echo ${var:4} | wc -c	   #return starts from space
+   $ 19				   #space is trimmed so same number of chars
+  ${var: -number} - return string from end to number, spaces trimmed
+		    NOTE - space between ':' and '-' signs
+	Example:
+   $ echo ${var: -5}
+   > long.
+  ${var:number:length} - return string from number till end of lenth
+	Example:
+   $ echo ${var:5:6}
+   > string
+   
+  ${var: -number: -length} - return string number between number(from the
+			     end) and length (also from the end)
+			     NOTE: number must be > than length
+	Example:
+   $ echo ${var: -18: -2}    #var is This string is to long.
+   > string is to lon
+  
+  ${@} - return all values of positional params 
+	 leaving spaces inside strings (like "$@" ) - bcs it know how 
+	 many arguments script has
+	 ${*} is the same form, it seems
+
+  ${@:num} - displays values of positional params but from num
+	 $(@:1) - works same as ${@}
+	 ${@: -2} works , but starts from the end
+
+  ${@:num:length} - same as with strings but with positional params
+  ${@: -num: -length} - same as with strings but with positional params
+
+  ${param#pattern} - finds shortest match and deletes it (lazy match)
+    Example:
+   foo="file.txt.gz"
+   ${foo#*.}
+   >txt.gz
+  ${param##pattern} - finds longest match and deletes it (greedy match)
+   Example
+   ${foo##*.}
+   >.gz
+
+  ${param%pattern}  - same as #  but deletes from the end of the file
+   Example:
+   foo=file.txt.gz
+   ${foo%.*} 		- note .* instead of *. in # example
+   >file.txt
+  ${param%%pattern} - same as ##
+   ${foo%%.*}
+   >file
+
+    Search and replace:
+ ${param/pattern/string} - replaces first occurance of pattern with string
+ ${param//pattern/string} - replaces all occurances of pattern with string
+ ${param/#pattern/string} - replaces only if at the beginning of the line
+ ${param/%pattern/string} - replacesonly if at the end of the line
+
+
+ $(())
+  Accepts any valid arithmetic expression 
+   Pretty similar to (()) test construct which returns true when result >0
+ Accepts any number system:
+  
+  Decimal
+   with base of 10
+  number
+   Example:
+  echo $((10)) - will return 10
+  echo $((10#10)) - will return 10
+
+  Octal: 
+   with base of 8 [0-7]
+  0number
+   Example:
+  echo $((010)) is 8 in decimal, where 10 is the whole base, which is 8
+  echo $((07)) is 7 in decimal
+  echo $((8#10)) is 8 in decimal
+  echo $((08)) - will return error 'value to great'
+		0-7; 10-17 and so on will work
+
+  Hex: Hexademical:
+   with base of 16 [0-9A-F]
+  0xnumber
+   Example:
+  $((0x10)) - is 16 in decimal, which is full base
+  $((16#10)) - is also 16, because of base of 16 numbers
+  $((16#100)) or ((0x100)) is 256 which is 16x16 or 16 in square(^2)
+  $((0xFF)) is F(15) full bases plus F(15) 
+		which is ((15x15)==240)+15 == 255
+
+  Custom:
+    custom base , could be any number [0-9A-Z] and some other]
+    maximum base is 64, seems like
+   base#number
+    Example:
+   echo $((17#10) - is 17, which is full base
+   echo $((64#10)) - is 64, which again is full base
+
+
+  Arithmetic expressions syntax $((arithmetics go here)):
+  
+    Example:
   echo $((2+3)) >> 5
 
   IFS - variable that containes field separator, 
@@ -221,7 +360,92 @@ variables:
    IFS="$OLD_IFS"
   !Note:
    it works weird - only in example from bood, need to research and update
+
+  Unary operators:
+   Operators that require value on UNE side, contrary to binary operators
+   that reauire values on both sides:
+    + - is for positive numbes: +1
+    - - is for negative number: -1
+
+  Arithmetic operators: Binary operators:
+    there are more binary operators, but those below are used in Arithmetics
+  + - for addition
+  - - for substruction
+  * - for multiplication
+  / - for division
+  ** - for exponentiation (2*2=4 3*3=9 4*4=16 and so on, aka ^2 ^3 ^4 ...)
+  % - modulus division 
+	5%2=1 which is what left after division - 2, 2 and 1
+      Example:
+    echo $(( 5%2 )) - will return 1
+
+  Assignment in Arithmetic expressions:
+  echo $((foo=5))  - will assign 5 to $foo
+   NOTE: also could be used in tests like [[...]] and ((...))
+   NOTE: in 'test' or [...] used to _compare_ strings, BEWARE
+
+  Assignment operators:
+   var = value 
+	regular assignment operator
+   var += value 
+	assignment with value addition 		$var = $var + value
+   var -= value
+ 	assignment with value substruction 	$var = $var - value
+   var *= value
+	assignment with value multiplication 	$var = $var x value
+   var /= value
+	assignment with value division 		$var = $var / value
+   var %= value
+	assignment with value modulus division 	$var = $var % value
+  
+  Assignment with C-like style increment decrement:
+   Post - means show\use first, change after it shown\used
+  var++ - post increment			$var = $var + 1
+  var-- - post decrement			$var = $var - 1
+   Example:
+   foo=1; echo $((foo++)); echo $foo
+  	  1		   2
+   Pre  - means change\use first , show after it changed\used
+  ++var - pre increment				$var = $var + 1
+  --var - pre decrement				$var = $var - 1
+   Example:
+   foo=1; echo $((++foo)); echo $foo
+	  2		   2
    
+  
+  Basic logical gates:
+   AND - returns true if both entry are true
+   OR - returs true if at least one (or both) entry is true 
+   XOR - returns true if entry differs, 
+	 both true and both false return false
+   NOT - inverts entry - true is false and false is true
+   NAND - both false are true
+   NOR - returns true if at least one (or both) entry is false
+   XNOR - returns true if not differs,
+	  both true or both false return true
+   
+  Logical operators in Arithmetics:
+   Comparison operators less, greater , less than and so on
+  <= - less or equal
+  >= - greater or equal
+  < - less
+  > - greater
+  == - equal
+  != - not equal
+  && - AND
+  || - OR
+
+  expr1:expr2?expr3 - trinary operator, 
+		      if expr1 is true 
+		      then expr2 executed
+	 	      else expr3 is executed
+   Example:
+  a=0
+  ((a<1?++a:--1)) 	# a+=1 and a-=1 will not work
+  echo $a 	 	# 1
+  ((a<1?(a+=1):(a-=1))) # but this will work just fine
+  echo $a	 	# 0
+  
 
 local variables:
   local variables are declared in functions, and visible only there
@@ -486,32 +710,80 @@ test:
 
   (()) returns 'true' if integer inside of it greater than 0
    Example:
-  dos:bash$ if ((1)); then echo "true"; fi
+  dos:bash$ if ((1)); then echo "true"; else echo "false"; fi
   >true
-  dos:bash$ if ((0)); then echo "true"; fi
-  dos:bash$
+  dos:bash$ if ((0)); then echo "true"; else echo "false"; fi
+  >false
 
   
 
 
 Loops:
 for:
-  foreach basically
-    example:
-  FOR object IN collection; DO command; DONE
-   -or-
-  for i in 1 2 3
-  do
-    echo "print $i" > print 1   print 2    print 3
-  done
+   Has two forms, first is foreach:
+    Syntax:
+  FOR var IN words; DO 
+	commands
+  DONE
+   var - custom name as in regular foreach
+	 usually i j k l m - thanks to Fortran where int vars must start
+	 with those letters
+   words - is a collection, could be just 1 2 3 4 
+	   or result of command
+	   or result of wildcard matches list
+	   or result of subshell execution
+	   if omitted - args passed from commandline
+   do and done are the braces
+   Example:
+  for i in 1 2 3;  do echo "print $i"; done
+   > print 1
+   > print 2
+   > print 3
 
-  object - custom name as in regular foreach
-  collection - is a collection, could be just 1 2 3 4 
-  do and done are the braces
+   Example:
+  for file in test*.txt; do echo $file; done
+   ># will echo all files from current dir matched by globbed(wildcard) 
+	test*.txt mask
+
+   Example:
+  for i in $(some commands executed in subshell); do....
+ 
+  If optional 'words' component is omitted in 'for' it uses args(params) as
+  collection to iterate through
+
+   Example:
+  for i; do echo "command line param 1 is: $1" shift; done
+   this will echo out all params of bash script one by one (shift command)
+
+  Second form of 'for' is c-like (like real 'for' in c# and not 'foreach'):
+    Syntax:
+   for (( expr1; expr2; expr3 )); do
+    commands
+   done
+ 
+   where 
+    expr1-2-3 - are arythmetic expressions
+    
+    Example:
+   for (( i=0; i>5; i++ )); do
+    echo "i is $i"		# will output $i from 0 to 4
+   done
+
+    This form is equialent to following construction:
+   (( expr1 )) 			# this is assigned before loop
+   while (( expr2 )); do	# loop goes as long as expr2 is true
+    commands
+    (( expr3 ))			# at the end of each iteration expr3 is
+				#+ reassigned/reevaluated
+   done
 
 while:
   infinity loop while exit code of command\expression is 0 
   could read from file(stdin) line by line with STDIN redirect or pipe:
+   Syntax:
+  while true; do    | while [[ true ]]; do | while (( 1 )); do
+   commands
+  done
     Example:
    while read field1 field2 field3
     ..
@@ -581,6 +853,15 @@ case:
 			#+ nothing is left 'case' block unmatched this way
  esac			# this ends whole case, after 1 of the cases 
 			#+ matched, or none matched
+  Example:
+ while [[ -n $1 ]]; do 		#while param is not null
+  case $1 in			#check param
+	-f | --file) 	shift   #take $2 as $1 , if -f, 
+				#to get file path given with -f option
+			filename=$1
+				#save file path to $filename
+			;;
+  esac
  Case uses wildcards as pattern:
  ? - one character
  * - anything of any length

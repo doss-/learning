@@ -1,0 +1,67 @@
+get .bundle file 
+
+make sure everything installed like
+ kernel-headers, kernel-devel, kernel, gcc, make (list is for Fedora distro)
+if anything from above missing, better reboot after install
+
+ add executable permissions for .bundle file:
+# chmod +x ./VMware-Workstation-Full-12.5.9-7535481.x86_64.bundle
+ execute bundle:
+# sudo ./VMware-Workstation-Full-12.5.9-7535481.x86_64.bundle
+
+ make sure important files are in place(version.h is optional probably)
+# cp /usr/src/kernels/`uname -r`/include/generated/uapi/linux/version.h /lib/modules/`uname -r`/build/include/linux/
+ NOTE: path to version.h could vary, do search first:
+ find / -type f -name version.h 
+ add some libs into vmware libs from installer, for some reason
+# cp -r /usr/lib/vmware-installer/2.1.0/lib/lib/libexpat.so.0 /usr/lib/vmware/lib
+
+ this is applicable only if /usr/lib is not already for x64 platform
+# cd /usr/lib/vmware/lib/libz.so.1
+# mv -i libz.so.1 libz.so.1.old
+# ln -s /usr/lib64/libz.so.1 .
+
+Now everything is ready, but probably kernel version differs from one 
+which VMWare expects, so need to untar and fix differences manually, 
+or just download already fixed sources
+No matter of choice sources still need to be recompiled.
+
+sources are here:
+
+>>>> https://github.com/mkubecek/vmware-host-modules/releases
+
+ For VMWare 12.5.9 with uname -r returning '4.15.0-46-generic' use 
+ 'w12.5.9-k4.15' where w - workstation and k.... - kernel version
+
+ ungzip  downloaded modules and copy vm*-only folders into VMWare sources:
+ and compile
+GO TO HERE
+# cd /usr/lib/vmware/modules/source/vmmon-only ; make
+# cd /usr/lib/vmware/modules/source/vmnet-only ; make
+
+add misc dir into kernel modules:
+# mkdir -p /lib/modules/`uname -r`/misc
+
+copy some compiled stuff into kernel's modules and generate dep files
+# cp /usr/lib/vmware/modules/source/vmnet-only/vmnet.ko /lib/modules/`uname -r`/misc
+# cp /usr/lib/vmware/modules/source/vmmon-only/vmmon.ko /lib/modules/`uname -r`/misc
+# depmod -a
+
+vmware is ready to go
+
+HERE: except modules still not loaded correctly.
+
+so instead of compilation, backup old 
+vmmon.tar 
+vmnet.tar
+
+
+and copy over new tars
+cp -r <path>/vmware-host-modules-w12.5.9-k4.15/vm* /usr/lib/vmware/modules/source/
+cd /usr/lib/vmware/modules/source/
+sudo tar cf /usr/lib/vmware/modules/source/vmmon.tar vmmon-only
+sudo tar cf /usr/lib/vmware/modules/source/vmnet.tar vmnet-only
+
+then reconfigure vmware  and restart machine:
+sudo vmware-modconfig --console --install-all  
+sudo reboot

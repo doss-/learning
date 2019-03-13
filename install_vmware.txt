@@ -65,3 +65,22 @@ sudo tar cf /usr/lib/vmware/modules/source/vmnet.tar vmnet-only
 then reconfigure vmware  and restart machine:
 sudo vmware-modconfig --console --install-all  
 sudo reboot
+
+to enable Promiscuous Mode
+ it is not works usually as per VMWare installed by root, but you are not 
+root, and VMWare is started from under you, and can not access files that
+are owned by root exclusively
+
+groupadd vmnet		- create new group
+usermod -aG dos vmnet	- add user to the group
+ relogin
+groups			- check gropus of the user
+groups dos		- check again - should be the same list
+echo /dev/vmnet*	- make sure not changing anything else vmnet0-vmnet8
+chgrp vmnet /dev/vmnet* - change ownership of the group from root to vmnet
+chmod a+gw /dev/vmnet*	- add rw acces for users from the group ownership
+
+start VMWare, it will be started from under 'dos' user and virtual machine 
+that needs Promisc mode will get it throught that now /dev/vmnet* devices
+has read\write access for users in the group vmnet, to which 'dos' belongs
+

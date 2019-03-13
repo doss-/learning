@@ -1,0 +1,33 @@
+new VM
+https://linuxconfig.org/how-to-create-a-new-virtual-machine-on-xenserver-using-command-line
+
+new Storage repository (for ISO)
+https://linuxconfig.org/how-to-add-iso-image-storage-repository-on-xenserver-7-linux
+
+xen could be used not only through CLI but from GUI
+Citrix develops XenCenter, which is windows based app
+Xen Orchestra develops XOA, which is installed inside Xen, and then exposes
+http access via web page
+https://xen-orchestra.com/blog/one-line-to-deploy-xoa/
+
+Xen stores .iso images in special repo, from which it could use them to 
+create new VMs.
+
+also it has bunch of VIF , which is V InterFace(virtual network adapters)
+
+
+in VMware need to add Promiscuous mode when running, otherwise internet will
+not work in xen virtual machines
+
+to do so go here: https://kb.vmware.com/s/article/287
+in case of NAT use vmnet8 (actually use /dev/vmnet*)
+chgrp newgroup /dev/vmnet0
+chmod g+rw /dev/vmnet0
+ NOTE:
+make sure it vmnet devices still has right group and ownership, it resets
+with restart if not set permanently
+https://www.thegeekdiary.com/how-to-configure-interface-in-promiscuous-mode-in-centos-rhel/
+vim /etc/sysconfig/network-scripts/ifcfg-eth1
+PROMISC=yes   <== 
+
+

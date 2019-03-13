@@ -1554,6 +1554,15 @@ groupadd:
   group [options] <group>
   -g - manually set GROUP id
 
+chgrp: 
+  change group, changes group of file or directory
+   Synopsys:
+  chgrp [param] <group> /path/to/file
+   Params:
+  -R - recursive
+  -c - like verbose but only when change is made
+  -v - verbose
+
 groupmod:
   modify existing groups
   -g - change GROUP id

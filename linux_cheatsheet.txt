@@ -1272,6 +1272,47 @@ awk:
 
 
 ===Env Vars / Environment variables:
+declare:
+  built-in command to assign or display variables and functions
+   Syntax:
+  declare [-aAfFgilnrtux] [-p] [name[=value] ...]
+  Params:
+  Using `+' instead of `-' turns off the given attribute.
+   Example:
+  declare - will show all variables and functions
+  declare | grep "^a=" - will return variable 'a' with its value 
+   
+  -p - prints only variables w/o functions (displayhs onlyh NAME)
+  -a - to make NAMEs indexed arrays(only Bash, not Sh)
+   Example:
+   
+  -i - to make NAMEs integer
+   Example:
+   declare -i z=asdf    < echo $z - 0
+   declare -i z=12	< echo $z - 12
+  -l - to convert NAMEs to lower case on assignment
+   Example:
+   declare -l b=TEST
+   echo $b 		>test  - will save it in loweracase
+  -u - same but for UPPRECASE
+  -g - create global variables in functions:
+  When used in a function, `declare' makes NAMEs local, as with the `local'
+    command.  The `-g' option suppresses this behavior.
+
+  -x - export variables
+   Example:
+   declare -x FOO  - same as - export FOO
+  -r - readonly variables
+  -n - make NAME a reference to the variable named by its value
+   Example: pointer-to-pointer
+   b=foo		# variable
+   declare -n b2=b	# pointer to the variable
+   echo $b2
+   >foo
+   declare -t b3=b2	# pointer to pointer
+   echo $b3
+   >foo
+
 printenv:
 env:
   very similar, prints environment variables to STDOUT

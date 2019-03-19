@@ -189,6 +189,146 @@ variables:
   echo "stuff is: $my_str_var" > stuff is: string w/ spa.....
   echo 'stuff is: $my_str_var' > stuff is: $my_str_var
 
+arrays:
+  also variables, indexed from 0, 
+  could have empty indexes.
+   Example declaration:
+  a[10]=Ten	# assign 'Ten' to 11th index in array length of 1
+   Powershell-like thing(or vice versa)
+  days=(Mon Tue Wed Thu Fri Sat Sun)
+  days=([0]=Mon [1]=Tue ... )    # same as above but with strict indexing
+  animals=("a dog" "a cat" "a cow")
+
+  If array addressed w/o index, index 0 is displayed, if it is null then nothing
+  displayed EVEN IF THERE ARE OTHER INDEXES
+   Example:
+  arr=([1]=one [2]=two)
+  echo $arr		# nothing returned
+  arr[14]=14
+  echo $arr 		# nothing returned
+  arr[0]=0
+  echo $arr		# 0 is returend
+  echo ${arr[@]}	# 0 one two 14 is returned
+
+   Example2: assignment of array w/o index specification
+  arr=(a b c d)
+  echo ${arr[@])	# a b c d - is returned
+  arr=AAA
+  echo ${arr[@]}	# AAA b c d - is returned
+  echo $arr 		# AAA - is returned
+
+   Example3: deletion of first index w/o index specification
+  arr=(a b c d)
+  arr=
+  echo ${arr[@]} 	# b c d - is returned
+ 
+
+ Iteration:
+  Array variable substitution(see below for strings) arrays could be iterated
+  and counted and checked for empty indexes:
+   Iterate array:
+  ${animals[*]} - returns list of values split by space
+  ${animals[@]} - same as above
+   Example:
+  arr3=("a first" "a second" 'a third')      # " or ' is fine
+  for i in ${arr3[*]}; do echo $i ; done
+  >a			# separate variables
+  >first		# also separated by spaces(split)
+  >a			# will work fine if no Spaces
+  >second
+  >a
+  >third
+
+  "${animals[*]}" - JOIN joins all elements into 1 string
+    Example:
+   for i in "${arr3[*]}"; do echo $i ; done 	# only " , ' will not work
+   >a first a second a third		 #joined string
+   
+  Best form to use:
+  "${animals[@]}" - returns list of values NOT split by space(real contents)
+    Example:
+   for i in "${arr3[@]}"; do echo $i; done
+   >a first		# only different values are separated
+   >a second		# spaces are in place
+   >a third		# best form to use
+ 
+ Counting:
+  Array count coun be calculated, and length of value in single index:
+  
+ .Count:
+  ${#array[@]}     
+   where:
+  array is var name
+   Example:
+  echo ${#arr3[@]}
+  >3			# there 3 elements 'a first' 'a second' 'a third'
+  
+ array[i].Length:
+  ${#array[i]}     
+   where:
+  array is var name and i is index to measure length of
+   Example:
+  echo ${#arr3[1]}
+  >8 			# 'a first' is 8 characters long
+  
+  Check indexes numbers:
+   Arrays could have uninitialized or null initialized elements under some
+  indexes.
+   The way of how to check which indexes are taken is:
+  ${!array[@]} 		# works same w/ and w/o double quotes
+  ${!array[*]}		# works same as above w/o quotes, 
+			# but differently w/ quote, see example below in NOTE:
+   Example:
+  arr=([1]="a one" [3]="a three" [5]="a five")
+  for i in ${!arr[@]}; do echo $i; done  
+           "${!arr[@]}"			# will do the same
+           ${!arr[*]}			# will do the same
+  >1
+  >3
+  >5
+
+  NOTE: @ works same With or WithOut quotes:
+        ${!arr[@]} == "${!arr[@]}
+   AND
+        * works same as above WithOut quotes
+   BUT  
+        in double quotes it will JOIN indexes in one string with spaces separators
+   Example:
+  for i in "${!arr[*]}"; do echo $i; done
+  >1 3 5				# produces one line of indexes
+
+ array.Add:
+  Arrays could have new elements added into the end of it.
+ This is made as in Powershell(or powershell take it from bash) using +=
+  Example:
+ arr=(a b c)		# echo "${arr[@]}" > a b c
+ arr+=(f e g)		# echo "${arr[@]}" > a b c f e g
+
+ array.Sort:
+  There is no default sort method, but it could be implemented with
+ piping and regular 'sort' command, but with Iteration:
+  arr_sorted=$(for i in "${arr[@]}"; do echo $i; done | sort)
+	this will save soreted "a b c e f g" into arr_sorted
+   !!!! BUT THIS WILL NOT WORK    !!!
+   !!!!   echo "${arr[@]}" | sort !!!
+
+ Delete array:
+  Deletion of array is done in the same way as deletion of variables
+ using 'unset' command.
+ DO Not Use '$' in unset.
+  Syntax:
+ unset array_name
+
+  Example:
+ arr=(1 2 3)
+ echo ${#arr[@]} 	# check Count - returns 3
+ echo ${arr[@]}		# check contents - returns 1 2 3
+ unset arr		# deletes arr, NOTICE no '$' before 'arr' NAME
+ echo ${#arr[@]}	# cehck Count - returns 0, as for anything unset
+			#+ because bash initializes on execution call
+ echo ${arr[@]}		# returns nothing
+
+
 variable substitution:
 substitutuin:
    Bash supports various variables substitutions:

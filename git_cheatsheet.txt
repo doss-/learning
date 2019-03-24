@@ -37,6 +37,10 @@ https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
    --mixed  (default) - moves state of 2 Trees
 	Staging area
 	Commit history
+          Example:
+     git reset HEAD~    -- moves back one commit:
+      HEAD~ or HEAD^ means the commit before head 
+     git reset <hash of the commmit TO MOVE TO! >
    --soft - moves state only of 1 Tree
 	Commit history
 
@@ -73,3 +77,20 @@ git ls-files:
 	hash will change
 
    -s  - stage, displays only staged stuff
+
+git rm - removes files, adds to staging area
+  -r - recursivelly
+  --cached - removes from index (but need to confirm 
+   wtf it does)
+
+git mv - rename/move files , adds to staging area
+
+
+gitignore:
+ Seems like it applies right after file save, why did i
+think i need to commit it first? weird
+/**/.terraform - will ignore all .terraform folders anywhere
+ or 
+.terraform/ - should do the same
+
+/**/*.tfstate - will ignore all .tfstate files anywhere

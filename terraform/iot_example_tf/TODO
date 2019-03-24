@@ -1,0 +1,37 @@
+DONE
+ThingType - E-Seal
+Lambda
+ RSS
+ Overstress
+ Sensors
+  Permissions, i misread documentation, its source_acc and source_arn
+Thing - E-seal
+Certificate
+Topic Rule
+ RSSI
+ Overstress
+ Sensors
+IoT Policy
+ RSSI
+ Sensors
+
+
+Partially done
+IoT Analytics is not attached, not implemented in terraform
+  and Topic Rule can only be replaced, not updated with new\extra Action
+ Topic Rule - RSSI Rule
+ Topic Rule - Overstress Rule
+ Topic Rule - Sensors Rule
+  Need to create/replace TopicRule manually and pass its ARN to Lambda
+  permission
+
+UNDONE
+Lambda
+ Process Beacon Provisioning
+Probably API GateWay
+IAM Role
+ IoT VPC (all for Lambdas + IoT)
+ Lambda (all for Lambdas)
+Investigate IAM Lambda permissions
+ https://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#intro-permission-model-access-policy 
+Probably also need to create IoT Analytics Channel, if required 

@@ -1,0 +1,26 @@
+<HTML>
+<TITLE>1 title here </TITLE>
+
+<p> here goes a line of text  </p>
+
+<!--display all values from db table where submit saves stuff-->
+
+<form method="POST" action="/submit">
+  <!-- 
+    form.<field_name_var>.label - will render our a label
+    form.<field_name_var>.data - will return data
+    form.<field_name_var>      - renders a form itself
+    form.csrf_token            - renders hidden security field
+                                 required for validation
+  -->
+  {{ form.csrf_token }}
+  {{ form.text_field.label }} {{ form.text_field }}
+  <br>
+  {{ form.int_field.label }} {{ form.int_field }}
+  <br>
+  <br>
+  {{ form.submit_button }}
+</form>
+
+</HTML>
+

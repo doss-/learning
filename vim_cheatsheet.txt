@@ -1,3 +1,82 @@
+Starts in Command mode (no input)
+Insert:  i - starts Insert mode (also a, A, c and other shortcuts)
+Has ex commands - it starts form ':'
+
+Command mode:
+ Navigation:
+  l - right symbol 
+  h - left symbol
+  j - down line
+  k - up line
+  0 - line start
+  $ - line end
+  w - to next word\separator start 
+  W - to next word start ignore separators(,/.)< etc)
+  b - to prev word\sep start
+  B - to prev word start ignore seps
+  ^F - forward page (Page Down)
+  ^B - back page (Page Up)
+  5G - to line number 5
+  gg - to start of document
+  G - to end of document
+
+Editing:
+  u - undo
+  ^R - redo 
+  ZZ - save and quit
+  i - start Insert
+  a - append - insert on next symbol
+  A - append on end of line
+  o - insert empty line down of cursor and Insert mode
+  O - same but line up
+  ESC - back to Command mode
+  
+Removing:
+   Note that 'd' cuts text and it could be [p]asted back
+  x - del
+  X - backspace
+  3x - del 3 symbols
+  2X - backspace 2 symbols
+  dd - delete line
+  3dd - delete this and 2 down linse
+  D - delete from cursor to end of the line
+  d0 - delete from cursor to line start
+  dw - delete word till next word or sep
+  dW - delete word till next word start
+  dG - delete from cursor to end of the file
+  d20G - delete from current line to 20th line
+
+Paste\yank:
+  yy - yank line (copy)
+  Y - same yank line
+  5yy - current line and next 4 lines
+  yW - word till next word ignore seps
+  y$ - from cursor to end line
+  y0 - from cursor to start line
+  yG - from cursor till file end
+  y20G - from current line to 20th line
+
+  p - paste on the right of the cursor
+		   down if line
+  P - paste on the left of the cursor
+		   up if line
+
+Search:
+  f - search forward in current line for 1 symbol entered from keyboard
+  F - search backwards for 1 symbol
+  ; - repeat prev search
+  / - search regex globally, like in 'less'
+  n - next repeat forward
+  N - repeat backwards
+
+Other:
+  :w - write, save file
+  :w <file> - write to file2, other edits will stil go to first file
+  :q - quit
+  :! - force
+  :wq - save and quite
+  :q! - quit and ignore warnings (i.e. unsaved changes)
+
 find and replace:
 :%s/foo/bar/gci
  % 	- all lines [current line only if not specified]
@@ -6,20 +85,43 @@ find and replace:
  /bar/ 	- text to replace to
  g 	- all occurances in a line
  c 	- ask for confirmation
+	options (y/n/a/q/l/^E/^Y)
+	y - yes substitute
+	n - no, next
+	a - all substitute
+	q - quit substitution
+	l - last substitution - do and stop
+	CTRL+E - page down, to see the context of substitution
+	CTRL+Y - page up, for same reason
  /\<foo\>/ - change only whole words foo
  i 	- case Insensitive
  /foo\c/ - same case insensitive
  I 	- case Sensitive
  
-number lines:
-  :set numbe
+Open several files:
+  vim file1.txt file2.txt
 
+ file1.txt will be displayed
+ :n - ex command to go to file2.txt
+ :N - ex command to go back
+
+ :buffers - all opened files are 'buffers'. This lists all the files
+ :buffer 2 - will open file2.txt (Note: it is not plural, no 's' letter)
+ :buffer! 2 - leave unsaved (will keep for now) and go to file2
+   Yank works between buffers
+
+ :e - Edit, will open extra file in current vim editor
+	I did not get how to come back to first file in this case..
+	:n and :N does not work same as :buffers 1
+
+ :r - read other file, and paste it after cursor WHOLE FILE 
+  
 
 go to line:
+  <line number>G
+   or
   :<line number>
-  
-  or
-
+   or
   vim +<line number> <file> - opens vim at a given line
 
 change line case:
@@ -34,13 +136,26 @@ change case:
   guaw  - change all of current WORD Upper > Lower
   gUw   - change to end of current WORD Lower > Upper
   gUaw  - change all of current WORD Lower > Upper
-  
+
+:syntax on - highlight syntax
+	file need to have #!/path/to/interpreter so vim would know which 
+	syntax is used
+  :set syntax=sh - if 'syntax on' doesnt work, sh is for shell
+:set hlsearch - highlight search (all entries at once)
+:set tabstop=4 - qty of spaces in tab (default is 8), usually devs use 4
+:set autoindent - continue indention on next line (like keep tab)
+	CTRL+D to cansel autoindent
+:set number - number lines
 :scriptnames - displays all the file locations of all the configs loaded for
   vim instance running
 :e $MYVIMRC  - open & edit the current .vimrc that you are using, then use 
   Ctrl + G to view the path in status bar.
 
 .vimrc - main config file
+	accepts regular settings from above, but w/o leading ':'
+	Example:
+set autoindent - will turn on autoindention
+set number
 
 
 Colors:
@@ -65,7 +180,6 @@ Insert space in multilines:
   Up\Down - to mark 
   Shift+i - to insert (e.g. space )
   Esc - to apply changes (need to wait some 1 second)
-
 
 ===vimdiff
 

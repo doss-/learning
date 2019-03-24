@@ -1,0 +1,5 @@
+Security group:
+sg-06bdb4b77c473c2f6
+
+Instance ID:
+i-0b36fc377c959bbf6

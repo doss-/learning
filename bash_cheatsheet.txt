@@ -5,24 +5,347 @@ there is no need in that because there already an interpreter in place.
 i.e.:
 #!/bin/bash
 
+
+Bash Scripts accepts data from stdin and its direct redirection or pipe
+! 'read' command need to be used.
+ Example:
+  >script:
+  >read -p "enter any *.txt"
+  >echo "${PWD}${REPLY}"
+ $cd ~ && ls test.txt | ./read_and_expect_txt_files.sh
+  /home/dos/test.txt
+ Example:
+ $echo "test.txt" > try.txt
+ $./read_and_expect_txt_files.sh < try.txt
+  /home/dos/test.txt
+	
+
+Debugging:
+#!/bin/bash -x
+  will start debugging tracert - with display of all values expanded and
+  lines as bash sees them and will execute them
+
+set -x
+  echo $var
+set +x
+  will enable debugging tracert only between set -/+ x displaying only
+ commands in between with such debug info
+
+shell variables:
+$FUNCNAME - contains name of the function being executed(like reflection)
+$PS4 env var, is Promt String for debugging tracert
+$LINENO - is standard variable with line number
+PS4="$LINENO +" - will display line number during debugging tracert
+
+Defensive programming:
+Make sure everything is expanded and is executed in right place:
+ Instead of:
+  $cd $path
+  $rm *
+ Use secure defensive way:
+  [[ -d "$path" ]] && cd "$path" && echo rm *
+   where -d - make sure path exists and is Directory
+   "$.." - in double quotes to avoid null expansion if var does not exist
+	it will be expanded in empty string in that way - ""
+   && - will execute next command if previous returned 0 exit code
+   echo .. * - will echo expanded by bash shell wildcard, displaying what
+	exactly is going to happen with actual 'rm *'
+
 Naming Coventions:
     Variable Names: Lower-case, with underscores to separate words. Ex: my_variable_name
     Constants and Environment Variable Names: All caps, separated with underscores, declared at the top of the file. Ex: MY_CONSTANT
     Google naming convetions: 
 	https://google.github.io/styleguide/shell.xml#Naming_Conventions
 
+execution:
+  bash searches for entered command in 
+   1. built-ins
+   2. hashes
+   3. bash history 
+   4. env var PATH
+
+  So if script/binary is executed from some(i.e. current) directory and it is
+  not in path , it have to be 'source'd like:
+   source scriptname
+  or:
+   . scriptname - . is same to source
+  or:
+   ./scriptname - this seems to be <current dir>/scriptname (so basically full 
+  path, which is also applies)
+
+expansion:
+  expansion works before pass anything further, so:
+   cp * /some/dir - will copy everything from current dir into /some/dir
+  first argument * actually will be passed to cp as list of files matched 
+  by wildcard, 'cp' will never see * itself
+   variables expansion:
+  Expansion starts when $ is encountered. To escape it use
+  \ - will escape 1 symbol to treat it as lyteral and not meta symbol
+  '' - everything between single quotes threated as lyterals too
+  "" - will expand variables, but escape spaces etc.
+   Variables are expanded before passing them to command so command will only
+  see var's value, not its name.
+   Bash creates variable when first mets it, so it will create even empty
+  variables, which could lead to errors:
+   foo="/some/file"
+   mv $foo $foo1  - error
+   Bash will create $foo1 variable , then mv will receive $foo1 value which
+  is null, and 'mv /some/file <null>' will get error as only 1 param is passed
+   To rename file to 'some/file1' use {}:
+   mv $foo {$foo}1
+   
+positional parameters:
+positional params:
+params:
+  Bash supports positional params for the script.
+  default ones are $0-$9 , other params are listed by ${10} and so on:
+   Params:
+  $0 - contains full path of the script being executed
+	does not count as parameter in list $#
+	so [ $# -gt 0 ] will return false if $1 is empty
+  $1+ - are actual parameters
+
+  Parameters are passed as usual
+   Example:
+  script.sh param1 param2
+   in script.sh:
+  echo $0  #/path/to/script.sh
+  echo $1  #param1
+  echo $2  #$param2
+  echo $3  # this would be empty uninitialized param with null value
+ 
+  Paraters could be passed using wildcards like 
+   Example:
+  script.sh * 	- will pass everything matched, basically it would be a
+		list of files in PWD
+
+  Params Arrays:
+   $# - .Count, stores number of arguments passed into the script
+	does not count $0 in it, so is not 0 based
+   $* - stores all arguments - ($1 $2 ...), if args has spaces those
+	would be treated as separate params, so params 
+	("param1" "param with spaces" would be
+	$1=param1 $2=param $3=with $4=spaces
+   "$*" - all params expanded between ("$1 $2" ...), with delimiter of first
+	symbol in $IFS variable, it becomes one single parameter:
+	("param1" "param with spaces") would be
+        $1="param1 param with spaces" (leaving quotes behind in the end)
+   $@ - same as $*
+   "$@" - stores all arguments in quotas ("$1" "$2" ...), thus handling
+	spaces in variables.
+  	("param1" "param with spaces") would be
+	$1="param" $2="param with spaces" 
+	See 'variable substitution' for more use - ${@:2} (w/o " works same)
+
+
+shift:
+  shifts params backwards so $2 would be $1 and old $1 would vanish
+  using this command each parameter could be handled one by one
+   Example:
+  while [[ $# -gt 0 ]]; do
+   echo "Parameter is $1"
+   shift
+  done
+
+  This will echo out all parameters given as per shift will consequentially
+  move all parameters into $1 position one by one
+
+basename:
+  returns file name from latest node in the path
+   Example:
+  $/home/dos/scripts/some_script.sh
+  in script >> echo basename $0
+  will return 'some_script.sh'
+  
+
 variables:
+  AKA Global Variables - are visible everywhere in shell environment
+   if 'export'ed - will be visible in subshells created from the shell
+   'local' variables are local for funcions - see below
+  is converted to 'String' class by default
   Initializate variable by = sign w/o leading or trailing spaces
-  Accessing variable by $
+  Access variable by $
+   Also could be int, if used with 'declare':
+  declare -i variable=1
+   COuld be readonly:
+  declare -r READONLY="this is constant, in uppercase by convention"
+   Variables definitions:
+  a=z		- assign string "z" to var 'a'
+  b="a string"	- assign "a string" w/ space to var 'b'
+  c="a string and $b" - expansion works in "" so 'c' value 
+			is "a string and a string"
+  d=$(ls -l foo.txt)  - result of command is assigned to 'd'
+  e=$((5 * 7)) 	- result of ariphmetic result is assigned to 'e'
+  f="\t\tastring \n" - escaped sequences also works in "" here:
+			\t - tab
+			\n - new line
+   More than one variable could be declined in 1 line:
+  a=5 b="a string" - will create two variables with
+		     values "5" and "a string", probably 5 is int.ToString()
+
   To preserve spaces and stuff use quotas with string vars initialization
-   example:
+   Example:
   my_str_var="string w/ spaces goes in quotas"
   echo "stuff is: $my_str_var" > stuff is: string w/ spa.....
   echo 'stuff is: $my_str_var' > stuff is: $my_str_var
-   Bash modifiers:
-  ${variable:-word} - if 'variable' is set, the result will be its value
+
+arrays:
+  also variables, indexed from 0, 
+  could have empty indexes.
+   Example declaration:
+  a[10]=Ten	# assign 'Ten' to 11th index in array length of 1
+   Powershell-like thing(or vice versa)
+  days=(Mon Tue Wed Thu Fri Sat Sun)
+  days=([0]=Mon [1]=Tue ... )    # same as above but with strict indexing
+  animals=("a dog" "a cat" "a cow")
+
+  If array addressed w/o index, index 0 is displayed, if it is null then nothing
+  displayed EVEN IF THERE ARE OTHER INDEXES
+   Example:
+  arr=([1]=one [2]=two)
+  echo $arr		# nothing returned
+  arr[14]=14
+  echo $arr 		# nothing returned
+  arr[0]=0
+  echo $arr		# 0 is returend
+  echo ${arr[@]}	# 0 one two 14 is returned
+
+   Example2: assignment of array w/o index specification
+  arr=(a b c d)
+  echo ${arr[@])	# a b c d - is returned
+  arr=AAA
+  echo ${arr[@]}	# AAA b c d - is returned
+  echo $arr 		# AAA - is returned
+
+   Example3: deletion of first index w/o index specification
+  arr=(a b c d)
+  arr=
+  echo ${arr[@]} 	# b c d - is returned
+ 
+
+ Iteration:
+  Array variable substitution(see below for strings) arrays could be iterated
+  and counted and checked for empty indexes:
+   Iterate array:
+  ${animals[*]} - returns list of values split by space
+  ${animals[@]} - same as above
+   Example:
+  arr3=("a first" "a second" 'a third')      # " or ' is fine
+  for i in ${arr3[*]}; do echo $i ; done
+  >a			# separate variables
+  >first		# also separated by spaces(split)
+  >a			# will work fine if no Spaces
+  >second
+  >a
+  >third
+
+  "${animals[*]}" - JOIN joins all elements into 1 string
+    Example:
+   for i in "${arr3[*]}"; do echo $i ; done 	# only " , ' will not work
+   >a first a second a third		 #joined string
+   
+  Best form to use:
+  "${animals[@]}" - returns list of values NOT split by space(real contents)
+    Example:
+   for i in "${arr3[@]}"; do echo $i; done
+   >a first		# only different values are separated
+   >a second		# spaces are in place
+   >a third		# best form to use
+ 
+ Counting:
+  Array count coun be calculated, and length of value in single index:
+  
+ .Count:
+  ${#array[@]}     
+   where:
+  array is var name
+   Example:
+  echo ${#arr3[@]}
+  >3			# there 3 elements 'a first' 'a second' 'a third'
+  
+ array[i].Length:
+  ${#array[i]}     
+   where:
+  array is var name and i is index to measure length of
+   Example:
+  echo ${#arr3[1]}
+  >8 			# 'a first' is 8 characters long
+  
+  Check indexes numbers:
+   Arrays could have uninitialized or null initialized elements under some
+  indexes.
+   The way of how to check which indexes are taken is:
+  ${!array[@]} 		# works same w/ and w/o double quotes
+  ${!array[*]}		# works same as above w/o quotes, 
+			# but differently w/ quote, see example below in NOTE:
+   Example:
+  arr=([1]="a one" [3]="a three" [5]="a five")
+  for i in ${!arr[@]}; do echo $i; done  
+           "${!arr[@]}"			# will do the same
+           ${!arr[*]}			# will do the same
+  >1
+  >3
+  >5
+
+  NOTE: @ works same With or WithOut quotes:
+        ${!arr[@]} == "${!arr[@]}
+   AND
+        * works same as above WithOut quotes
+   BUT  
+        in double quotes it will JOIN indexes in one string with spaces separators
+   Example:
+  for i in "${!arr[*]}"; do echo $i; done
+  >1 3 5				# produces one line of indexes
+
+ array.Add:
+  Arrays could have new elements added into the end of it.
+ This is made as in Powershell(or powershell take it from bash) using +=
+  Example:
+ arr=(a b c)		# echo "${arr[@]}" > a b c
+ arr+=(f e g)		# echo "${arr[@]}" > a b c f e g
+
+ array.Sort:
+  There is no default sort method, but it could be implemented with
+ piping and regular 'sort' command, but with Iteration:
+  arr_sorted=$(for i in "${arr[@]}"; do echo $i; done | sort)
+	this will save soreted "a b c e f g" into arr_sorted
+   !!!! BUT THIS WILL NOT WORK    !!!
+   !!!!   echo "${arr[@]}" | sort !!!
+
+ Delete array:
+  Deletion of array is done in the same way as deletion of variables
+ using 'unset' command.
+ DO Not Use '$' in unset.
+  Syntax:
+ unset array_name
+
+  Example:
+ arr=(1 2 3)
+ echo ${#arr[@]} 	# check Count - returns 3
+ echo ${arr[@]}		# check contents - returns 1 2 3
+ unset arr		# deletes arr, NOTICE no '$' before 'arr' NAME
+ echo ${#arr[@]}	# cehck Count - returns 0, as for anything unset
+			#+ because bash initializes on execution call
+ echo ${arr[@]}		# returns nothing
+
+
+variable substitution:
+substitutuin:
+   Bash supports various variables substitutions:
+  $a - will be substituted with 'a' value
+  ${a} - same as $a but could be concatenated w/ string w/o spaces:
+    ${a}.txt - will be expanded in a_value.txt
+  ${11} - 11th positional parameter given to script from shell
+  ${var:-word} - if 'variable' is set, the result will be its value
 	if 'variable' is unset - the result will be 'word'
-  ${variable:+word} - if 'variable' is set, the result will be 'word',
+  $(var:=word} - if variable is set results in its value substituted
+	if variable is unset, it will be assigned to 'word'
+	such assignment will not work for positinal params(see 'shift')
+	and other special variables
+  ${var:?word} - if variable is unset error with reason 'word' will be
+	generated, exit code of such construct will be 1
+  ${var:+word} - if 'variable' is set, the result will be 'word',
+	(but variable's value will not be changed)
 	otherwise result will be EMPTY string
   Example:
 	$ echo ${variable:-ls} - variable unset - ls used
@@ -34,84 +357,616 @@ variables:
 	> ls
 	$ echo ${variable1:+ls} - variable unset - empty line used
 	> 
+  ${!prefix*} or ${!prefix@} - returns NAMES of existing variables
+	that starts from 'prefix.
+   Example:
+   	$ echo ${!BASH*}
+	> BASH BASHOPTS BASHPID BASH_ALIASES BASH_ARGC BASH_ARGV BASH_CMDS
 
+string variables substitution:
+  ${#var} - returns length of string in variable's value
+	Example:
+   $ var=123456789   #this could be interpreted as a string too now
+   > 9		     #string length is 9
+
+  ${#} or $# or ${#@} or ${#*} - returns number of positional parameters
+	of the script being executed
+
+  ${var:number} - return string from number to the end, spaces trimmed
+		  variable is unchanged.
+	Example:
+   $ var="This string is to long."
+   $ echo ${var:5}		   #returns string from 5th symbol
+   > string is to long.
+	Example: spaces are trimmed:
+   $ echo ${var:5} | wc -c 	   #count chars
+   $ 19
+   $ echo ${var:4} | wc -c	   #return starts from space
+   $ 19				   #space is trimmed so same number of chars
+  ${var: -number} - return string from end to number, spaces trimmed
+		    NOTE - space between ':' and '-' signs
+	Example:
+   $ echo ${var: -5}
+   > long.
+  ${var:number:length} - return string from number till end of lenth
+	Example:
+   $ echo ${var:5:6}
+   > string
+   
+  ${var: -number: -length} - return string number between number(from the
+			     end) and length (also from the end)
+			     NOTE: number must be > than length
+	Example:
+   $ echo ${var: -18: -2}    #var is This string is to long.
+   > string is to lon
+  
+  ${@} - return all values of positional params 
+	 leaving spaces inside strings (like "$@" ) - bcs it know how 
+	 many arguments script has
+	 ${*} is the same form, it seems
+
+  ${@:num} - displays values of positional params but from num
+	 $(@:1) - works same as ${@}
+	 ${@: -2} works , but starts from the end
+
+  ${@:num:length} - same as with strings but with positional params
+  ${@: -num: -length} - same as with strings but with positional params
+
+  ${param#pattern} - finds shortest match and deletes it (lazy match)
+    Example:
+   foo="file.txt.gz"
+   ${foo#*.}
+   >txt.gz
+  ${param##pattern} - finds longest match and deletes it (greedy match)
+   Example
+   ${foo##*.}
+   >.gz
+
+  ${param%pattern}  - same as #  but deletes from the end of the file
+   Example:
+   foo=file.txt.gz
+   ${foo%.*} 		- note .* instead of *. in # example
+   >file.txt
+  ${param%%pattern} - same as ##
+   ${foo%%.*}
+   >file
+
+    Search and replace:
+ ${param/pattern/string} - replaces first occurance of pattern with string
+ ${param//pattern/string} - replaces all occurances of pattern with string
+ ${param/#pattern/string} - replaces only if at the beginning of the line
+ ${param/%pattern/string} - replacesonly if at the end of the line
+
+
+ $(())
+  Accepts any valid arithmetic expression 
+   Pretty similar to (()) test construct which returns true when result >0
+ Accepts any number system:
+  
+  Decimal
+   with base of 10
+  number
+   Example:
+  echo $((10)) - will return 10
+  echo $((10#10)) - will return 10
+
+  Octal: 
+   with base of 8 [0-7]
+  0number
+   Example:
+  echo $((010)) is 8 in decimal, where 10 is the whole base, which is 8
+  echo $((07)) is 7 in decimal
+  echo $((8#10)) is 8 in decimal
+  echo $((08)) - will return error 'value to great'
+		0-7; 10-17 and so on will work
+
+  Hex: Hexademical:
+   with base of 16 [0-9A-F]
+  0xnumber
+   Example:
+  $((0x10)) - is 16 in decimal, which is full base
+  $((16#10)) - is also 16, because of base of 16 numbers
+  $((16#100)) or ((0x100)) is 256 which is 16x16 or 16 in square(^2)
+  $((0xFF)) is F(15) full bases plus F(15) 
+		which is ((15x15)==240)+15 == 255
+
+  Custom:
+    custom base , could be any number [0-9A-Z] and some other]
+    maximum base is 64, seems like
+   base#number
+    Example:
+   echo $((17#10) - is 17, which is full base
+   echo $((64#10)) - is 64, which again is full base
+
+
+  Arithmetic expressions syntax $((arithmetics go here)):
+  
+    Example:
+  echo $((2+3)) >> 5
+
+  IFS - variable that containes field separator, 
+	by default is space/tab/new line
+	Could be changed
+
+  Temporary variables:
+   Bash supports variables change/assignment before command execution
+  Variables assigned before command execution (on the same line) will be
+  changed only for env with which command will be executed:
+   IFS=":" read field1 field2 ... <<< "$line_from_passwd"
+    Equals to:
+   OLD_IFS="$IFS"
+   IFS=":"
+   read field1 field2 .... <<< "$line_from_passwd"
+   IFS="$OLD_IFS"
+  !Note:
+   it works weird - only in example from bood, need to research and update
+
+  Unary operators:
+   Operators that require value on UNE side, contrary to binary operators
+   that reauire values on both sides:
+    + - is for positive numbes: +1
+    - - is for negative number: -1
+
+  Arithmetic operators: Binary operators:
+    there are more binary operators, but those below are used in Arithmetics
+  + - for addition
+  - - for substruction
+  * - for multiplication
+  / - for division
+  ** - for exponentiation (2*2=4 3*3=9 4*4=16 and so on, aka ^2 ^3 ^4 ...)
+  % - modulus division 
+	5%2=1 which is what left after division - 2, 2 and 1
+      Example:
+    echo $(( 5%2 )) - will return 1
+
+  Assignment in Arithmetic expressions:
+  echo $((foo=5))  - will assign 5 to $foo
+   NOTE: also could be used in tests like [[...]] and ((...))
+   NOTE: in 'test' or [...] used to _compare_ strings, BEWARE
+
+  Assignment operators:
+   var = value 
+	regular assignment operator
+   var += value 
+	assignment with value addition 		$var = $var + value
+   var -= value
+ 	assignment with value substruction 	$var = $var - value
+   var *= value
+	assignment with value multiplication 	$var = $var x value
+   var /= value
+	assignment with value division 		$var = $var / value
+   var %= value
+	assignment with value modulus division 	$var = $var % value
+  
+  Assignment with C-like style increment decrement:
+   Post - means show\use first, change after it shown\used
+  var++ - post increment			$var = $var + 1
+  var-- - post decrement			$var = $var - 1
+   Example:
+   foo=1; echo $((foo++)); echo $foo
+  	  1		   2
+   Pre  - means change\use first , show after it changed\used
+  ++var - pre increment				$var = $var + 1
+  --var - pre decrement				$var = $var - 1
+   Example:
+   foo=1; echo $((++foo)); echo $foo
+	  2		   2
+   
+  
+  Basic logical gates:
+   AND - returns true if both entry are true
+   OR - returs true if at least one (or both) entry is true 
+   XOR - returns true if entry differs, 
+	 both true and both false return false
+   NOT - inverts entry - true is false and false is true
+   NAND - both false are true
+   NOR - returns true if at least one (or both) entry is false
+   XNOR - returns true if not differs,
+	  both true or both false return true
+   
+  Logical operators in Arithmetics:
+   Comparison operators less, greater , less than and so on
+  <= - less or equal
+  >= - greater or equal
+  < - less
+  > - greater
+  == - equal
+  != - not equal
+  && - AND
+  || - OR
+
+  expr1:expr2?expr3 - trinary operator, 
+		      if expr1 is true 
+		      then expr2 executed
+	 	      else expr3 is executed
+   Example:
+  a=0
+  ((a<1?++a:--1)) 	# a+=1 and a-=1 will not work
+  echo $a 	 	# 1
+  ((a<1?(a+=1):(a-=1))) # but this will work just fine
+  echo $a	 	# 0
+  
+
+local variables:
+  local variables are declared in functions, and visible only there
+  local variables overwrite globals with the same name
+   Syntax:
+  local variable_name[=optional_value]
+   values are optional , probably, in order to delete some global vars inside
+  a function(i.e. vars are used as standard in\out params of a command)
+   Example:
+  foo=0
+  func() {
+   local foo
+   foo=1
+   echo "in func $foo"
+  }
+  func
+  echo "in script $foo"
+   Result:
+  >in func 1
+  >in script 0
+
+here doc here docs here-document here script :
+  allows multiline input and it WILL expand even if in ''.
+   But will not expand if escaped - \$
+   Syntax:
+  command << indicator
+  text
+  indicator
+
+  <<-  - work as << but accepts TAB before enclosing 'indicator'
+	'space' will still return error
+
+   where:
+  command is a command like, 'cat' or anything else (doesn't work with 'echo')
+  where text between 'indicators' is expanded by shell and sent to STDIN of
+  the command
+   Note that also <<- could be used, with it bash will ignore leading
+  tabs in 'indicator'
+   Note that seconds 'indicator' has to be on separate line and 
+  Must have no spaces before or after it, otherwise bash interpreter will 
+  conntinue to look for 'indicator' ignoring the one with leading/trailing 
+  spaces
+   Value of 'indicator' could be any but 'EOF' is preffered
+
+   Example:
+  $ foo="text"
+  $ cat << _EOF_
+  >$foo
+  >"$foo"
+  >'$foo'
+  >\$foo
+  >_EOF_
+   Result:
+  text
+  "text"
+  'text'
+  $foo
+   
+   Example of use with 'ftp'
+  ftp -n << EOF
+  open $FTP_SERVER_ADDRESS
+  user anonymous username@hostname
+  cd $FTP_PATH
+  hash
+  get $REMOTE_FILE
+  exit
+  EOF
+  ls -l $REMOTE_FILE - will display downloaded from ftp remote file, all the
+  	commands are passed from inside the here-document
+
+here-line:
+  same as here-doc but onliner:
+   $read field1 field2 <<< "test in put"
+   $echo $field1  ---> test
+   $echo $field2  ---> in put  < because put is 3rd field, and we have only 2
+				all excess fields goes into last 'field2'
+    Profid of here-line here is that commands with pipe
+   $echo "test in put" | read   
+	will not work because subshell will be created for 'read' where $REPLY
+	will be created and assigned, but after that subshell ends, and
+	subshell can not change parent shell's env, such as REPLY value
+  
 
 if:
   Condition tests in IF should be inside square brackets - [], which are just a
   reference for commant 'test'. see MAN page for TEST for details.
    example:
-  if [ 100 -eq ]; then - semicolon is needed in case of single line w/o /n
+  if [ 100 -eq 100 ]; then - semicolon is needed in case of single line w/o /n
+   -or-
+  if [ 100 == 100 ] - seems like this also should work
+   -or-
+  if $(test $(echo "$REPLY" | grep '^[0-3]$'))
+	tests whether value of REPLY is mathced- if not, grep return 1(error)
+	then test returns 1 and 'if' will not work
+	if value matched then grep returns 0 (good), then test returns 0 and
+	'if' will work
+   -or-
+  if test $(echo "$REPLY" | grep '^[0-3]$')
+	same as above, but $() outside 'test' is unnecessary in fact
+	but works in both ways so keep both examples here
    -or-
   if [ <some test> ] && [ <other test> ] || [ <yet again test> ]
   then
     <commands>
-  elif [ <some test> ]
+  elif [ <some test> ]		# else if, onliner gotta be ; ended
   then
     <different commands>
-  else
+  else				# one liner gotta be ; ended
     <other commands>
   fi
 
   lots info here:
   https://ryanstutorials.net/bash-scripting-tutorial/bash-if-statements.php
 
+&& ||:
+  allowed inside bash shell logical AND and OR:
+   Example:
+  mkdir test && cd test
+   will create and than change dir to 'test'
+  [ -d test ] || mkdir test && cd test
+   will check whether 'test' exists, returns 0 or 1
+   || continues only if 1 was returned by 'test' and proceeds with mkdir
+   && continues only if 0 was returned by 'mkdir' and proceeds with cd
+
 test:
+  Tests whether expression returns 0 or not
+  after evaluation command 'test' returns 1 if true and 0 if false
    test 100 -eq 100 - test whether 100 equals 100
   or [<thing to test>]
    if [ 100 -eq 100 ]
   used to test conditions
 
+  Logical operators:
+   -a - AND
+   -o - OR
+   ! - NOT
+    Example:
+  [ ! \( FALSE -o TRUE \)   -- (TRUE) but [ FALSE]
+   note the escaped parentheses
+   note that 'false' and 'true' command will behave differently , bcs returns
+  interegs 1 and 0 respectively
+
+  Requires shell expansion symbols $ 
+   Example:
+  if [ $num1 -lt $num2 ]; then echo 'int 1 less than int2'; fi
+
+  BEWARE!!!!!!
+  shell creates empty variable if it is not defined
+  and $num1 -lt $num2 will return TRUE if both undefined
+
+  CHECK YOUR VARIABLES BEFORE USE
+
+   Test Strings\Ints:
   Operator 	Description
-  ! EXPRESSION 	The EXPRESSION is false.
-  -n STRING 	The length of STRING is greater than zero.
-  -z STRING 	The lengh of STRING is zero (ie it is empty).
-  STRING1 = STRING2 	STRING1 is equal to STRING2
-  STRING1 != STRING2 	STRING1 is not equal to STRING2
+  ! <expr> 	The EXPRESSION is false.
+  -n str 	The length of STRING is greater than zero.
+  -z str 	The lengh of STRING is zero (ie it is empty).
+  str1 == str2 		STRING1 is equal to STRING2 (= also allowed)
+  str1 != str2 		STRING1 is not equal to STRING2
+  str1 > str2		STRING1 is alphabetically greater than STRING2
   INTEGER1 -eq INTEGER2 	INTEGER1 is numerically equal to INTEGER2
+  -ne				integers are not equal
+  -le				are less or equal
+  -ge				greater or equal
   INTEGER1 -gt INTEGER2 	INTEGER1 is numerically greater than INTEGER2
   INTEGER1 -lt INTEGER2 	INTEGER1 is numerically less than INTEGER2
-  -d FILE 	FILE exists and is a directory.
+   
+   Test Files:
+  FILE -ef FILE1 - both files are hard links (point to same inode)
+  FILE -nt FILE1 - FILE newer than FILE1
+  FILE -ot FILE1 - FILE older than FILE1
   -e FILE 	FILE exists.
+  -f FILE 	FILE exists and is file
+  -s FILE 	FILE exists and its size greater than 0
+  -L FILE 	exists and is soft symblic link
+  -d FILE 	FILE exists and is a directory.
+  -b FILE	exists and is Block device (i.e /dev/sda1)
+  -c FILE 	exists and char device
   -r FILE 	FILE exists and the read permission is granted.
   -s FILE 	FILE exists and it's size is greater than zero (ie. not empty).
   -w FILE 	FILE exists and the write permission is granted.
   -x FILE 	FILE exists and the execute permission is granted.
-!  NOTE:
-  = - does a string comparision
+  -G FILE 	exists and file belongs to existing group
+  -O FILE 	exists and belongs to existing user
+  
+   NOTE:
+  == - does a string comparision
   -eq - does numerical comparison
+  
+   Escaping:
+  symbols < > ( ) need to be escabed by \ or be between ''
+  because [ ] is just command test, and bash will try to use them as its own 
+  meta symbols (< > are stdout\in redirecton, so could be a MESS)
+
+
+[[ ]]:
+  improved 'test' command but not POSIX compatible
+    Differences\Features:
+
+    Does not need expansion symbol $, expands just fine w/o it
+   UNLESS IS A STRING, then use "$VAR", to expand and prevent empty values
+    Example:
+   $ if [[ $num1 -lt num2 ]]; then echo "$num1 less than $num2"; fi
+   > 1 less than 2
+    NOTE:
+   $num1 and num2 are both fine as per expansion works in some other way
+   
+   BEWARE OF UNDEFINED VARIABLES
+   IF BOTH ARE UNDEFINED 0 WILL BE RETURNED!!
+
+    Can compare regex. 
+   Seems like gotta match full line, not just some part.
+   uses Extended Regex (ERE)
+    Requires $ symbol to expand variable value
+    use "" to prevent empty values
+   No need to escape bash meta symbols like \ or *
+    Example:
+   $ if [[ "$string_var" =~ \w+? ]]; then echo "good"; fi
+   > good
+
+    Can use wildcards , or similar to it..
+   When using == equation
+    Example:
+   $ FILE=foo.txt
+   $ if [[ $FILE == foo.* ]]; then echo "matches pattern"; fi
+   > matches pattern
+
+   Logical operators:
+   && - AND
+   || - OR
+   ! - NOT
+    Example:
+   if [[ ! ( FALSE || TRUE )]]; --- in (will be TRUE) but ! will invert to FALSE
+    Note that 'false' and 'true' are not commands, commands return 1 and 0
+   and behavios incorrectly
+
+
+(( )):
+  Permits Arithmetic expansion and Evaluation for 
+  Works only with Integers (no float dot like in Double or Float types)
+   Note:
+  bash syntax part, not a command
+  also does expansion w/o $ symbol before var name
+
+  Arithmetic expansion examples
+   a=$(( 5 + 3 )) or a=$((5+3)) - assign result of addition to variable 'a'
+   C style manipulations:
+   (( var++ )) or ((var++)) - display then increment by 1
+     $(( var++ )) - increments and saves var but also produses errors
+   (( ++var ))  - increment by 1 then display
+   (( --var ))  - same manner decrement
+   (( var-- ))  - display then decrement
+   Assignment:
+   $((b+=a)) - add 'a' to 'b' and assign result to 'b' - b=$a+$b
+
+   Evaluation:
+   if ((10>=5)); then echo "10 greater or equal 5"; fi
+      ((var1>=var5))  - same byt with variables
+  
+  Logical operators:
+   same as in [[ ]] - && , || , !
+
+  (()) returns 'true' if integer inside of it greater than 0
+   Example:
+  dos:bash$ if ((1)); then echo "true"; else echo "false"; fi
+  >true
+  dos:bash$ if ((0)); then echo "true"; else echo "false"; fi
+  >false
+
+  
+
 
 Loops:
 for:
-  foreach basically
-    example:
-  FOR object IN collection; DO command; DONE
-   -or-
-  for i in 1 2 3
-  do
-    echo "print $i" > print 1   print 2    print 3
-  done
+   Has two forms, first is foreach:
+    Syntax:
+  FOR var IN words; DO 
+	commands
+  DONE
+   var - custom name as in regular foreach
+	 usually i j k l m - thanks to Fortran where int vars must start
+	 with those letters
+   words - is a collection, could be just 1 2 3 4 
+	   or result of command
+	   or result of wildcard matches list
+	   or result of subshell execution
+	   if omitted - args passed from commandline
+   do and done are the braces
+   Example:
+  for i in 1 2 3;  do echo "print $i"; done
+   > print 1
+   > print 2
+   > print 3
 
-  object - custom name as in regular foreach
-  collection - is a collection, could be just 1 2 3 4 
-  do and done are the braces
+   Example:
+  for file in test*.txt; do echo $file; done
+   ># will echo all files from current dir matched by globbed(wildcard) 
+	test*.txt mask
+
+   Example:
+  for i in $(some commands executed in subshell); do....
+ 
+  If optional 'words' component is omitted in 'for' it uses args(params) as
+  collection to iterate through
+
+   Example:
+  for i; do echo "command line param 1 is: $1" shift; done
+   this will echo out all params of bash script one by one (shift command)
+
+  Second form of 'for' is c-like (like real 'for' in c# and not 'foreach'):
+    Syntax:
+   for (( expr1; expr2; expr3 )); do
+    commands
+   done
+ 
+   where 
+    expr1-2-3 - are arythmetic expressions
+    
+    Example:
+   for (( i=0; i>5; i++ )); do
+    echo "i is $i"		# will output $i from 0 to 4
+   done
+
+    This form is equialent to following construction:
+   (( expr1 )) 			# this is assigned before loop
+   while (( expr2 )); do	# loop goes as long as expr2 is true
+    commands
+    (( expr3 ))			# at the end of each iteration expr3 is
+				#+ reassigned/reevaluated
+   done
 
 while:
-  infinity loop while control is true
+  infinity loop while exit code of command\expression is 0 
+  could read from file(stdin) line by line with STDIN redirect or pipe:
+   Syntax:
+  while true; do    | while [[ true ]]; do | while (( 1 )); do
+   commands
+  done
+    Example:
+   while read field1 field2 field3
+    ..
+   do < file_to_read_from.txt
+    Example:
+   cat file_to_read_from.txt | while read field1 field 2 field3; do ... ; done
+
+
     example:
   while read host ...; do... - or like this if in 1 line
   do
     ping -c 3 $host
+    if [[ $call_continue ]]; then
+      continue			 # will pass further iteration and start over
+    fi
+    if [[ $call_break ]]; then
+      break			# break loop and go out of it at all
+    fi
   done < myhosts.txt
 
-  will read from myhosts.txt while there are lines, each line will reinit $host
   
+
+  will read from myhosts.txt while there are lines, each line will reinit $host
+
+  break: will stop loop from execution - just regular break as ususal
+  continue: will pass iteration and start next iteration - also standard one
+
+exit status:  
 exit code:
-  bash scripts ALWAYS returns exit code.
+  bash scripts ALWAYS returns exit code. 'exit' is optional
+  commands ALWAYS return exit code too. 
+  Functions ALWAYS return exit code too. 'return' is optional
+  seems like everything returns exit code.
+  Even bash shell 'exit'ed with number will return this number
   to manually return exit code:
   exit nnn - to return nnn
 	!!   nnn - MUST be an INTEGER in range 0-255 !!
+  return nnn - to return nnn but from Function
   exit $? or exit or omitting the 'exit':
    with no params exit code is taken from latest command executed in the script
+  Variable that contains exit code:
+  $? - contains latest exit code, overriden after any next execution
+	even 'echo $?' will override it with 0
     Exit code values:
   0-255 allowed
     By convetion
@@ -124,9 +979,57 @@ exit code:
   more reading:
   http://tldp.org/LDP/abs/html/exit-status.html
 
-incrementation: increment: i++:
-  counter_var=0
-  counter_var=$(( $counter_var + 1 ))
+case:
+  check whether one of condition matches the 'word' in case, if so it
+ executes code in particular case and terminates
+  Syntax:
+ case $word in		# value of $word will be compared against
+  <ptrn1>|<ptrn2>) cmd1 # the <pattern> and if tru command1
+	     cmd2   # and command2 will be executed
+	     ;;		# this ends particular case block
+  *) 	     exit 1     # * match anything, last case 'catch'
+     	     ;;		# ends 'catch' block values of '$word' either
+			#+ matched by previous cases or this one
+			#+ nothing is left 'case' block unmatched this way
+ esac			# this ends whole case, after 1 of the cases 
+			#+ matched, or none matched
+  Example:
+ while [[ -n $1 ]]; do 		#while param is not null
+  case $1 in			#check param
+	-f | --file) 	shift   #take $2 as $1 , if -f, 
+				#to get file path given with -f option
+			filename=$1
+				#save file path to $filename
+			;;
+  esac
+ Case uses wildcards as pattern:
+ ? - one character
+ * - anything of any length
+ [ABC] - 1 letter - either A, B or C
+ [0-9] - 1 number in 0 - 9 range - any digin with length of 1
+ a - letter 'a'
+ *.txt - anything that ends with '.txt'
+
+ Good practice is 
+
+true:
+  command that always return 0
+   Example:
+  exit $(true)   - will return 0 exit code
+   or Function:
+  return $(true) - will return 0 after Function
+   or:
+  true   	 - will return 0 exit code
+   or Funcion:
+  test() {
+   true
+  }
+  test 		 - this will return 0 in script, and if last line - script
+		   will return this same 0 to caller (i.e. bash shell)
+   Same works for False
+
+false: 
+  command that always return 1
 
 help:
   lists all built-in commands
@@ -195,4 +1098,89 @@ Pseudo-terminal will not be allocated because stdin is not a terminal.
 hBs
 login_shell     on    
 
- 
+functions:
+  shell could have functions, funcions MUST BE declared before its call,
+  otherwise shell will interpret funcion names as regular commands
+   Functions could be executed and calld from shell, added to scripts or 
+  bashrc/profile files so will be available in cmd as regular command
+  'return' command in optional
+   Function MUST has at least one command, in order to mock\stab 'return'
+  command could be used.
+   Basically every script could be converted into a function just by
+  copuint all the contents after she-bang in between function declaration
+  which is in Syntax below. And replace 'exit' with 'return' keywords
+   Variables in the Function could be set as 'local' overriding outer
+  global variables.
+   $0 in fuction contains name of the script being executed
+   $FUNCNAME - contains name of the function being executed
+
+   Syntax:
+  function name {
+    local VAR
+    local VAR2=value
+    <commands>
+    return
+  }
+   Or equivalent:
+  name() {
+   <commands>
+   return
+  }
+
+    Example:
+  script.sh:
+  function func {
+   echo "step 2"
+   return
+  }
+  echo "step 1"
+  func
+  echo "step 3"
+  
+   Result:
+  >step 1
+  >step 2
+  >ste 3
+
+   Example .bashrc:
+  ds() {
+   echo "disk space utilization for $HOSTNAME"
+   df -h
+  }
+
+   Result after shell restarted 
+   (after source .bashrc ds looped and crashed shell):
+  $ ds
+  > disk space utili....
+  > ...output of df -h....
+  
+|:
+  pipe character
+  creates new subshell, executes what goes after pipe there, then returns
+  back to parent shell. subshell can not change parent shell - so 'read' command
+  will not work in pipe
+
+read:
+  reads line from keyboard input, accepts here-strings, does not work with |
+  By default saves entered value into $REPLY global variable
+   Synopsis:
+  read [-params] [variable1 variable2 variable3 ...]
+
+  Accepts more than 1 variable to save keyboard input
+   Default separator is space or tab or new line(\n)
+  If less variables are given to save data, all excessive data (delimited 
+  fields) will be saved in last variable (like msbuild do when too many params)
+  When too many variables is given - unpopulated vars remain empty string
+
+   Params:
+  -a - array, saves input into the array 
+  -d <delim> - delimiter, by default space\tab\newline
+  -e - use Readline, behaves like keyboard input in bash
+  -n <num> - read num symbols from keyboard input
+  -p <promt> - display promt befor cursor on the same line (like bash promt)
+  -r - do not inerpret \ symbols
+  -s - silent, do not display entered data, like in password field
+  -t - time out for wait of entry
+  -u <descriptor> - use file with given descriptor as STDIN
+
+   

@@ -1,4 +1,7 @@
 ==========TODO:
+add lshw lspci and whole setup and recheck of wifi. iwlwifi driver and 
+way to ensure there are drivers installed in the kernel
+
 create bash script that will export variables to:
 1. current session
 2. user .bashrc file so it will be available in other sessions
@@ -42,6 +45,7 @@ Contents
 =====Bash Scripting
 ===Nginx
 ===Networking
+====Ports checks
 
 
 
@@ -52,6 +56,43 @@ check linux distro:
   cat /etc/*-release - return info about distro
   lsb_release - command that returns info about distro
   cat /proc/version - file with linux version info
+
+directories structure:
+ / - root
+ /bin - binaries for system boot, goes with distro
+ /boot - kernel boot files and RAM disc with drv 
+  for boot, and boot program itself
+  /boot/grub/grub.conf - boot config
+  /boot/vmlinuz - kernel
+ /dev - all devices are here
+ /etc - configs all here
+  /ect/crontab - cron config
+  /etc/fstab - mounts config
+  /etc/passwd - users list
+ /home - contains all users' dirs
+  ~/bin - bins of particular user, add to PATH to use
+ /lib - shared by various programs libraries(DLLs), probably for /bin's
+ /lost+found - if HDD feels bad, some stuff could appear here
+ /media - user-related mount points for flash, hdd, cd etc 
+   which are mounted manually
+ /opt - optional installed software and other stuff
+   mostly used for commercial software
+ /proc - files to peek at kernel things
+ /root - root's home dir
+ /sbin - same as /bin
+ /tmp - temp used by various programs, could be cleaned at boot
+ /usr - programs and files used by users
+ /usr/bin - programs from distro, almost everythign already installed goes here
+ /usr/lib - shared libraries for /usr/bin programs
+ /usr/local - empty by default, available for all users on system
+  /usr/local/bin - locally compiled\created bins should go here
+  /usr/local/sbin - locally created system bins for administration
+ /usr/sbin - System bins, come with distro, i suppose
+ /usr/share - shared stuff(configs, files, images) except shared libs
+ /usr/share/doc - mans for installed soft go here
+ /var - variables, most changed dir, contains DBs, buffers, emails
+ /var/log - all logs go here
+ 
 
 man:
   man [section] <command>
@@ -64,6 +105,99 @@ man:
    6. Games and screensavers
    7. Miscellanea
    8. System administration commands and daemons
+  Example:
+   man 2 stat - will display manual for hashed 'stat'
+	man has stat(1) and stat(2), which are different commands..
+
+apropos:
+  searches through man by keyword and returs matched in format:
+   article (secion) - line matched
+
+echo:
+  accepts input from params or STDIN and returns in expanded to STDOUT
+  accepts multyline input, and will return it in the same manner:
+   echo "this is firstline
+	this is second line
+	this is third line"
+   Params:
+  -n - supress new line after output, like '.Write()' vs '.WriteLine();
+  -e - enable interpretation of \ escaped stuff
+
+whatis:
+  returns first line from man of given command
+   Example:
+  dos:~$ whatis ls
+  >ls (1)               - list directory contents
+
+info:
+  same as 'man' for GNU software
+
+pwd:
+  print working directory 
+  returns string with current path location
+
+cd:
+  change directory
+   Params:
+  <path/to/folder> - changes dir to the folder
+  -/<none>   - changes to current homedir
+  ~username - changes to username homedir
+
+ls:
+  list files in given directory or current one
+   Params:
+  -l - long format (list basically)
+    Columns:
+    access rights | hard links qty | owner | owner group | 
+    | size | data changed | name
+  -a - show all files including hidden 
+  -d - show only current directory, if given another directory - shows only it
+       if given a wildcard that will match directories only - will return only
+       the directories, w/o -d it will return every directory and its contents
+	Example:
+     ls -lda */ - will return list of directories
+	Example:
+     ls -la */ - will return contents of each directory within a separate list
+  -r - reverse sorting order
+  -S - sort by size
+  -t - sort by date changed
+  -F - adds slash to dirs in list
+  -h - human readable sizes (mb, gb etc)
+  -i - inode number, address where contents is located, same for all hard links
+
+locale:
+  displays all Locale related env variables, like
+   LANG - set up during installation, picks install language
+   LC_MONETARY - currency? 
+   etc.
+
+time:
+  seems like calculates time of how long command takes to execute
+  like StopWatch
+   Syntax:
+  time <command\script_name>
+   Example:
+  time some_script.sh
+  > real 0m14.169s	#i spend 14 seconds (script uses 'read')
+  > user 0m0.005s	#this two seems to calculate actual time of
+  > sys	 0m0.005s	#+ calculations required, except manual intput
+
+date:
+  returns current date - weekday, day, month, year, time, time-zone
+   Could be formatted like:
+  date +"%x %r %Z"
+   where
+   x - short date in American format like '20.02.2019' - dot delimited
+   r - time hh:mm:ss (dunno whether its 12 hours or 24 hours format)
+   Z - short name of time zone like 'EET' for Eastern European Time
+
+cal:
+  calendar, spans for several lines , looks like ok calendar
+
+file:
+ short info about a file, file type etc.
+  Linux does not have extensions for files so this is 
+ the sure way to acquire such info
 
 grep:
   Global Regular Expression Print
@@ -71,7 +205,12 @@ grep:
   grep <params> <regex> <filepath>
   -v - inverts results
    ps aux | grep bash |grep -v grep - will return only real bash w/o grep 
-			process listed
+	process listed
+   '[b]ash' will also do the trick, dunno why
+    why it works: 
+     https://askubuntu.com/questions/153419/how-does-this-tricky-bracket-expression-in-grep-work
+    TL;DR - basically string 'grep [f]irefox'(returned by ps aux) will not be 
+	matched by regular expression '[f]irefox' (executed by grep)
   -i  - case INsensitive
   <filepath> - is not required if used in pipe
   -c - Count matched lines, return number of lines matched
@@ -80,6 +219,9 @@ grep:
 		between square brackets in the file, standard regex
   -f <filename> - pass contents of filename as a pattern
   -l - search inside file contents and returns names of files found
+  -L - like -v but for -l - show only not matched files
+  -n - line number for matches
+  -h - no file names in output 
   -r - recurse search in a directory
       i.e.: grep -lr cron /etc - will return all file names which content has
 			'cron' pattern in whole /etc directory
@@ -98,20 +240,130 @@ egrep:
   it allows signs as:
    | ? + .* {} 
    {3} - match 3 times exactly
+    Example:
+  egrep 'AAA|BBB|CCC'   - will match either AAA BBB or CCC
+  egrep '^(AAA|BBB|CCC)'   - will match either AAA BBB or CCC on the beginning
+	of the line
 
+
+stat: 
+  returns status info about given file, if it dir, or file, when it was changed,  its size and stuff
+   man 2 stat - for details
 
 find:
   find <path> <params> <name mask>
-  ex:  find / -type f -name "one.txt" <-ls>
-   type:
+   !!!	ORDER IS IMPORTANT
+   Example:
+  find / -type f -name "one.tx*" <-ls>
+
+   Operations:
+  -ls - will output results as in 'ls -l'
+  -delete - delete found file. Better check first with -print, then -delete
+  -print - prints full path to stdout, Default operation
+  -print0 - changes delimiter to null character (0 code in ASCII), useful for 
+	filenames with spaces, when need to use another delimiter. 
+	Together with 'xargs' with --null, will go fine:
+	 find -name '*.jpg' -print0 | xargs --null ls -l
+  -quit - quits after first match
+  -regex - will search with regex, whole path need to be matched in order
+	to find it:
+	 Example:
+	find . -regex '.*[^-_./0-9a-zA-Z].*'
+	 will match whole path(.* at both sides), where files have spaces
+	 (spaces are not in [^....] group - files in the group are acceptable
+	 in a filename)
+  -ok - ask before execution, same as exec, see below
+  -exec command '{}' \; - executes a command for _EVERY_ match, so 100 matches
+	is 100 times executed commands, substitutes found value in {}
+	with ; as a command end delimiter.
+	{} and ; are special for Bash, so need to be escaped by '' or \ 
+	 Use + instead of ; in the end to concatenate results and execute 
+	command just once
+	 Also instead of + 'xargs' command could be used
+ 	 This could be helpful as command line has limit on arguments (xargs
+	restarts when arguments limit is reached until everything done)
+     Example:
+   find . -name "test*" -exec stat '{}' \;
+    will find files and folders and display results of hashed 'stat' for 
+    every matched item
+     Example:
+   find . -name "test*" -exec stat '{}' +
+    will do the same as above, but 'stat' will be executed only once with list
+    of found files - stat testmatch1 testmatch2 testmatch3
+     Example:
+   find . -name "test*" | xargs stat
+
+   Checks:
+  -type f:
 	d - dir
 	f - file
 	l - sym link
-	-ls - will output results as in 'ls -l'
+	b - block device (like /dev/sda)
+	c - char device (also in /dev , dunno what it is tho)
+  -name "name*" - name or wildcard in "" - to prevent bash expansion
+  -iname "Name*" - case Insensitive
+  -size nM:
+	b - block, default,            512 bytes
+	c - char(byte)			 1 byte
+	w - words (two bytes)		 2 bytes
+	k - kilobytes, block         1 024 bytes
+	M - megagytes, block     1 048 576 bytes
+	G - gigabytes, block 1 073 741 824 bytes
+    Example:
+   find . -size +10M  - will find with size more than 10 megabytes
+   find . -size 10M - will find exactly of 10 megabytes
+   find . -size -10M - will find with size less than 10 megabytes
+  -cmin n - files\dirs with attrs\contents changed exactly n minutes ago
+	supports +\ \- like -size
+  -mmin n - files\dirs whos contents changed n minutes ago
+  -cnewer name: files\dirs with attrs\contents changed later than 
+	given file name
+  -newer name: files\dirs with contents changed later than given
+	file name
+  -ctime n - same as cmin, but n*24 hours is used
+  -mtime n - same as mmin
+  -empty - will match empty files and dirs
+  -inum n - search for files with inode n, useful to search for hard links
+  -samefile name - works same with -inum
+  -user name - files\dirs owned by given user
+  -nouser - files\dirs owned by noone, like deleted user
+  -group group_name - will search for files\dirs owned by given group
+  -nogroup - same but for groups
+  -perm 777 - search by permission
+
+    Operands:
+   Operands glues Checks\Operands and Groups of Checks:
+  -and\-a - logical AND - default value
+  -or\-o - OR
+  -not\-! - NOT
+  ( ) - group of Checks. Need to be Escaped, as per is special for bash.
+	By default checks goes from left to right, so
+    ORDER IS IMPORTANT
+   Example: 
+  find . \( -type l -or -type d \) -a \(-name "this" -or -name "that" \)
+   Example:
+  find . -type f -name "*.bak" -print
+   all files with name *.bak will be printed
+  find . -print -type f -name "*.bak"
+   print everytghint
+
+    Params:
+  -depth - process files first, then directories, Default for -delete
+  -maxdepth levels_number - how deep to dig
+  -mindepth levels_humber - go that deep before perform search
+	seems like value 2 will ignore current dir, and 1 will not
+  -mount - do not search in mounted directories
+	but still searches if explicitly set to search inside mounted dir
+  -noleaf - do not optimize search assuming its Unix filesystem
+	required for DOS\WIndows CD-ROM systems
+	But works fine without in on NTFS, probably required for exactly CD?
+  
+
+
    could search by: 
-	date:
+   -date:
 	  https://www.cyberciti.biz/faq/linux-unix-osxfind-files-by-date/
-	Ranges example
+   Ranges example:
 	  -m\a\ctime - modification\acces\creatioin? time <+\ \-days> 
 	  - m\a\cmin - minutes i.e.:
 	  find . -mtime -1 -ls - find files modified less than day ago
@@ -162,6 +414,21 @@ find:
    clear output of found stuff could be redirected to file. probably STDOUT
    while STDERR will keep appear on terminal window
 
+xargs:
+  takes arguments for given command from stdin and executes given command with
+   that arguments.
+  If amount of arguments are more than a limit of command line xargs will 
+   restart given command with what left of arguments list from stdin until 
+   handle everything.
+    Params:
+  --show-limits - will display various limits on the system - command length,
+	argument length, how many take the env vars, buffer size, etc.
+  --null - accepts null symbol as delimiter, useful when filenames have
+	spaces, and need to use another delimiter
+
+   Example:
+  find . -name "test*" | xargs ls -l
+   will construct ls -l test1 test2 test3 .... and execute it
 
 locate:
   find files by name.
@@ -171,6 +438,12 @@ locate:
    i.e.
   locate kernel | grep /usr - will find any file contains 'kernel' in its name
    and grep /usr so it will show up only those which are in /usr dir(matched by)
+    Params:
+  --regex - search with regex
+    Example:
+   locate --regex '(^/|^/usr/)[s]?bin/(dz|gz|zip)'
+    will search in /usr/bin or sbin or /bin or sbin for files having dz or gz or
+   zip in their names
 
 
 update files:
@@ -179,38 +452,232 @@ update files:
  echo "text" >> <filename> - append existing file with line 'text'
 
 
-ls:
-  list files on the system
-  ls -<params> <path+wildcards>
-  ll - default bash alias which leads to:
-   ls -la - Ubuntu
-   ls -l - CentOs
-  -l - list format
-  -a - all, show hidden files
+update-alternatives:
+  manages symbolic links i.e.:
+   sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.5 1 - python3.5 as first list item
+   sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 2 - python3.6 as second list item
+   sudo update-alternatives --config python3 - will print the list and ask
+	for number to point to for default usage, 2 will pick python3.6 for
+	python3 entry
+  See here: 
+   http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
 
+sort:
+  sorts by alphabet by default
+   Synopsis:
+  Sort [option] file
+   Params:
+  -r - reverse
+  -n - sort by numbers
+  -b - ignore leading blanks i.e. '   a'
+  -f - ignore case
+  -h - sor human readable format, like 1M 1K 1G
+  -k - key i.e. -k 1, or --key=1
+	-k 5 (or --key=5) - use column 5
+	 Example: ls -l /usr/bin | sort -k 5 -rn
+	will sort files by field 5 (size) by Numberic and Reverse
+	--key=1,1 - column from 1 to 1
+	--key=2nr  - use second column to sort groups after first key
+		    accepts short params after column num: b, n, r
+	 Example: sort --key=1,1 --key=2n file.txt
+	sorts by column 1(diapason is important), then sorts by second field
+	numerically - will resort each just sorted group by second field:
+	 abc 1   - w/o --key=2n this will be second line
+	 abc 10
+	--key=3.7 - column number.symbol number. Use b, just in case
+	 Example: sort -k 3.7nbr > t.txt ... dates
+	will sort by third column and 7th symbol in it, by year 01.01.2006 in 
+	this dd.mm.yyyy format
+  -m - merge sorted files i.e. sort -m file1 file2 file3 > merged_file
+  -o - output to file i.e. -o=file
+  -t - change separator, default is 'space' and 'tab'
+	 Example:
+	sort -t ':' -k 7 /etc/passwd
+	will sort by 7th column using : as field separator
+
+uniq:
+  deletes duplicates from SORTED output
+   Params: 
+  -d - displays only duplicets (kinda inversion)
+  -c - displays number of matches and line (displays all lines) 
+	 Example:
+	sort test.txt | uniq -c
+	will return lines in format '<tab><duplicate count> <duplicate line>'
+  -f n - ignore(forward to) n fields in each line, 
+	delimiter is as in 'sort' but CANNOT be changed
+  -i - ignore case
+  -s n - skip n symbols in line
+  -u - unique lines only
+ 
+  !Note: to get comparable output use 'sort' otherwice could display stuff in a
+	way whcih will be not comparable. see ls examples below 
+
+   Example:
+  ls /bin /usr/bin | sort | uniq | less - will display combined unique files in
+	both directories, in sorted order
+  ls /bin /usr/bin | sort | uniq -d | less - will display only duplicated files
+	in both dirs, in sorted order
 
 cat:
-  concatenate, return file contents on screen
+  concatenate, return file contents on screen. GNU
   cat <filename> <filename> - will return contents of both to screen
   cat <file1> <file2> >> <file3> - create new\append old file with joined
    contents of file1 and 2
+  cat file.* > file - will combine lots of files
+  cat > newfile - will create a new file and promt for input 
+   Params:
+  -A - shows all hidden\meta symbols
+	^I - tab
+	$ - end of the line
+  -n - show line numbers
+  -s - squeeze blank lines, leaves only 1 blank if 1+ exists concequently
 
+less:
+  pager, upgraded version of 'more' command
+  lists output in separate 'window' does not adding history in the console
+  ALSO could be used like 'unzip' to view archives
 
 split:
   splits file into another files, like with collection variable
   split -l 2 <file name> -  will split the file by 2 Lines into new files named
 			    xaa, xab, xac, etc.
 
+ln:
+  number lines, 
+  number lines by pages(number from 1 on second page)
+  number only regex matched lines (-b regex)
+  add header(\:\:\:) and footer(\:) between body(\:\:)
 
-df:
-  display all mounted devices with size\free\used\paths etc
-  df -h - human readable sizes
+fold:
+  split lines in two if length is exceeded
+   Params:
+  -w n - n length of w until move to another line
+   Example:
+  echo "long line of text and stuff" | fold -w 6
+  >long line 
+  >of text an
+  >d stuff
 
+fmt:
+  format text, like 'fold' but saves emtpy lines, spaces and tabs
+   Params:
+  -w n - how long line should be (same to fold) , but screws up spaces and tabs
+  -c - unscrews up spaces and tabs
+   Example:
+  fmt -cw 50 text.txt
+   will format file with lines of 50 long, saving empty lines and tabs
+
+printf:
+  format string, like String.format(). has no new line \n, gotta add it manually
+  % - conversion specificator:
+   s - string
+     Example:
+    printf "variable: %s; and another %s\n" var ano
+    >variable: var; and another ano
+   d - digit negative or positive (1 or -1)
+   f - float, with comma - (1,1 > 1,100000)
+   o - octal number (1-8, like 8 bites in 1 byte, or chmod 777)
+	Example:
+	 "octal 1 is %0 octal 9 is %0)" 1 9 > 1 .... 11
+   x - hex number (1-9a-f < lowercase)
+   % - escapes % (printf "%%")
+   %50s - formated string max 50 chars wide
+   
+
+wc: 
+  word count, returns number of lines, chars\bytes and words
+   -l - count lines
+
+head:
+  returs top of the file - 10 lines by default
+   Params:
+  -n <num> - change number of returned lines
+
+tail:
+  returns bottom of the file - 10 lines by default
+   Params:
+  -n <num> - number of returned lines
+  -f  - follow, will update file if any
+
+Network troubleshooting:
+  nmcli device 		# display all devices 
+  >DEVICE  TYPE      STATE      CONNECTION  
+  >wlo1    wifi      connected  homenetwork 
+  >lo      loopback  unmanaged  --     
+    # connected in wifi type device means it is working and connected to 
+    # wireless router
+  lshw -C network	# display all info related about network devices
+   Output:
+    *-network               
+       description: Wireless interface
+       product: Intel Corporation
+       vendor: Intel Corporation
+       physical id: c
+       bus info: pci@0000:00:0c.0
+       logical name: wlo1
+       version: 03
+       serial: a0:a4:c5:3f:67:0e
+       width: 64 bits
+       clock: 33MHz
+       capabilities: pm msi pciexpress msix bus_master cap_list ethernet physical wireless
+       configuration: broadcast=yes driver=iwlwifi driverversion=4.15.0-46-generic firmware=34.0.0 ip=192.168.0.101 latency=0 link=yes multicast=yes wireless=IEEE 802.11
+       resources: irq:44 memory:a1114000-a1117fff
+
+   Where: 
+  description - if device is set up incorrect will have 'Intel Corporation' or
+   something similar to manufacturer, otherwice 'Wireless interface'
+  configuration - the configuration of device, also has info about driver for 
+   the device, ip address
+
+!NOTE:
+  If there are no info about drivers this could mean that kernel does not 
+  have proper driver for the device, need to check what exact manufacturer and 
+  network controller it is and then look for drivers on the manufacturer 
+  website
+    ALso make sure that kernel version is newer than network adapter, because
+  then kernel could not yet has drivers for the device. As option make sure 
+  that using newest kernel available
+
+ lspci			# lists all pci devices on the machine
+  make sure something related to Network is there:
+   00:0c.0 Network controller: Intel Corporation Device 31dc (rev 03)
+  the part with 'Intel Corporation Device 31dc' is the device that need to 
+  has correct drivers. 
+  
+
+NetworkManager:
+  network management daemon
+  
+nmcli:
+  network manager command line interface
+   Synopsys:
+  nmcli [PARAMS] OBJECT {COMMAND | help}
+   OBJECTs:
+  g[eneral]       NetworkManager's general status and operations
+  n[etworking]    overall networking control
+  r[adio]         NetworkManager radio switches
+  c[onnection]    NetworkManager's connections
+  d[evice]        devices managed by NetworkManager
+  a[gent]         NetworkManager secret agent or polkit agent
+  m[onitor]       monitor NetworkManager changes
+   Example:
+  nmcli device - will display all network devices
 
 ifconfig:
   displays current network interfaces
   part of the 'net-tools' package
    /etc/network/interfaces - for interfaces(5) changes
+
+lshw:
+  list hardware, displays all the hardware detected by kernel and its state
+  and properties
+   -C <class> - class display some particluar class
+    Example:
+   lshw -C network - will display all info about network adapters and their
+			state, together with drivers and info related
+
+lspci:
+  list pci devices - network , audio, usb controllers
 
 sed:
   text stream editor, using RegEx for search\edit in stream(STDIN) line by line,
@@ -288,11 +755,13 @@ https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-s
 tee:
   reads from STDIN and writes to STDOUT and File
   Overrides existing file by default , to append use -a
+   Good for saving in the middle of pipe
   tee <params> file1 file2
   -a - append file
     Example:
   ls dir1 | tee file1 - will display ls on dir1 and write output to file1
-  ls dir2 | tee -a file1 - display dir2 and append ls output to file1
+  ls dir2 | tee -a file1 | less - display dir2 and append ls output to file1
+	then moe along a pipe and 'less' with the same result as in file1
    
    
 nl:
@@ -304,7 +773,19 @@ mkdir:
   mkdir <params> <path>
   -p - creates every unexisting dir along the path, return no errors
    mkdir -p /not_exist1/not_exist2 - will create both not existing dirs 
+  mkdir <dir1> <dir2> <dir3> - will create 3 separate directories
 
+wildcards(not a command:
+ * - any number of symbols
+ ? - any symbol
+ [ab1,] - one symbold from a list (same to regex)
+ [!ab1,] - none of listed symbols([^] in regex)
+ [[:class:]] - one symbol from a class
+  :alnum: - digits and letters (\w in regex)
+  :alpha: - letters (similar to  Unicode character property class \p{L} in regex)
+  :digit: - digits (\d in regex)
+  :lower: - lowercase
+  :upper: - uppercase
 
 cp:
   copy stuff
@@ -312,6 +793,10 @@ cp:
   cp -rf ../source/* .
    -r - recursive copy
    -f - overwrite everything 
+   -i - will ask for overwrite
+   -a - archive - keep original access rights and owners
+   -u - if overwrite - will copy only newer files
+   -v - verbose
    . - current directory with saving all the names and paths from source
   NOTE: to copy hidden files, those star with . , need to escape dot(.) as it is
   regular expression:
@@ -319,6 +804,8 @@ cp:
   ............/.* . - will not work
   ............/.*.* . - will copy '..' which is parent directory to current one
 
+mv: 
+  see cp: above , pretty same, except it moves\renames files
 
 rm:
   remove stuff, does not delete dirs and not empty dirs w/o additinal params
@@ -326,26 +813,86 @@ rm:
   rm -r <dirname>
    -r - recursive, also deletes directory at the end
    -d - deletes EMPTY directory
+   -f - force
+   -i - interactive - will ask before do
+   -v - verbose
 
+ln:
+  create hard link by default
+  ln <param> <path> <link name>
+  -s - create soft link
+  
+  Hard link: every file has 1 , create another one in different place
+   it will has size of its name, and will point to place on HDD for original file
+   File can not be deleted until all Hard links deleted.
+   Note: ls -i will return memory block of a place where link points
+    so file and is hard links will all point in the same place, thus having 
+    same number next to it.
+   ONly can be created in the same filesystem (disk drive)
+
+  Soft link: upgraded hard link, could be created anywhere, orig file can be
+   deleted > link will become broken
+
+type: 
+  returns how given command is interpreted
+   Example:
+  dos:~$ type ls
+  >ls is aliased to `ls --color=auto'
+   Example:
+  dos:~$ type cd
+  >cd is a shell builtin
+   Example:
+  dos:~$ type apt
+  >apt is /usr/bin/apt
+
+
+
+
+wget:
+  non interactive network downloader
+   Params:
+  -q - quiet, turns off wget output
+  -i file / --input-file=file - reads URLs from a file
+   Example:
+  wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb - will download .deb file in current directory w/o any output
+
+curl:
+  tool for view-download web pages and content
+   -o - output, redirects output to a file, usefull when downloading files
+    sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest
+     will download ecs-cli binary file from amazon storage into /usr/... path
+   -s - silent, no progress or error output. BUT still displays url contents
+    echo "$(curl -s https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest.md5) /usr/local/bin/ecs-cli" | md5sum -c -
+     will curl display md5 from amazon storage, w/o any other output, then
+      will display path to local ecs-cli, which will go into pipe to md5 sum
+      which will compare given md5 and md5 from file under given path, and will
+      return OK if everything if fine
 
 du:
   disk usage
   du <params> <file/dir name>
-  dy -hs dirname
+   Does not accept input from pipe, seems like
+    use 'xargs'
+  du -hs dirname
    -h - human readable
-   -s - summary
-
-ln:
-  create link
-  soft links
-  hard links
-  ln <param> <path> <link name>
-  -s - create soft link
-
+	Example:
+       ls -d */ | xargs du -hs  - will display size of all subdirs of of 
+				current dir
+	Or:
+       ls -d */ | xargs du -hs | sort -hr | head -20 - top 20 biggest dirs
+	Or:
+       du -sh */ | sort -hr  - du also accepts wildcards, so no need
+				to use ls for supplying list to du
+   -s - summary for every directory w/o listings its contents
 
 diff:
-  checks differences between two files
-  i.e.:
+  checks differences two files or whole directories
+   could recursevly dig into dirs for diffs, and generate patch files with
+  differences, to be applied by 'patch' command
+   Params:
+  -c - context diff format (easier to read than standard POSIX diff)
+  -u - unified diff format (less text, even more easier)
+   Example:
   diff packages.list packages.list2
     packages.list:
      pkg1
@@ -353,13 +900,46 @@ diff:
     packages.list2:
      pkg2
      pkg3
-   output:
-     < pkg1
-     ---
-     > pgk3
-   read output:
+   POSIX compliant output:
+    1d0
+    < pkg1
+    2a2
+    > pkg3
+    read output:
    < - only first file has pkg1, it was on the left in the params list
    > - only second file has it, and it was on the right
+
+  -c output:
+   *** pkg1.lst	2019-02-02 02:22:25.312819822 +0200
+   --- pkg2.lst	2019-02-02 02:22:36.984692484 +0200
+   ***************
+   *** 1,2 ****
+   - pkg1
+     pkg2
+   --- 1,2 ----
+     pkg2
+   + pkg3
+
+  -u output:
+   --- pkg1.lst	2019-02-02 02:22:25.312819822 +0200
+   +++ pkg2.lst	2019-02-02 02:22:36.984692484 +0200
+   @@ -1,2 +1,2 @@
+   -pkg1
+    pkg2
+   +pkg3
+
+   Symbols:
+   (none) - line match
+   -      - line removed from first file
+   +      - line added into second file
+   !      - line changed (only -c mode)
+
+patch:
+  'diff' generated patch apply
+   generated patch file already has file names, so no need to say anything
+  just apply:
+   patch < patchfile.txt
+  Just kidding - use VCS
 
 bash history:
   ! - invokes the Bash history mechanism
@@ -371,6 +951,64 @@ bash history:
     ls | bogus_command; echo $? # exit code: 127
     ! ls | bogus_command; echo $? # exit code: 0
 
+unzip:
+  utility to unzip files. Unzips in the current folder by default
+   Params:
+  -d - specify folder where to extract
+  -l - lists archive contents, 'less' tool does the same
+
+zip: 
+  creates zip archive, could also create encrypted archives(with password)
+  --encrypt - will promt for password during arch creation:
+   Example:
+  zip --encrypt archive.zip files
+   Less secure example:
+  zip --password (password) file.zip files
+  
+  NOTE: zip encyption is very weak, use additional or other encription like gpg
+
+Encryption 
+public private keys ssl , stuff
+https://www.devco.net/archives/2006/02/13/public_-_private_key_encryption_using_openssl.php
+
+Create CRS - certificate signing request (csr)
+https://www.sslshopper.com/what-is-a-csr-certificate-signing-request.html
+openssl req -new -newkey rsa:2048 -nodes -out servername.csr -keyout servername.key 
+
+General info about Keys, Key Pairs, Key Storages and stuff:
+https://info.townsendsecurity.com/definitive-guide-to-encryption-key-management-fundamentals#How-Encryption-Key-Systems-Work
+
+gnupg: gpg:
+  Gnu PG could encrypt documents, basically all files
+   See docs for encription here:
+  https://www.gnupg.org/gph/en/manual/x110.html
+
+  basic example w/o using Public-key cryptography:
+   gpg --output <encrypted_file.gpg> --symmetryc <file_to_encrypt> - this will 
+	ask for passphrase and its done
+
+rsync:
+  Remote Syncs files\dirs locally or remote-local\local-remote
+   Synopsis:
+  rsync [-params] /source/path [/another/source] /receiver/path
+   Source-Receiver could be:
+  - local file or dir
+  - remote file or dir [user@]hostname:/path/to/file
+  - remote server rsync, URI - rsync://[user@]hostname[:port]/path/to/file
+   Source or Receiver MUST be local, BOTH Remotes NOT WORK
+    Params:
+  -a - archive, recursive and saves files attributes
+  -v - verbose
+  --delete - remove files that are in Receiver but not in SOurce
+  --rsh=<shell> - remote shell, i.e. ssh - will transfer files via network
+	in secure way (secure ssh tunnel)
+   Example:
+  rsync -av --delete --rsh=ssh /etc /home /usr/local remotesys:/backup
+    Will archive(recurse and save file attrs) with verbose output , deleting
+    files absent in source dirs and present in remote:/backup, copy different 
+    from source dirs files via ssh tunnel to remotesys network location under
+    path /backup
+
 tar:
   tape archive - collects all files in archive, with savin all permissions
    and user's ownership
@@ -380,13 +1018,14 @@ tar:
    -v - verify\verbose
    -f - files
    -t - view archive , or something like that
-   -r - append retular file to the end of an archive i.e:
+   -r - append regular file to the end of an archive i.e:
      tar -rvf uncompressed.tar mybkup/mytest.txt
    -z - zip. tells tar that working with zips and not archives; 
         used for zipping, unzipping, viewing zip,
           if 'czvf' - creates .gz archive, compress same as 'gzip'
           if 'tzvf' - lists zip contents
           if 'zxvf' - extracts zip contents
+   -j - zup but with bzip2 instead of gzip
    -p - preserve permissions
    another params:
     !! could be anywhere in the command, before or after other params
@@ -412,6 +1051,86 @@ gzip:
   gzil archive.tar
    will substitute 'archive.tar' by 'archive.tar.gz'
   Could be called by 'tar' command using 'z' key, will works the same
+   Params:
+  -c - compressed output to STDOUT(console), original file is left untouched
+  -d - decompress file, same as 'gunzip'
+  -f - force compresses even if .gz with same name already exists
+  -h - help
+  -l - list files in archive, with compress ratio and orig sizes
+  -t - test compressed file for integrity
+  -v - verbose
+  -1 - set compress ratio 1 to 9, where ()
+	1 - fast and little uncompressed and (also --fast)
+	9 - slow and super compressed (also --best)
+	6 - default value
+
+gunzip:
+ g unzip, unzips .gz files
+  -c - cat, same as in gzip - writes to STDOUT leaves original files unchanged
+
+zcat: 
+ shipped with gzip, is like 'cat' but with z
+  could be used instead of:
+ gunzip -c file.gz | less
+
+zless: 
+ shipped with gzip, is like 'less' but with z
+  could be used instead of:
+ zcat file.gz | less
+
+zgrep:
+ grep for search in .gz compressed files
+
+lsblk:
+   List Block Devices
+  list all devices mounted and not
+   Params:
+  -f\--fs - list fylesystems
+
+block device types:
+ /dev/fd* - floppy drives
+ /dev/hd* - hard drives
+ /dev/lp* - printers
+ /dev/sd* - SCSI, including PATA/SATA in modern kernels, flash and usb, digital
+	    cameras, players and stuff. 
+ /dev/sr* - cd/dvd
+
+block device naming:
+ old motherboards had 2 IDE channgels, with cable for 2 devices (master\slave)
+ devices are named by alphabet
+ partitions are named by numbers
+ first channel master - a - sda
+  first partition on sda - 1 - sda1
+  second partition on sda - 2 - sda2
+ first channel slave - b - sdb
+ second channel master - c - sdc
+ second channel slave - d - sdd
+
+tune2fs:
+  adjust filesystem params
+   Params:
+  - l <filesystem> - list file system info
+   Example:
+  tune2fs -l $(df / | grep '/' | awk '{print $1}') | grep 'created'
+   will return Filesystem created date, means when system was installed
+  because looking at name of '/' root filesystem
+
+df:
+  display all mounted devices with size\free\used\paths etc
+    Stands for: Disk Free
+  df -h - human readable sizes
+  df / - will show info about root partition - where / is mount point
+
+how to get block device name, partition, mount it and unmount after:
+  tail -f /var/log/messages 	- open messages and follow
+  #mount disk, recheck messages for something like:
+  "sdb: sdb1"
+  "sd 3:0:0:0 [sdb] attached SCI removable disk"
+  fdisk /dev/sdb
+   p 				- see all partitions
+  mkdir ~/mounted_stuff
+  mount /dev/sdb1 ~/mounted_stuff
+  umount /dev/sdb
 
 mount:
   mount drive (disk, usb, floppy etc)
@@ -420,6 +1139,14 @@ mount:
    rw - seems to be read\write
    remount - pretty clear at first glance
    / - what to remount
+
+    Example:
+   lsblk -f     - view all devices
+   mount /dev/sda5 /path/to/mount/point - mount device
+   umount /dev/sda5   - unmount (Notice N letter absent in commnad name)
+    Example:
+    mount ISO image
+   mount -t iso9660 -o loop image.iso /path/to/mountpoint
 
   -a - mount all lines added to /etc/fstab
   
@@ -431,6 +1158,41 @@ mount:
   LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async
   labels or UUID could be taken from 'blkid' command
 
+fdisk:
+  manipulates disk partitions tables
+   Usage:
+  fdisk <block device name>
+   Commands:
+  m - manual/help
+  p - show all partitions
+  l - list all known filesystems (use one in mkfs )
+   Example:
+  fdisk /dev/sda
+  > m 	- see what could do
+  > p 	- see all partitions of the device 
+
+mkfs:
+  create new filesystem
+   Params:
+  -t fylesystem type
+   Example:
+  mkfs -t ext3 /dev/sdb1
+
+fsck:
+  filesystem check and repair (lost+found dir will have repaired files)
+   Example:
+  fsck /dev/sdb1
+
+genisoimage:
+  creates ISO images
+   Parameters:
+  -o <file.iso> - output to
+  -R - for long file names and access rights for files in POSIX style
+  -J - similar long names but for Windows
+   Example:
+  genisoimage -o cd-rom.iso -R -J ~/cd-rom-files
+   where cd-rom-files is a directory with files to be added into ISO image
+  
 
 scp:
   secure copy using ssh protocol
@@ -478,19 +1240,184 @@ sftp:
   get <remote_filename> <new_local_name>
  ls also works, ALIASES from bashrc do not work
 
+shutdown:
+ shutdown or reboot or halt etc the computer
+  by default shutdowns in 1 minute, also could be scheduled:
+   Example:
+  shutdown "21:45" - will shutdown at 21:45
+  shutdown "+25" - will shutdown in 25 minutes from 'now'
+  shutdown - will shutdown as 'shutdown +1'
+  shutdown now - shutdown now
+
+at:
+ need to be installed, daemon
+ schedules to do something _at_ some time:
+ There are three ways to use it:
+  Example 1:
+ echo "shutdown" | at now + 1 min - will execute what echo will return
+  	at time of now + 1 minute - echo will return stuff in ''
+  Example 2:
+ echo "shutdown" > cmd.txt
+ at now + 1 min < cmd.txt - it will redirect STDIN from cmd.txt , will read
+	from there, and shutdown 
+  Example 3: 
+ at now + 1 min
+ at> shutdiwn     - will wait for input in STDIN
+ ctrl+d           - to exit, and wait given time before execute shutdown
+
+  Time could be like:
+ [[CC]YY]MMDDhhmm[.ss]
+  Example: 
+ at -t 201403142134.12 < script.sh
+ 
+
+cron:
+ task scheduler
+
+ *     *     *     *     *  command to be executed
+ -     -     -     -     -
+ |     |     |     |     |
+ |     |     |     |     +----- day of week (0 - 6) (Sunday=0)
+ |     |     |     +------- month (1 - 12)
+ |     |     +--------- day of month (1 - 31)
+ |     +----------- hour (0 - 23)
+ +------------- min (0 - 59)
+
+ So, for example, this will run ls every day at 14:04:
+ 
+ 04 14 * * * ls
+ 
+ To set up a cronjob for a specific date:
+ 
+     Create a new crontab by running crontab -e. This will bring up a window of 
+	your favorite text editor.
+ 
+     Add this line to the file that just opened. This particular example will 
+	run at 14:34 on the 15th of March 2014 if that day is a Friday (so, OK,
+ 	it might run more than once):
+ 
+     34 14 15 5  /path/to/command        
+ 
+     Save the file and exit the editor.
+ 
+awk:
+ stuff to worh with text, programming language kind of
+  Example: 
+ awk 'BEGIN {printf "title"} {print "line"} END {printf "end"}' textfile.txt
+  this will print 'title'
+  then 'line' for every line in textfile
+  and print 'end' at the end
+
+ check out tutorial here:
+ https://www.tutorialspoint.com/awk/awk_basic_syntax.htm
+
+ workflow is Read, Execute, Repeat with tear up and tear down executed once:
+ BEGIN
+  Read line
+  Execute user code
+  Repeat if not EOF
+ END
+
+ Begin block executes only once, Tear Up, syntax:
+  BEGIN {awk-commands}
+ Optional
+ 
+ Body block, which is actual stuff to do for every line matched by pattern:
+  /pattern/ {awk-commands}
+ Pattern is optional
+
+ End block executes only once, Tear Down, syntax:
+  END {awk-commands}
+ Optional
+
+ Also gets input from a file:
+  -f <file_path>
+    Example:
+  command.awk:
+   BEGIN {printf "start\n"}
+   {print}
+   END {printf "end\n"}
+
+  awk -f command.awk textfile.txt   - this will read from command.awk and print
+   'start' at 1st line
+   then print every line
+   then print 'end' and the latest line
+ 
+ 
 ===general
 
 
 ===Env Vars / Environment variables:
+declare:
+  built-in command to assign or display variables and functions
+   Syntax:
+  declare [-aAfFgilnrtux] [-p] [name[=value] ...]
+  Params:
+  Using `+' instead of `-' turns off the given attribute.
+   Example:
+  declare - will show all variables and functions
+  declare | grep "^a=" - will return variable 'a' with its value 
+   
+  -p - prints only variables w/o functions (displayhs onlyh NAME)
+  -a - to make NAMEs indexed arrays(only Bash, not Sh)
+   Example:
+   
+  -i - to make NAMEs integer
+   Example:
+   declare -i z=asdf    < echo $z - 0
+   declare -i z=12	< echo $z - 12
+  -l - to convert NAMEs to lower case on assignment
+   Example:
+   declare -l b=TEST
+   echo $b 		>test  - will save it in loweracase
+  -u - same but for UPPRECASE
+  -g - create global variables in functions:
+  When used in a function, `declare' makes NAMEs local, as with the `local'
+    command.  The `-g' option suppresses this behavior.
+
+  -x - export variables
+   Example:
+   declare -x FOO  - same as - export FOO
+  -r - readonly variables
+  -n - make NAME a reference to the variable named by its value
+   Example: pointer-to-pointer
+   b=foo		# variable
+   declare -n b2=b	# pointer to the variable
+   echo $b2
+   >foo
+   declare -t b3=b2	# pointer to pointer
+   echo $b3
+   >foo
+
 printenv:
 env:
   very similar, prints environment variables to STDOUT
   printenv VAR - prints value of specified variable to STDOUT
 
+  Useful Env variables:
+  EDITOR - default text editor
+  SHELL - name of the shell
+  HOME - home path
+  LANG - chars and sort order for language
+  OLD_PWD - prev work dir
+  PWD - current working dir
+  PAGER - program for page view ( i.e. /usr/bin/less)
+  PS1 - current prompt string value
+	Example:   dos:~$: / root:~#:
+	Prompt string could be drastically changed
+	even including redraw of clocks in the cmd on every command entered
+        Example: \[\033[s\033[0;0H\033[0;41m\033[K\033[1;33m\t\033[0m\033[u\]<>$
+  TERM - type of the terminal
+  TZ - time zone, usually *nix has Coordinated Universal Time , and it
+	is corrected with current time zone upon display
+  USER - username
+  HISTCONTROL - with =ignoredups - will ignore duplicates in bash history
+  HISTSIZE - changes default 500 value of history line-length
 
 set:
   prints ALL variables - Shell vars, local vars, shell functions
-  Somewhy it does not have a man page for 'man set'
+  Builtin so use 'help set'
+
 
  Read more of set and printenv\env here:
 https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps
@@ -498,6 +1425,20 @@ https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environment
 https://unix.stackexchange.com/questions/123473/what-is-the-difference-between-env-and-printenv
 
 How to set\export env variables in bash:
+  export - share variable for child processes started from current shell  
+   Example:
+  TEST=1 - will create var for current shell, will not be visible in processes
+	started from the shell
+  export TEST=1 - will create var for cur shell, and share it to processes
+	started from the shell
+  echo 'export TEST=1' >> ~/.bashrc - will create var at every non-login start 
+	of the shell, if .profile reads .bashrc - login shell also get it
+	 Usually for vars there are different file, which bashrc will read
+	see/update local .bashrc to do so.
+ 	 Just exported into bashrc vars will not be visible until shell restart
+	or source load:
+	 source ~/.bashrc - will add newly exported vars into current session
+
 Read export\env differences here:
  http://hackjutsu.com/2016/08/04/Difference%20between%20set,%20export%20and%20env%20in%20bash/
 
@@ -571,7 +1512,10 @@ default homedir files are stored in
 see more: https://unix.stackexchange.com/questions/129143/what-is-the-purpose-of-bashrc-and-how-does-it-work
   ..../.profile - executed by command interpreter for login shells
 		  is not read if '.bash_login' or '.bash_profile' exists
+		Usually also reads /etc/bash.bashrc
+  ~/.profile - for login-shells also reads ~/.bashrc
   ..../.bash_logout - executed by bash when login shell ended
+
 
 unlike files in /etc/skel changes to this files will affect even existing users
 changes from here will be applied with every re-login to every 
@@ -667,6 +1611,8 @@ root# chown -R username:usergroup username/ - change recurse ownership of dir
 root# passwd username - create password for the user
 =====manual user creation end
 
+id:
+  returns info of current user - id, main group id, other groups, etc.
 
 groups:
   list groups of a user
@@ -724,6 +1670,15 @@ groupadd:
    once group is created use 'usermod' to add users to it
   group [options] <group>
   -g - manually set GROUP id
+
+chgrp: 
+  change group, changes group of file or directory
+   Synopsys:
+  chgrp [param] <group> /path/to/file
+   Params:
+  -R - recursive
+  -c - like verbose but only when change is made
+  -v - verbose
 
 groupmod:
   modify existing groups
@@ -895,6 +1850,23 @@ kill:
   -l - lists all the signals available with their names and numbers(minus SIG
    prefix)
   NOTE: only owner of the process(or root) could kill the process
+  %JOB_SPEC - kills job with appropriate number
+   Examle:
+  kill %1 - will kill the job with JOB_SPEC [1]
+
+ kill all processes:
+  kill -9 $(ps aux | grep '/usr/lib/firefox' | grep -v grep | awk '{print $2}')
+   $() will be expanded. if list is returned will iterate over every item
+	in the list
+   grep -v - invert grep results (excluding own grep process from ps aux)
+   awk will print second column from the list - PID
+	as per grep matched several lines(List de-facto) every line will be 
+	rinted. And sent out of $() into kill -9 as argument
+
+killall:
+ kills all instances of the process
+  Example:
+ killall xlogo - will kill all instances of 'xlogo'
 
 nice: renice:
   changes priority of the process
@@ -999,6 +1971,11 @@ dpkg:
   -l - list of all installed packages(use grep for specific packages)
   -L <package> - list of all the files that were created during package 
 		 installation
+  -S <filename> - similar to 'yum provides' but only for Installed packages
+		it returns list of all packages that contain the string:
+		-S less will return also 'serverless' word.. 
+	Another option is to use web interface on Ubuntu:
+	https://packages.ubuntu.com/
 
 aptitude:
   frontend of dpkg, GUI in commandline
@@ -1017,6 +1994,9 @@ apt-get: apt:
   apt-get install - installs package(s), list delimited by space
        or install <package-2.3.5-3ubuntu1> - installs particular version if
 		    it is compatible with distro and stuff   
+       install -f - will install .deb package with its dependencies
+		    Fix Broken Dependencies:
+			https://unix.stackexchange.com/questions/159094/how-to-install-a-deb-file-by-dpkg-i-or-by-apt
   apt-get upgrade - made after Update, upgrades all the packages installed to
 		    latest updates
           -y - answer Yes for all questons automatically
@@ -1055,6 +2035,18 @@ apt-cache:
   ... show <package> - info about the package, like description in apptitude
   ... stats - info about local cache(packages related stuff) - could be shrinked
   	      by running 'apt-get autoclean' to delete useless stuff
+  apt-cache showpkg <package> - shows infou about package
+       		and where from package came from
+    Example:
+   >apt-cache showpkg htop
+   >Package: htop
+   >Versions: 
+   >2.0.1-1ubuntu1 (/var/lib/apt/lists/ua.archive.ubuntu.com_ubuntu_dists_xenial-updates_universe_binary-amd64_Packages)
+     it is htop package with version 2.0.1ubuntu1
+     taken from ua.archive.ubuntu.com
+      where repository is for xenial
+      and name of repository is Universe
+   apt-cache policy - returns all used repositories, kind of 
 
 apt-file:
   another extension for apt-get, is in different package, 
@@ -1160,6 +2152,10 @@ https://askubuntu.com/questions/148638/how-do-i-enable-the-universe-repository
 	   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
 	   $(lsb_release -cs) \ - returns distro name
 	   stable" - list of repos, test, edge could be added for docker
+
+	Another example:
+	sudo add-apt-repository ppa:jonathonf/python-3.7
+	sudo apt-get update
 	
    
 
@@ -1516,23 +2512,68 @@ https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks
 
 ===Bash
 =====Bash command line shortcuts
-ctrl + a - moves cursor on the beginning of the line
-ctrl + e - moved cursor on the End of the line
-ctrl + u - removes everything from cursor position to the beginning of line
-ctrl + k - removes everything from cursor position to the edn of the line
-ctrl + w - removes previous word(space separated)
-ctrl + l - cleares screen except of current command LINE
-ctrl + p - last executed command shown in command line, same as UP ARROW key 
-ctrl + c - terminate current process + exit\del current line by terminating it
+ctrl+a - moves cursor on the beginning of the line
+ctrl+e - moved cursor on the End of the line
+ctrl+u - removes everything from cursor position to the beginning of line
+ctrl+k - removes everything from cursor position to the edn of the line
+ctrl+w - removes previous word(space separated)
+ctrl+l - cleares screen except of current command LINE
+ctrl+p - last executed command shown in command line, same as UP ARROW key 
+ctrl+c - terminate current process + exit\del current line by terminating it
+ctrl+z - pause program, adding it to backgroud job. 'bg'\'fg' to continue run
+history:
+ctrl+r - bash history by typed command
+ctrl+r - again looks one matched line upwards
+ctrl+j - edit matched line
+ctrl+o - execute current command from history
 
 =====Bash Shell
 alias:
  new aliasws workws only for current session
  alias <new name>="<command>" - adds command as alias
  alias <old name> - shows command
+ alias - shows all aliases for current session
 
 sleep:
   just regular sleep, stops current thread for amount of given seconds
+
+  Experiments:
+  sleep 10 & - will stop the thread for 10 seconds and move it to background
+
+background: (not command)
+  to start process in a background use & at the end
+   Example:
+  xlogo & - will start xlogo but cmd will return control to user
+   xlogo will run as a Job, with 'Running' state
+
+jobs:
+  built-in command
+  shows jobs in background, running, stopped
+   More read:
+  https://unix.stackexchange.com/questions/116959/there-are-stopped-jobs-on-bash-exit
+   Params:
+  -l - display PID
+
+  NOte: kill could also accept JOB_SPECs to kill jobs, instead of PIDs
+
+fg:
+  moves job to the foreground
+  fg JOB_SPEC
+   Example:
+  fg 1 - moves job [1] to the foreground
+  Ctrl+z will move it back, but 'paused'- use bg to continue in background
+
+bg:
+  moves job to the background
+   If program is 'Stopped' like after executiong ctrl+z shortcut, bg <%num>
+  will continue its execution as a job, in the background
+   Params:
+  %job_spec - address numbered job
+
+script:
+  writes a session script - all executed commands and stuff
+   with time parameter will create file with timings of each command and could
+  play it afterwards using these two files
 
 bash:
   man bash
@@ -1552,14 +2593,37 @@ bash:
    \u - username
    \j - amount of running jobs
    \h - hostname
+      Hostname is stored in /etc/hostname
+
+hostname:
+  network computer name. command returns current hostname
+  value is stored in /etc/hostname
+   Synopsis:
+  hostname [-b] {hostname|-F file} - set hostname (from file)
+  hostname [params] 		   - formatted output
+  hostname 			   - display hostname
+   Params:
+  -I - show all ip addresses for host machine
+  -b - set hostname
+   Example:
+  hostname -b new_hostname
+  
+  TO CHANGE HOSTNAME:
+   change hostname in /etc/hostname
+   change every occurance of old hostname to new one  in /etc/hosts
+    If nothing is available in /etc/hostname first hostname with 127.0.0.1 
+   address will be taken as hostanme
 
 history:
   lists history, dumps .bash_history file into STDOUT, lines numbered
   -c - Clear history, but only in session, .bash_history remains the same
 	only in CentOS it seems, ubuntu does nothing
+   Example:
+  history | grep /usr/bin - look for only what matched
 
 which:
   shows location of a command and its alias if exists
+   Does not show built-ins
   can search by alias too
   which <command\alias>
    i.e.
@@ -1572,7 +2636,7 @@ whereis:
   whereis pwd - will return path for binary and path for man page
    -b - search only for binaries
 
-Streams and Redirects:
+Streams and Redirects. redirection:
  Linux\Unix philosophy is that 'everything is a file' but in fact this are not
   files but block defices stored in /dev or /proc directories, and not files but
   some stuff stored in RAM for instance
@@ -1625,6 +2689,8 @@ Redirect SDOUT and STDERR into two files in the same time:
 Redirect STDOUT and STDERR into single file:
   cat goodFile notExistingFile >mystdout 2>&1
 	mystdout will contain both STDOUT and STDERR
+    Or
+  cat goodFile notExistingFile &> mystdout
 
 noclobber:
   is an option set-up by 'set' command
@@ -1634,21 +2700,41 @@ noclobber:
 
 pipe: |:
   redirects standard output of first program into standard input of another
-  
+
+expand:
+  changes Tabs to Spaces in files from argument or stream from STDIN
+   Example:
+    cat -A test   >>> ^Ia ^Ia    a^Ia$
+    expand test | cat -A  >>>        a       a    a  a$
+  will change all tabs in file to spaces.
+
+unexpand:
+  change Spaces to Tabs - vice versa of 'expand'  
+
 cut:
-  Removes section from each line from a File
+  Removes section from each line(column in fact) from a File
    Or parses each line in file by delimiter(Default is TAB) and could retreive
    only selected columns, or bytes - this is for -f option
   cut <param> <filename>
   See more: https://www.computerhope.com/unix/ucut.htm
+  -d '<delim>' - change delimiter to <delim, ' - to prevent bash expansion of
+	meta characters, if * or similar is delimiter. 
+	-d ':' - safe way 
+	  or
+	-d: - will work too, but could fuck up a little
    Example:
   cut -f1 -d: passwd - will get only first field(-f1) from a file passwd
 		fields are created by delimiting by colon(-d:)
   -b --bytes=LIST - cuts out bytes
   -c --characters=LIST - cuts out characters(in different encodings 1 character
 	could be more than 1 byte, which is 8 bits)
-  -f --fields=LIST - uses delimiter(default TAB) to parse each line by it then
+	 Example:
+	10/01/2007 - '-c 7-10' will cut out '2007'
+  -f --fields=LIST - field to cut. or fields.
+		uses delimiter(default TAB) to parse each line by it then
 	it could return columns mentioned in the list by numbers from 1
+	 Example:
+	abc<tab>10.1<tab>10/01/2007 - '-f 3' will cut out '10/01/2007'
   How LIST works:
    !List of Integers
    !Starts from 1
@@ -1679,6 +2765,14 @@ cut:
 	users that use /bin/bash as their default shell, and prints out 
 	username and user home directory
 	So cut accepts STDIN redirection
+
+paste:
+ vice versa of 'cut' - pastes columns in files
+
+join:
+ sql join but for text files
+  in case of need to use this, use man\google, i'm to lazy to document
+ Sorry.
 
 bash escapes:
 special symbols:
@@ -1875,3 +2969,51 @@ ip:
 		bridge_ports dummy0	#some mock stuff
 		bridge_stp off
 		bridge fd 0 		#frame 0
+====Ports checks
+read more:
+https://www.cyberciti.biz/faq/how-do-i-find-out-what-ports-are-listeningopen-on-my-linuxfreebsd-server/
+https://www.maketecheasier.com/check-open-ports-linux/
+
+netstat:
+  find open ports
+   Params:
+  -l / --listen - displays ports that are in LISTEN state (lots of)
+  -vatn - opened ports and established TCP connections
+   - v - ?
+   - a - All - show all sockets
+   - t - TCP connections
+   - u - UDP connections
+   - n - short DNS hostname. will display dns names/ports w/o it
+   - p - show related PID and Program Name
+  Example:
+   netstat -vat - display used porta and established connections
+
+lsof:
+  also checks ports, could display processes that are using
+   port, and files used by the process
+
+   Params:
+  -i - displays processes and ports used, and connection
+ 	with friendly names
+   - 4 - ipv4
+   - tcp - display tcp (cant use 4 and tcp in the same time, it seems)
+  
+nmap:
+  Network Mapped, detects open ports on my system
+   -s - Scan, there are lots of it
+    -sT - scan TCP
+    -sn - disable port scan, just 'ping'
+    -stuff, see 'man nmap'
+   -O - OS detection
+   -T - TCP
+   -U - UDP
+
+  NOTE: 
+   Read MAN - it has examples and lots of stuff:
+    scanme.nmap.org/24 - will scan 256 IP in C network class of
+	scanme network - CRAZY!!111
+
+  Example:
+   nmap -sT -O localhost    - [s]cans [T]CP on localhost
+ 	
+

@@ -1,3 +1,18 @@
+config:
+  configure git account - addresses, user name, email etc.
+   Synopsys:
+  git config [config file] [action] [key value]
+   Params:
+  -l - list all params
+  --add - add key value pair: key value
+   Example:
+   git config --global --add user.name doss-
+   will add to Global config key 'user.name', with value 'doss-'
+  --global / system / local - use different config file, locacl for repo
+  Config fields:
+  user.name - name of the user 
+  user.email - users email, these two fields are used to identify user
+   in github
 
 clone:
   clones repository locally , later parent repo could be reached as origin

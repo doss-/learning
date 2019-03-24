@@ -1096,6 +1096,30 @@ apt-file:
 =======uninstallation end
 
 =======Repository setup
+ Repository configs are in 
+  /etc/apt/sources.list and /etc/apt/sources.list.d/  
+  Contents of sources.list file:
+   deb http://archive.ubuntu.com/ubuntu/ xenial main restricted universe
+  where http... is address of repo
+        xenial is name of distro - $(lsb_release -sc)
+        main ... is name of repository
+   After 'add-apt-repository multiverse' this repo will be concatenated into
+   line above:
+    deb http... xenial ... multiverse
+
+add-apr-repository:
+  Newer versions of Ubuntu support 'add-apr-repository'
+   standard repositories could be added w/o specifing address, just repo name: 
+    Example:
+   sudo apt-add-repository universe
+    this will add 'universe' repo to standard ubuntu addresses
+  Older versions support this:
+   sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"
+
+NOTE: make sure to 'sudo apt-get update' before use newly added repository
+Read More:
+https://askubuntu.com/questions/148638/how-do-i-enable-the-universe-repository
+
   Due to regular use of secure stuff also make sure following packages are
   installed(use apt-cahce show <package name> or 'apt list --installed'):
    apt-transport-https - This package enables the usage of 
@@ -1143,6 +1167,8 @@ apt-file:
   dpkg -l - list of packages and their details
   apt list --installed - list of full names
   aptitude - has a category for installed pkgs divided by categories
+ Active Repositories
+  apt-cache policy
 
 =====debian\ubuntu end
 

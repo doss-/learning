@@ -1,0 +1,10 @@
+add interactive mode which will ask before every option
+check whether it is apt or yum
+
+install git
+clone learning
+install vim
+check that universe added
+install htop
+install docker
+install terraform

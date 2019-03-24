@@ -1,4 +1,7 @@
 ==========TODO:
+add lshw lspci and whole setup and recheck of wifi. iwlwifi driver and 
+way to ensure there are drivers installed in the kernel
+
 create bash script that will export variables to:
 1. current session
 2. user .bashrc file so it will be available in other sessions
@@ -596,12 +599,85 @@ tail:
   -n <num> - number of returned lines
   -f  - follow, will update file if any
 
+Network troubleshooting:
+  nmcli device 		# display all devices 
+  >DEVICE  TYPE      STATE      CONNECTION  
+  >wlo1    wifi      connected  homenetwork 
+  >lo      loopback  unmanaged  --     
+    # connected in wifi type device means it is working and connected to 
+    # wireless router
+  lshw -C network	# display all info related about network devices
+   Output:
+    *-network               
+       description: Wireless interface
+       product: Intel Corporation
+       vendor: Intel Corporation
+       physical id: c
+       bus info: pci@0000:00:0c.0
+       logical name: wlo1
+       version: 03
+       serial: a0:a4:c5:3f:67:0e
+       width: 64 bits
+       clock: 33MHz
+       capabilities: pm msi pciexpress msix bus_master cap_list ethernet physical wireless
+       configuration: broadcast=yes driver=iwlwifi driverversion=4.15.0-46-generic firmware=34.0.0 ip=192.168.0.101 latency=0 link=yes multicast=yes wireless=IEEE 802.11
+       resources: irq:44 memory:a1114000-a1117fff
 
+   Where: 
+  description - if device is set up incorrect will have 'Intel Corporation' or
+   something similar to manufacturer, otherwice 'Wireless interface'
+  configuration - the configuration of device, also has info about driver for 
+   the device, ip address
+
+!NOTE:
+  If there are no info about drivers this could mean that kernel does not 
+  have proper driver for the device, need to check what exact manufacturer and 
+  network controller it is and then look for drivers on the manufacturer 
+  website
+    ALso make sure that kernel version is newer than network adapter, because
+  then kernel could not yet has drivers for the device. As option make sure 
+  that using newest kernel available
+
+ lspci			# lists all pci devices on the machine
+  make sure something related to Network is there:
+   00:0c.0 Network controller: Intel Corporation Device 31dc (rev 03)
+  the part with 'Intel Corporation Device 31dc' is the device that need to 
+  has correct drivers. 
+  
+
+NetworkManager:
+  network management daemon
+  
+nmcli:
+  network manager command line interface
+   Synopsys:
+  nmcli [PARAMS] OBJECT {COMMAND | help}
+   OBJECTs:
+  g[eneral]       NetworkManager's general status and operations
+  n[etworking]    overall networking control
+  r[adio]         NetworkManager radio switches
+  c[onnection]    NetworkManager's connections
+  d[evice]        devices managed by NetworkManager
+  a[gent]         NetworkManager secret agent or polkit agent
+  m[onitor]       monitor NetworkManager changes
+   Example:
+  nmcli device - will display all network devices
 
 ifconfig:
   displays current network interfaces
   part of the 'net-tools' package
    /etc/network/interfaces - for interfaces(5) changes
+
+lshw:
+  list hardware, displays all the hardware detected by kernel and its state
+  and properties
+   -C <class> - class display some particluar class
+    Example:
+   lshw -C network - will display all info about network adapters and their
+			state, together with drivers and info related
+
+lspci:
+  list pci devices - network , audio, usb controllers
 
 sed:
   text stream editor, using RegEx for search\edit in stream(STDIN) line by line,
@@ -2479,6 +2555,26 @@ bash:
    \u - username
    \j - amount of running jobs
    \h - hostname
+      Hostname is stored in /etc/hostname
+
+hostname:
+  network computer name. command returns current hostname
+  value is stored in /etc/hostname
+   Synopsis:
+  hostname [-b] {hostname|-F file} - set hostname (from file)
+  hostname [params] 		   - formatted output
+  hostname 			   - display hostname
+   Params:
+  -I - show all ip addresses for host machine
+  -b - set hostname
+   Example:
+  hostname -b new_hostname
+  
+  TO CHANGE HOSTNAME:
+   change hostname in /etc/hostname
+   change every occurance of old hostname to new one  in /etc/hosts
+    If nothing is available in /etc/hostname first hostname with 127.0.0.1 
+   address will be taken as hostanme
 
 history:
   lists history, dumps .bash_history file into STDOUT, lines numbered

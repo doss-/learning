@@ -2035,6 +2035,18 @@ apt-cache:
   ... show <package> - info about the package, like description in apptitude
   ... stats - info about local cache(packages related stuff) - could be shrinked
   	      by running 'apt-get autoclean' to delete useless stuff
+  apt-cache showpkg <package> - shows infou about package
+       		and where from package came from
+    Example:
+   >apt-cache showpkg htop
+   >Package: htop
+   >Versions: 
+   >2.0.1-1ubuntu1 (/var/lib/apt/lists/ua.archive.ubuntu.com_ubuntu_dists_xenial-updates_universe_binary-amd64_Packages)
+     it is htop package with version 2.0.1ubuntu1
+     taken from ua.archive.ubuntu.com
+      where repository is for xenial
+      and name of repository is Universe
+   apt-cache policy - returns all used repositories, kind of 
 
 apt-file:
   another extension for apt-get, is in different package, 

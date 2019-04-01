@@ -30,8 +30,17 @@ Lambda
  Process Beacon Provisioning
 Probably API GateWay
 IAM Role
- IoT VPC (all for Lambdas + IoT)
- Lambda (all for Lambdas)
+ IoT VPC (all for Lambdas + IoT) > for 3 lambdas IoT
+ Lambda (all for Lambdas) > for 1 lambda Gateway
 Investigate IAM Lambda permissions
  https://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#intro-permission-model-access-policy 
 Probably also need to create IoT Analytics Channel, if required 
+
+
+
+GENERAL TODO
+1. complete provisioning of Topic Rules
+ 1.1 Create IoT Analytics if required
+2. create API GateWay+Lambda
+3. create IAM roles required
+4. Create diagram with terraform resources for visualisation

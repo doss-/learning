@@ -104,11 +104,11 @@
   						"Fn::Join": [ "",
   							[
   								"arn:aws:iot:",
-  							 { "Ref": "AWS::Region" },
+  ${var.region}						 { "Ref": "AWS::Region" },
   							 ":",
-  							 { "Ref": "AWS::AccountId" },
+ $${aws:userid}						 { "Ref": "AWS::AccountId" },
   							 ":topic/",
-  							 { "Ref": "MQTTSensorsTopicName" },
+ ${var.MQTTSensor..}  					 { "Ref": "MQTTSensorsTopicName" },
   						   "/+"
   							]
   						]

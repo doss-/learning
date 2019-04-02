@@ -597,7 +597,21 @@ tail:
   returns bottom of the file - 10 lines by default
    Params:
   -n <num> - number of returned lines
+  -n +<num> - output starting from line, could cut off header lines
   -f  - follow, will update file if any
+
+  Example:
+   ls -l | tail -n +2
+    will return only listing fo files, w/o header lines:
+   $ ls -l
+   > total 1140
+   > -rw-rw-r-- 1 dos dos 0 feb 3 01:02 1.txt
+   ...
+    And:
+   $ ls -l | tail -n +2
+   > -rw-rw-r-- 1 dos dos 0 feb 3 01:02 1.txt
+    WHich is usefull for automation
+    Same goes with 'ps'
 
 Network troubleshooting:
   nmcli device 		# display all devices 

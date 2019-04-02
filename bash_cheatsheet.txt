@@ -36,6 +36,9 @@ $FUNCNAME - contains name of the function being executed(like reflection)
 $PS4 env var, is Promt String for debugging tracert
 $LINENO - is standard variable with line number
 PS4="$LINENO +" - will display line number during debugging tracert
+$OLDPWD - contains previous workind directory
+$RANDOM - contains random number from 1 to 32 767
+$$ - current PID of the programs\script being executed
 
 Defensive programming:
 Make sure everything is expanded and is executed in right place:
@@ -1183,4 +1186,155 @@ read:
   -t - time out for wait of entry
   -u <descriptor> - use file with given descriptor as STDIN
 
-   
+Command grouping:
+command groups:
+ Commands could be groupped, there are two types:
+  Groups:
+   { command1; command2; [command3; ... ] }
+  Subshell:
+   (command1; command2 [; command3 ... ])
+
+  Commands in Groups are executed in current shell, so ENV variables 
+ chaned during commands execution are saved into current Shell ENV
+  Subshells are executed in sub shell and current ENV could not be 
+ modified.
+ 
+  Examples:
+ ls -l > output.txt
+ echo "listing of foo.txt" > output.txt
+ cat foo.txt > outpu.txt
+  ==
+ { ls -l; echo "listing of foo.txt"; cat foo.txt; } > output.txt
+  or
+ (ls -l; echo "listing of foo.txt"; cat foo.txt) > output.txt
+ 
+ NOTICE:
+  Groups must have spaces next to {}, and last command should end with ;
+  SUbshells do not need extra spaces and ;
+ BUT:
+  subshells are taking longer to be executed because of extra subshell
+ need to be created. Also more memory is required. 
+  Also no parent shell ENV modifications is possible
+
+ Example with pipe:
+  { ls-l; echo "listing of foo.txt"; cat foo.txt; } | lpr
+ this will redirect output through pipe into 'lpr' which is print command.
+  So all the output of 3 commands are redirected at once into 'lpr'
+ which is not the same with 
+  ls -l | echo "..." | cat foo.txt | lpr - will send only foo.txt to
+ print
+
+Processes substitution:
+ <(commands list)  - processes sending output to STDOUT
+ >(commands list)  - processes getting input to STDIN
+  
+  Subshell output is interpreted as regular file, and could be redirected
+ into another commands as usual.
+
+ Example:
+  read < <(echo "foo")
+  echo $REPLY - will return 'foo'
+ where:
+  'read' reads from STDIN, and saves what is read into $REPLY by default
+ 	 if executed in subshell $REPLY will not be available to 
+	 parent shell
+		echo "foo" | read - will not work
+  <     - STDIN redirection, so STDOUT from <() is redirected as STDIN
+	  of 'read' command
+  <(echo "foo") - Process substitution, where 'ehco' executed in 
+	  	  subshell Group () sends its output to STDOUT.
+		In other words output of this part is represented as
+		usual file, which is redirected into 'read' STDIN
+  echo $REPLY - proves that $REPLY is updated in current shell with
+		value redirected out of subshell 
+		due to process substitution
+
+  Result of substituted shell is stored as regular file and could be 
+ found line this:
+  echo <(echo "foo")
+  > /dev/fd/63
+   Its contents could be listed:
+  cat <(echo "foo")
+  >foo
+
+trap:
+  Event subscription for system signals (SIG..) like SIGKILL etc.
+ there are 64 signals, so some variety of situations.
+  In general this is the way to trigger script when some system sent some
+ particular event to the script
+
+  Syntax:
+ trap <command> signal [signal ...]
+  Where command is what will be executed in case 'signal' is sent to
+ the executing script
+ !  Also could be a function.
+  
+  Example:
+ #!/bin/bash
+ trap "echo 'i am ignoring you'" SIGTERM SIGINT
+
+ this will return 'i am ...' if SIGTERM (kill -9) or SIGINT (CTRL+C) are
+ sent to the script.
+
+  Also works with functions, so like lambda\delegates
+
+   Example:
+  exit_on_SIGINT () {
+   echo "script Interrupted" 2>&1
+   exit 0
+  }
+
+  trap exit_on_SIGINT SIGINT
+
+   this will call exit_on_SIGINT() function when CTRL+C is received
+   and will redirect 'echo' into both STDERR and STDOUT
+  After event is handled, exit 0, will ensure exit of the script, as it
+  is expected by the SIGnal
+
+temp files:
+random:
+  event handling (trap) usually used to delete temp files generated 
+ during script work. Such files could contain some secure info and stuff.
+  To secure from 'temp race attack' - when temp files being searched
+ by 3rd party and read, files need to be named in unobvious way
+ which means use random gibberish stuff to mask particular files.
+ 
+ Random could be used like $RANDOM
+ $RANDOM var containes random number from 1 to 32 767, but this is not
+  really huge number
+
+mktemp:
+  command that creates temporary file with name based on pattern
+  or directory
+   creates 
+   Syntax:
+  mktemp </path/to/file/some_nameXXXXXXXX>
+  mktemp [OPTION]... [TEMPLATE]
+
+   Create a temporary file or directory, safely, and print its name.  
+  TEMPLATE must contain at least 3 consecutive 'X's in last  component.   
+  If TEMPLATE is not specified, use tmp.XXXXXXXXXX, and --tmpdir is 
+  implied. 
+   Files are created u+rw, and directories  u+rwx,  minus  umask  
+  restrictions.
+
+   this will create file at given path, with every X being replaced
+  with random number or letter(random case)
+   NOTICE: in general convers 4+ X into random letters\numbers
+  and only at the end of the file name
+   except if it has extention (like .txt)
+
+   Example:
+  #!/bin/bash
+  tempfile=$(mktemp ~/.tmp/XXX-$(basename $0).$$.XXXXXXXXX) 
+  echo $tempfile
+   which will produce:
+  script output: >XXX-test.17306.PRsr7hXuU
+  $ ll XXX*
+  -rw------- 1 dos dos 0 кві  2 03:07 XXX-test.17306.PRsr7hXuU
+
+ Generally it is more safe to use custom temp directory instead of /tmp
+  Example:
+ [[ -d ~/.tmp ]] || mkdir ~/.tmp
+  this will check if ~/.tmp exists, if not will create it
+  But in general mktemp also could create directories.. 

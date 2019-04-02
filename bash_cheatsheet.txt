@@ -1338,3 +1338,52 @@ mktemp:
  [[ -d ~/.tmp ]] || mkdir ~/.tmp
   this will check if ~/.tmp exists, if not will create it
   But in general mktemp also could create directories.. 
+
+Asynchronous
+Async async
+ Bash could run async commands and tools.
+ To run something in background is should ends with &
+  Example:
+ >copy_script.sh &
+  copyscript will now run in background
+ $! - returns PID of last started in background process
+  Example:
+ >pid=$!   - will save PID of running copy_script.sh into pid variable
+
+wait:
+ waits for given process to finish, before continue execution
+  Example:
+ wait $pid - will wait for copy_script.sh to finish before continue
+
+Pipe
+pipe
+ Pipes are the files created in special pipefs filesystem
+  by default unnamed pipe are created for every | symbol in command chain
+ in following command 2 pipes will be created:
+  ls -l | grep foo | less
+ output of 'ls -l' will be redirected into pipeA
+ input into 'grep' will be reead from pipeA
+ STDOUT of 'grep' will be written into pipeB
+ STDIN of 'less' will be read from pipeB
+
+ every command will be executed in subshell, need to clarify more
+
+mkfifo:
+  creates Named pipe, which is stored as a file in regular file system
+   Syntax:
+  mkfifo /path/to/file
+   To write into named pipe:
+  command1 > named_pipe
+   To read from named pipe:
+  command2 < named_pipe
+
+   file will have attribute 'p':
+      prw-r-----
+   Example:
+  1st Terminal:
+   mkfifo pipe1
+   ls -l > pipe1 - will halt until everything is read out from pipe1
+  2nd Terminal
+   cat < pipe1 - will read everything from pipe1 and display, 1st terminal
+		will continue its work afterwards
+

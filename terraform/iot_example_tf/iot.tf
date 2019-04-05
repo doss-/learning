@@ -38,6 +38,9 @@ variable "sensors_ver" {
   description = "overstress lambda source version - dir name in s3. upload it manually: aws s3 cp overstress_example.zip s3://dos-deepdive/lambda/iot_overstress_0.1/"
 }
 
+variable "app_version" {
+  description = "path part to s3 storage of zipped sources"
+}
 
 variable "s3_bucket" {
   description = "bucket to download sources from"
@@ -214,7 +217,7 @@ resource "aws_lambda_function" "rssi_lambda" {
   handler = "rssi_example.my_logging_handler"
   runtime = "python3.6"
 
-  role = "${aws_iam_role.iam_lambda_exec.arn}"
+  role = "${aws_iam_role.lambda_iot_vpc_role.arn}"
   environment {
       variables = {
           rethinkdb_user = "${var.rethinkdb_user}", 
@@ -253,7 +256,7 @@ resource "aws_lambda_function" "overstress_lambda" {
   handler = "overstress_example.my_logging_handler"
   runtime = "python3.6"
 
-  role = "${aws_iam_role.iam_lambda_exec.arn}"
+  role = "${aws_iam_role.lambda_iot_vpc_role.arn}"
 }
 
 # allow triggering from IoT Topic Rule 
@@ -274,7 +277,7 @@ resource "aws_lambda_function" "sensors_lambda" {
   handler = "sensors_example.my_logging_handler"
   runtime = "python3.6"
 
-  role = "${aws_iam_role.iam_lambda_exec.arn}"
+  role = "${aws_iam_role.lambda_iot_vpc_role.arn}"
 
   environment {
       variables = {
@@ -296,10 +299,10 @@ resource "aws_lambda_permission" "allow_iot_sensors" {
 }
 
 #IAM ROLE
-resource "aws_iam_role" "iam_lambda_exec" {
-  name = "iot_iam_for_lambda_execution"
+resource "aws_iam_role" "lambda_iot_vpc_role" {
+  name = "lambda_iot_vpc_role"
 
-  assume_role_policy = <<EOF
+  assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -313,16 +316,99 @@ resource "aws_iam_role" "iam_lambda_exec" {
     }
   ]
 }
-EOF
+POLICY
 }
 
-#attach cloudwatch permissions for the role
-resource "aws_iam_role_policy_attachment" "lambda_logs" {
-  role = "${aws_iam_role.iam_lambda_exec.name}"
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+#attach permissions for the role
+resource "aws_iam_role_policy_attachment" "attachAWSIoTConfigAccess" {
+  role = "${aws_iam_role.lambda_iot_vpc_role.name}"
+  policy_arn = "arn:aws:iam::aws:policy/AWSIoTConfigAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "attachAWSLambdaVPCAccessExecutionRole" {
+  role = "${aws_iam_role.lambda_iot_vpc_role.name}"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
 
+resource "aws_iam_role_policy_attachment" "attachAWSLambdaRole" {
+  role = "${aws_iam_role.lambda_iot_vpc_role.name}"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaRole"
+}
+
+resource "aws_iam_role" "rethink_db_lambda_vpc" {
+  name = "rethink_db_lambda_vpc"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+POLICY
+}
+
+#API GATEWAY 
+
+resource "aws_api_gateway_rest_api" "rest_api" {
+  name = "HandHeld_Gateway"
+}
+
+resource "aws_api_gateway_resource" "resource" {
+  path_part = "resource"
+  parent_id = "${aws_api_gateway_rest_api.rest_api.root_resource_id}"
+  rest_api_id = "${aws_api_gateway_rest_api.rest_api.id}"
+}
+
+resource "aws_api_gateway_method" "method" {
+  rest_api_id = "${aws_api_gateway_rest_api.rest_api.id}" 
+  resource_id = "${aws_api_gateway_resource.resource.id}"
+  http_method = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "lambda_integration" {
+  rest_api_id = "${aws_api_gateway_rest_api.rest_api.id}" 
+  resource_id = "${aws_api_gateway_resource.resource.id}"
+  http_method = "${aws_api_gateway_method.method.http_method}"
+  integration_http_method = "POST"
+  type = "AWS_PROXY"
+  uri = "${aws_lambda_function.lambda.invoke_arn}"
+}
+
+#lambda for gateway api
+resource "aws_lambda_function" "lambda" {
+  function_name = "ServerlessExample"
+
+  # bucket name and path inside it to the source code to be run in Lambda
+  s3_bucket = "${var.s3_bucket}"
+  s3_key = "lambda/v${var.app_version}/lambda_example.zip"
+
+  # "main" is the filename within the zip file (main.js) and "handler"
+  # is the name of the property under which the handler function was
+  # exported in that file.
+  handler = "main.handler"
+  runtime = "nodejs6.10"
+
+  role = "${aws_iam_role.rethink_db_lambda_vpc.arn}"
+
+}
+
+resource "aws_lambda_permission" "allow_apigw_provision" {
+  action = "lambda:InvokeFuncion"
+  function_name = "${aws_lambda_function.lambda.arn}"
+  principal = "apigateway.amazonaws.com"
+  source_arn = "${aws_api_gateway_deployment.example.execution_arn}/*/${aws_api_gateway_method.method.http_method} ${aws_api_gateway_resource.resource.path}"
+}
+
+#OUTPUT
 output "certificate_arn" {
   value = "${aws_iot_certificate.certificate_1.arn}"
 }

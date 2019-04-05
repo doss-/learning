@@ -1,13 +1,15 @@
+# Intro
+
 scripts start from instruction which interpreter to use, first line always must
 be the directive. Except if script is passed as param into interpreter, then
 there is no need in that because there already an interpreter in place.
-#!/path/to/interpreter
+\#!/path/to/interpreter
 i.e.:
-#!/bin/bash
+\#!/bin/bash
 
 
 Bash Scripts accepts data from stdin and its direct redirection or pipe
-! 'read' command need to be used.
+Note: 'read' command need to be used.
  Example:
   >script:
   >read -p "enter any *.txt"
@@ -20,8 +22,8 @@ Bash Scripts accepts data from stdin and its direct redirection or pipe
   /home/dos/test.txt
 	
 
-Debugging:
-#!/bin/bash -x
+###Debugging:
+\#!/bin/bash -x
   will start debugging tracert - with display of all values expanded and
   lines as bash sees them and will execute them
 
@@ -31,13 +33,13 @@ set +x
   will enable debugging tracert only between set -/+ x displaying only
  commands in between with such debug info
 
-shell variables:
+##shell variables:
 $FUNCNAME - contains name of the function being executed(like reflection)
 $PS4 env var, is Promt String for debugging tracert
 $LINENO - is standard variable with line number
 PS4="$LINENO +" - will display line number during debugging tracert
 
-Defensive programming:
+###Defensive programming:
 Make sure everything is expanded and is executed in right place:
  Instead of:
   $cd $path

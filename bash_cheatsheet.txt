@@ -3,251 +3,325 @@
 scripts start from instruction which interpreter to use, first line always must
 be the directive. Except if script is passed as param into interpreter, then
 there is no need in that because there already an interpreter in place.
-\#!/path/to/interpreter
+
+    #!/path/to/interpreter
+
 i.e.:
-\#!/bin/bash
+
+    #!/bin/bash
 
 
-Bash Scripts accepts data from stdin and its direct redirection or pipe
-Note: 'read' command need to be used.
- Example:
-  >script:
-  >read -p "enter any *.txt"
-  >echo "${PWD}${REPLY}"
- $cd ~ && ls test.txt | ./read_and_expect_txt_files.sh
-  /home/dos/test.txt
- Example:
- $echo "test.txt" > try.txt
- $./read_and_expect_txt_files.sh < try.txt
-  /home/dos/test.txt
+Bash Scripts accepts data from stdin and its direct redirection or pipe  
+Note: 'read' command need to be used.  
+
+ Example: 
+ 
+    >script:  
+    >read -p "enter any *.txt"  
+    >echo "${PWD}${REPLY}"  
+    $cd ~ && ls test.txt | ./read_and_expect_txt_files.sh  
+    /home/dos/test.txt  
+
+ Example:  
+
+    $echo "test.txt" > try.txt  
+    $./read_and_expect_txt_files.sh < try.txt  
+    /home/dos/test.txt  
 	
 
-###Debugging:
-\#!/bin/bash -x
-  will start debugging tracert - with display of all values expanded and
+##Debugging:
+    #!/bin/bash -x  
+will start debugging tracert - with display of all values expanded and
   lines as bash sees them and will execute them
 
-set -x
-  echo $var
-set +x
-  will enable debugging tracert only between set -/+ x displaying only
+    set -x  
+    echo $var  
+    set +x 
+ 
+will enable debugging tracert only between set -/+ x displaying only
  commands in between with such debug info
 
 ##shell variables:
-$FUNCNAME - contains name of the function being executed(like reflection)
-$PS4 env var, is Promt String for debugging tracert
-$LINENO - is standard variable with line number
-PS4="$LINENO +" - will display line number during debugging tracert
-$OLDPWD - contains previous workind directory
-$RANDOM - contains random number from 1 to 32 767
-$$ - current PID of the programs\script being executed
+$FUNCNAME - contains name of the function being executed(like reflection)  
 
-###Defensive programming:
-Make sure everything is expanded and is executed in right place:
- Instead of:
-  $cd $path
-  $rm *
- Use secure defensive way:
-  [[ -d "$path" ]] && cd "$path" && echo rm *
-   where -d - make sure path exists and is Directory
-   "$.." - in double quotes to avoid null expansion if var does not exist
-	it will be expanded in empty string in that way - ""
-   && - will execute next command if previous returned 0 exit code
-   echo .. * - will echo expanded by bash shell wildcard, displaying what
-	exactly is going to happen with actual 'rm *'
+$PS4 env var, is Promt String for debugging tracert  
+$LINENO - is standard variable with line number  
+PS4="$LINENO +" - will display line number during debugging tracert  
 
-Naming Coventions:
-    Variable Names: Lower-case, with underscores to separate words. Ex: my_variable_name
-    Constants and Environment Variable Names: All caps, separated with underscores, declared at the top of the file. Ex: MY_CONSTANT
-    Google naming convetions: 
+$OLDPWD - contains previous workind directory  
+$RANDOM - contains random number from 1 to 32 767  
+$$ - current PID of the programs\script being executed  
+
+##Defensive programming:  
+
+Make sure everything is expanded and is executed in right place:  
+ Instead of:  
+
+    $cd $path  
+    $rm *  
+
+ Use secure defensive way:  
+
+    [[ -d "$path" ]] && cd "$path" && echo rm *  
+
+where:  
+>   - -d - make sure path exists and is Directory  
+  - "$path" - in double quotes to avoid null expansion if var does not exist
+	it will be expanded in empty string in that way - ""  
+  - && - will execute next command if previous returned 0 exit code  
+  - echo rm * - will echo expanded by bash shell wildcard, displaying what  
+	exactly is going to happen with actual 'rm *'  
+
+##Naming Coventions:
+- Variable Names:  
+ Lower-case, with underscores to separate words.  
+ Ex: my_variable_name  
+- Constants and Environment Variable Names:  
+ All caps, separated with underscores, declared at the top of the file.  
+ Ex: MY_CONSTANT  
+ -  Google naming convetions:    
 	https://google.github.io/styleguide/shell.xml#Naming_Conventions
 
-execution:
+#Execution:
+
   bash searches for entered command in 
+ 
    1. built-ins
    2. hashes
    3. bash history 
-   4. env var PATH
+   4. env var PATH  
+   4.1. PATH is split by ':' and every path is searched for the command  
+   5. new child process of bash created - fork(), and all ENV copied into it
+   6. found command is executed in the child copy of bash and replaces it - execve()  
+   7. main bash process executes wait() until the child process ends
+   8. after child process ends cleanup starts and destroys the process 
 
   So if script/binary is executed from some(i.e. current) directory and it is
-  not in path , it have to be 'source'd like:
-   source scriptname
-  or:
-   . scriptname - . is same to source
-  or:
-   ./scriptname - this seems to be <current dir>/scriptname (so basically full 
-  path, which is also applies)
+  not in path , it have to be 'source'd like:  
 
-expansion:
-  expansion works before pass anything further, so:
-   cp * /some/dir - will copy everything from current dir into /some/dir
-  first argument * actually will be passed to cp as list of files matched 
-  by wildcard, 'cp' will never see * itself
-   variables expansion:
-  Expansion starts when $ is encountered. To escape it use
-  \ - will escape 1 symbol to treat it as lyteral and not meta symbol
-  '' - everything between single quotes threated as lyterals too
-  "" - will expand variables, but escape spaces etc.
-   Variables are expanded before passing them to command so command will only
-  see var's value, not its name.
-   Bash creates variable when first mets it, so it will create even empty
-  variables, which could lead to errors:
-   foo="/some/file"
-   mv $foo $foo1  - error
-   Bash will create $foo1 variable , then mv will receive $foo1 value which
-  is null, and 'mv /some/file <null>' will get error as only 1 param is passed
-   To rename file to 'some/file1' use {}:
-   mv $foo {$foo}1
-   
-positional parameters:
-positional params:
-params:
-  Bash supports positional params for the script.
-  default ones are $0-$9 , other params are listed by ${10} and so on:
-   Params:
-  $0 - contains full path of the script being executed
-	does not count as parameter in list $#
-	so [ $# -gt 0 ] will return false if $1 is empty
-  $1+ - are actual parameters
+     source scriptname  
 
-  Parameters are passed as usual
-   Example:
-  script.sh param1 param2
-   in script.sh:
-  echo $0  #/path/to/script.sh
-  echo $1  #param1
-  echo $2  #$param2
-  echo $3  # this would be empty uninitialized param with null value
+>  or:  
+
+     . scriptname  
+. is same to source    
+
+>  or:  
+
+     ./scriptname  
+this seems to be <current dir>/scriptname (so basically full path, which is also applies)  
  
-  Paraters could be passed using wildcards like 
-   Example:
-  script.sh * 	- will pass everything matched, basically it would be a
-		list of files in PWD
 
-  Params Arrays:
-   $# - .Count, stores number of arguments passed into the script
-	does not count $0 in it, so is not 0 based
-   $* - stores all arguments - ($1 $2 ...), if args has spaces those
-	would be treated as separate params, so params 
-	("param1" "param with spaces" would be
-	$1=param1 $2=param $3=with $4=spaces
-   "$*" - all params expanded between ("$1 $2" ...), with delimiter of first
-	symbol in $IFS variable, it becomes one single parameter:
-	("param1" "param with spaces") would be
-        $1="param1 param with spaces" (leaving quotes behind in the end)
-   $@ - same as $*
-   "$@" - stores all arguments in quotas ("$1" "$2" ...), thus handling
-	spaces in variables.
-  	("param1" "param with spaces") would be
-	$1="param" $2="param with spaces" 
-	See 'variable substitution' for more use - ${@:2} (w/o " works same)
+#Expansion:
+ Expansion is done by shell(i.e. bash) and expanded result is passed to shell\command to be executed. If something is escaped by escape sequence, it will not be expanded by shell, and __could__ be expanded by the program receiving escaped sequence.  
+ expansion works before pass anything further, so:  
+
+     cp * /some/dir  
+ will copy everything from current dir into /some/dir  
+  first argument * actually will be passed to cp as list of files matched 
+  by wildcard, 'cp' will never see * itself  
+  to check what * will return, execute __echo *__  
+
+##variables expansion:
+  Expansion starts when $ is encountered.  
+  Escape sequences:  
+  \ - will escape 1 symbol to treat it as literal and not meta symbol  
+  '' - everything between single quotes threated as literals too  
+  "" - will expand variables, but escape spaces etc.  
+   Variables are expanded before passing them to command so command will only
+  see var's value, not its name.  
+   Bash creates variable when first mets it, so it will create even empty
+  variables, which could lead to errors:  
+
+    foo="/some/file"  
+    mv $foo $foo1  # error
+
+>   Bash will create $foo1 variable , then mv will receive $foo1 value which
+  is null, and 'mv /some/file <null>' will get error as only 1 param is passed  
+   To rename file to __'some/file1'__ use __{}__:  
+
+        mv $foo {$foo}1
+   
+#Positional parameters:
+  Bash supports positional params for the script.  
+  default ones are $0-$9 , other params are listed by ${10} and so on:  
+
+-  $0 ---- contains full path of the script being executed  
+----	does not count as parameter in list $#  
+----	so [ $# -gt 0 ] will return false if $1 is empty  
+
+-  $1+  ---- are actual parameters  
+
+####Parameters are passed as usual  
+   Example:  
+
+    script.sh param1 param2
+   in script.sh:  
+
+    echo $0  #/path/to/script.sh
+    echo $1  #param1
+    echo $2  #$param2
+    echo $3  # this would be empty uninitialized param with null value
+ 
+####Paraters could be passed using wildcards like 
+   Example:  
+
+    script.sh * 	
+ will pass everything matched, basically it would be a
+		list of files in PWD (same as __echo *__)
+
+###Params Arrays:
+   - $# - __.Count__, stores number of arguments passed into the script  
+	does __not count $0__ in it, so is not 0 based
+   - $* - stores all arguments - ($1 $2 ...), if args has spaces those  
+	would be treated as separate params, so params   
+	("param1" "param with spaces") would be  
+	__$1=param1 $2=param $3=with $4=spaces__  
+   - "$*" - all params expanded between ("$1 $2" ...), with delimiter of first
+	symbol in $IFS variable, it becomes one single parameter:  
+	("param1" "param with spaces") would be  
+        __$1="param1 param with spaces"__ (leaving quotes behind in the end)  
+   - $@ - same as $*  
+   - "$@" - stores all arguments in quotas ("$1" "$2" ...), thus handling 
+	spaces in variables.  
+  	("param1" "param with spaces") would be  
+	__$1="param1" $2="param with spaces"__   
+	See 'variable substitution' for more use - ${@:2} (w/o " works same)  
 
 
-shift:
+##shift:
   shifts params backwards so $2 would be $1 and old $1 would vanish
-  using this command each parameter could be handled one by one
-   Example:
-  while [[ $# -gt 0 ]]; do
-   echo "Parameter is $1"
-   shift
-  done
+  using this command each parameter could be handled one by one  
+   Example:  
+
+    while [[ $# -gt 0 ]]; do
+     echo "Parameter is $1"
+     shift
+    done
 
   This will echo out all parameters given as per shift will consequentially
   move all parameters into $1 position one by one
 
-basename:
-  returns file name from latest node in the path
-   Example:
-  $/home/dos/scripts/some_script.sh
-  in script >> echo basename $0
-  will return 'some_script.sh'
+##basename:
+  returns file name from latest node in the path  
+   Example:  
+
+    $/home/dos/scripts/some_script.sh
+    in script >> echo basename $0
+    will return 'some_script.sh'
   
 
-variables:
+##variables:
   AKA Global Variables - are visible everywhere in shell environment
-   if 'export'ed - will be visible in subshells created from the shell
-   'local' variables are local for funcions - see below
-  is converted to 'String' class by default
-  Initializate variable by = sign w/o leading or trailing spaces
-  Access variable by $
-   Also could be int, if used with 'declare':
-  declare -i variable=1
-   COuld be readonly:
-  declare -r READONLY="this is constant, in uppercase by convention"
-   Variables definitions:
-  a=z		- assign string "z" to var 'a'
-  b="a string"	- assign "a string" w/ space to var 'b'
-  c="a string and $b" - expansion works in "" so 'c' value 
-			is "a string and a string"
-  d=$(ls -l foo.txt)  - result of command is assigned to 'd'
-  e=$((5 * 7)) 	- result of ariphmetic result is assigned to 'e'
-  f="\t\tastring \n" - escaped sequences also works in "" here:
-			\t - tab
-			\n - new line
-   More than one variable could be declined in 1 line:
-  a=5 b="a string" - will create two variables with
-		     values "5" and "a string", probably 5 is int.ToString()
+   if 'export'ed - will be visible in subshells created from the shell  
+   'local' variables are local for funcions - see below  
+  is converted to 'String' class by default  
+  Initializate variable by = sign w/o leading or trailing spaces  
+  Access variable by $  
 
-  To preserve spaces and stuff use quotas with string vars initialization
-   Example:
-  my_str_var="string w/ spaces goes in quotas"
-  echo "stuff is: $my_str_var" > stuff is: string w/ spa.....
-  echo 'stuff is: $my_str_var' > stuff is: $my_str_var
+   Also could be int, if used with 'declare':  
 
-arrays:
-  also variables, indexed from 0, 
-  could have empty indexes.
-   Example declaration:
-  a[10]=Ten	# assign 'Ten' to 11th index in array length of 1
-   Powershell-like thing(or vice versa)
-  days=(Mon Tue Wed Thu Fri Sat Sun)
-  days=([0]=Mon [1]=Tue ... )    # same as above but with strict indexing
-  animals=("a dog" "a cat" "a cow")
+    declare -i variable=1
+
+   COuld be readonly:  
+
+    declare -r READONLY="this is constant, in uppercase by convention"
+
+   Variables definitions:  
+
+    a=z	                    # assign string "z" to var 'a'
+    b="a string"            # assign "a string" w/ space to var 'b'
+    c="a string and $b"     # expansion works in "" so 'c' value 
+                            # is "a string and a string"
+    d=$(ls -l foo.txt)      # result of command is assigned to 'd'
+    e=$((5 * 7))            # result of ariphmetic result is assigned to 'e'
+    f="\t\tastring \n"      # escaped sequences also works in "" here:
+                            # \t - tab
+                            # \n - new line  
+
+   More than one variable could be declared in 1 line:  
+
+    a=5 b="a string" # will create two variables with
+                     # values "5" and "a string", probably 5 is int.ToString()  
+
+
+  To preserve spaces and stuff use quotas with string vars initialization  
+   Example:  
+
+    my_str_var="string w/ spaces goes in quotas"
+    echo "stuff is: $my_str_var"   # stuff is: string w/ spa.....
+    echo 'stuff is: $my_str_var'   # stuff is: $my_str_var
+
+##arrays:
+  also variables, indexed from 0,   
+  could have empty indexes.  
+   Example declaration:  
+
+    a[10]=Ten	# assign 'Ten' to 11th index in array length of 1  
+
+   Powershell-like thing(or vice versa), except w/o @   
+
+    days=(Mon Tue Wed Thu Fri Sat Sun)
+    days=([0]=Mon [1]=Tue ... )    # same as above but with strict indexing
+    animals=("a dog" "a cat" "a cow")  
 
   If array addressed w/o index, index 0 is displayed, if it is null then nothing
-  displayed EVEN IF THERE ARE OTHER INDEXES
-   Example:
-  arr=([1]=one [2]=two)
-  echo $arr		# nothing returned
-  arr[14]=14
-  echo $arr 		# nothing returned
-  arr[0]=0
-  echo $arr		# 0 is returend
-  echo ${arr[@]}	# 0 one two 14 is returned
+  displayed EVEN IF THERE ARE OTHER INDEXES  
+   Example:  
 
-   Example2: assignment of array w/o index specification
-  arr=(a b c d)
-  echo ${arr[@])	# a b c d - is returned
-  arr=AAA
-  echo ${arr[@]}	# AAA b c d - is returned
-  echo $arr 		# AAA - is returned
+    arr=([1]=one [2]=two)
+    echo $arr		# nothing returned
+    arr[14]=14
+    echo $arr 		# nothing returned
+    arr[0]=0
+    echo $arr		# 0 is returend
+    echo ${arr[@]}	# 0 one two 14 is returned
 
-   Example3: deletion of first index w/o index specification
-  arr=(a b c d)
-  arr=
-  echo ${arr[@]} 	# b c d - is returned
+   Example2: assignment of array w/o index specification  
+
+    arr=(a b c d)
+    echo ${arr[@])	# a b c d - is returned
+    arr=AAA
+    echo ${arr[@]}	# AAA b c d - is returned
+    echo $arr 		# AAA - is returned
+
+   Example3: deletion of first index w/o index specification  
+
+    arr=(a b c d)
+    arr=
+    echo ${arr[@]} 	# b c d - is returned
  
 
- Iteration:
-  Array variable substitution(see below for strings) arrays could be iterated
-  and counted and checked for empty indexes:
-   Iterate array:
-  ${animals[*]} - returns list of values split by space
-  ${animals[@]} - same as above
-   Example:
-  arr3=("a first" "a second" 'a third')      # " or ' is fine
-  for i in ${arr3[*]}; do echo $i ; done
-  >a			# separate variables
-  >first		# also separated by spaces(split)
-  >a			# will work fine if no Spaces
-  >second
-  >a
-  >third
+ __Iteration:__
 
-  "${animals[*]}" - JOIN joins all elements into 1 string
-    Example:
-   for i in "${arr3[*]}"; do echo $i ; done 	# only " , ' will not work
-   >a first a second a third		 #joined string
+  Array variable substitution(see below for strings) arrays could be iterated
+  and counted and checked for empty indexes:  
+   Iterate array:  
+
+    ${animals[*]} # returns list of values split by space
+    ${animals[@]} # same as above  
+
+ Example:  
+
+    arr3=("a first" "a second" 'a third')      # " or ' is fine
+    for i in ${arr3[*]}; do echo $i ; done
+
+    >a			# separate variables
+    >first		# also separated by spaces(split)
+    >a			# will work fine if no Spaces
+    >second
+    >a
+    >third
+
+
+
+  "${animals[\*]}" - JOIN joins all elements into 1 string  
+ Example:
+
+     for i in "${arr3[*]}"; do echo $i ; done 	# only " , ' will not work
+     >a first a second a third                  #joined string
+
+_TODO: CONTINUE FROM HERE_
    
   Best form to use:
   "${animals[@]}" - returns list of values NOT split by space(real contents)

@@ -1,0 +1,45 @@
+# DNS
+
+[Guide](https://dyn.com/blog/dns-why-its-important-how-it-works/)
+
+Domain Name System - resolves human readable hostnames, such as www.example.com, into machine readable IP(Internet Protocol) addresses like 50.16.85.183.  
+
+Also it is a directory of crucial information about domain names such as:  
+
+- email servers (MX records)  
+- sending verification (DKIM, SPF, DMARC)  
+- TXT record verification of domain ownership  
+- SSH fingerprints (SSHFP)
+
+Intelligent DNS could even do something as Load Balancing - it could decide which IP(s) are returned after resolve.
+
+## Work principles
+
+Computer sends requests every time it uses a domain address (example.com).  
+This happens every time domain name is used.  
+For any reason - web surfing, email, internet radio, API calls etc.
+
+### In depth look for query
+
+1. Local DNS cache. 
+
+  Local computers(TODO: ensure), has [DNS cache](https://dyn.com/dyn-tech-everything-you-ever-wanted-to-know-about-ttls/), where request could find hostname-IP resolution and this will be enough. If there is no local cache computer performs [DNS query](https://dyn.com/blog/understanding-how-best-to-find-qps-metrics-for-your-managed-dns-account/).
+
+2. Recursive DNS server. Resolver.
+
+Usually resolvers are somewhere in ISP's(internet service provider) network, but there could be even local resolver installed.  
+Resolvers also has their own cache, which is examined for query sent.  
+If hostname-IP is resolved(username checks out), this will be enough and results is sent back to the computer.
+
+3. Root Name server. (.)
+
+Resolver queries other resolvers(for cache) until it comes to the Root Name Servers, which are not cached already, so cache story ends here.  
+The Root Name servers forward query to the regular Name Servers, which know the address of the hostname - thus are able to do the resolution.  
+The Root name servers are located all around the world, this is kind of hubs on the traffic roads, usually Bunches located in huge cities like Capitals or just megacities.  
+Root Name servers are managed by [13 companies](http://root-servers.org/) such as ICANN or NASA.  
+
+4. Top Level Domain Name server. (.com. .us. .ua.)
+
+Root server reads address from right to left, and depending on TLD in the address directs query to that Top Level Domain name server (Root NS knows addresses of all TLD Name servers).  
+TLD NS knows reads the address queried, and reads next part like example in example.com, and this TLD NS knows address of every such domain (like __example__.com).  
+

@@ -1,0 +1,7 @@
+TODO: set priorities
+conference: complete conference articles
+network: tracert, port checking
+network2: firewalld \ iptables
+cloud: scaling docker in AWS
+cloud2: ...  with terraform
+cheatsheets: convert to markdown

@@ -1,7 +1,63 @@
 TODO: set priorities
+1. Interview preps
 conference: complete conference articles
 network: tracert, port checking
 network2: firewalld \ iptables
 cloud: scaling docker in AWS
 cloud2: ...  with terraform
 cheatsheets: convert to markdown
+
+Interview preps:
+networking 
+  how dns works
+   What is A name
+   What is AAA name(or AAAA?)
+   WHat is C name
+  ports checks basics
+  How NAT works (ports and addresses change on NAT Gateway)
+  Network Mask
+bash \ powershell
+  collection iteration
+  env var setting \ getting
+  processes get \ kill
+  files copy from several dirs with structure save, by extensions
+  output save into file
+  checks for directory \ file exists
+
+bash cli
+  list all processes 
+  kill listed processes
+  find files by name and date, copy found files 
+  archive and compress the files
+
+how to bash cli addressing kernel
+
+how piping works, named pipes
+
+package management:
+ where configs are stored Centos \ Ubuntu
+ how to list all packages
+ check which binary came from wich file
+ search for package by name or part name
+ 
+how terraform inits
+
+find that 2 places where i had to check out the sources:
+  find the resources and find docs and find sources with stuff
+  how modules work
+  passing variables out of module 
+  receiving variables into the module
+  parametrizing TFSTATE?
+
+AWS:
+what is IAM
+what is roles
+each resource need its permissions, how is it organized
+structure of ECS and EC2
+
+A\B groups 
+Green BLue Deployments
+
+SSL + encoding + handshakes
+
+....

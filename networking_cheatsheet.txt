@@ -19,7 +19,7 @@ Computer sends requests every time it uses a domain address (example.com).
 This happens every time domain name is used.  
 For any reason - web surfing, email, internet radio, API calls etc.
 
-### In depth look for query
+### Steps: In depth look for query
 
 1. Local DNS cache. 
 
@@ -42,4 +42,99 @@ Root Name servers are managed by [13 companies](http://root-servers.org/) such a
 
 Root server reads address from right to left, and depending on TLD in the address directs query to that Top Level Domain name server (Root NS knows addresses of all TLD Name servers).  
 TLD NS knows reads the address queried, and reads next part like example in example.com, and this TLD NS knows address of every such domain (like __example__.com).  
+
+5. Authoritative DNS servers (Name Servers)
+
+Authoritative name servers know everything about specific domain - it is stored in DNS records, such as A Record, CNAME and stuff.
+A Record is what we need, this will be returned.
+
+6. Retreive the record
+
+recursive servers save request result from Name Server in its cache for amount of time set in TTL, after TTL expires recursive server will ask again to make sure info is up to date.
+
+7. Receive the anwser
+
+A record is returned back to the original asking computer by the Recursive server, answer is stored in local cache, reads IP address and passes it to browser. Browser opens the connection to receive the website.
+
+# MAC addresses:
+
+https://www.howtogeek.com/169540/what-exactly-is-a-mac-address-used-for/
+http://www.linfo.org/mac_address.html
+
+MAC is the uniq address of Network Interface Card.  
+
+MAC is lowest level in networking, below IP protocil.  
+
+MAC is used to send network packages, it is located in package header.  
+
+NIC will accept only those packages whose header contains NIC's MAC(matches).  
+
+Routing is done on IP level.
+
+With MAC packages only could go inside the same network, if need to go through the Router the IP need to be used, wrapping package with MAC address.
+
+##Steps:
+
+WHen computer wants to send a packet he checks whether target IP is in the same network. seems like ARP is used here, allows to ask all the computers in network (via Broadcast MAC ff:ff:ff:ff...) who has the IP address, only the computer with the IP will answer.   
+Answer will also contain the MAC address. This MAC will be written in the package and sent to that IP address (next hop). Info will be cached (as in DNS resolvers, seems like)
+
+If IP is out of network, router receives the package with router's MAC in header and target IP address(not router's). Then Router check whether he could reach given target IP, if not, he sends package to next hot(router), and everything is done again.
+
+Router receives packets for its own MAC, and for different(not router's) IP.  
+Then checks whether he can directly reach the target IP, if not - passes to another router(hop)
+
+# NAT  (Network Address Translation)
+
+http://www.internet-computer-security.com/Firewall/NAT.html
+
+There are only 32 bits of addresses or 4 billions in IPv4.  
+To workaround it NAT is created, it introduces Private IP addresses.  
+
+## Private IP addresses
+
+there are 3 classes:
+
+Class A: 10.0.0.0 - 10.255.255.255
+
+Class B: 172.16.0.0 - 172.31.255.255
+
+Class C: 192.168.0.0 - 192.168.255.255 (or CIDR block [192.168.0.0/16](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks) )
+
+Within the private network - behind the Router(hop) the IP addresses would be unique. In another private network those addresses also would be unique, but could be the same in two different private networks.  
+However as long as they stay private no conflicts appears.  
+
+Routers are the Gateways with real IP address purchased from the ISP (internet service provider). And this purchased address would be Public and unique.  
+Routers are the 'real' sources for other services in the internet, and those services would address their packets only to Router, and Router will then translate (using routing tables) and substitute info in the package to send it to original sender inside the private network.
+
+## NAT types:
+
+### Static NAT
+
+NAT device has a pool of Public ip addresses, and devices in network are assigned those addresses when accessing outside world. Static addresses will be given to the device permanently, so even when it goes offline the address still can not be taken by other device. It is useful for servers.
+
+### Dynamic NAT
+
+same as above - pool of IP addresses which are given to the devices going outside, but when devices goes offline IP address is released and could be given to another device. When all the addresses are taken - new device could not be given any IP from the pool hence cant go to the internet.
+
+### Port Address Translation (PAT)
+
+[video](https://www.youtube.com/watch?v=QBqPzHEDzvo)
+
+Private address connects to a outer address with for instance:
+
+    192.168.0.3:40213 connects to 40.30.20.10:80
+
+Router substracts private ip and port and puts it in Routing Table  
+and adds its own IP and another random port, changing the connection to:
+
+    12.13.14.15:50098 connects to 40.30.20.10:80
+
+Server(or another same NAT router) receives connection, and answers to the Router:
+
+    40.30.20.10:80 answers to 12.13.14.15:50098
+
+Then Router takes info from routing table, where matches router_address:random_port to the entry, and takes second pair with private_address:random_port
+
+    40.30.20.10:80 answers to 192.168.0.3:40213
+
 

@@ -156,6 +156,57 @@ Like taking IP from the logs and adding where it is from (country) to add meanin
 
 # [Nikita Procenko - Netflix] Infrastructure-as-code: bringing the gap between Devs and Ops
 
+the talk mostly about approaches, and terraform:
+
+## Immutability of infrastructure  
+
+TODO: write down about immutability - easier to recreate instancec than patch it, to avoid regression and stuff
+
+## Declarative vs Imperative
+
+__Imperative__ approach is when everything is explicitly designed. This is the list of detailed instructions of HOW TO do something.  
+> bash, aws cli
+
+__Declarative__ on the other hand is abstract form where only END STATE is given. Basically Declarative approah is just a wrapper around Imperative code. Imperative part here is incapsulated out of sight of regular user.  
+Take Ansible - the only user do is state that Foo program need to be on the system. And Ansible will ensure it - install, update, or do nothing if Foo already existts.  
+> terraform, ansible
+
+Example:
+
+Imperative C#:
+    
+    List<int> collection = new List<int> { 1, 2, 3, 4, 5 };
+
+    # Imperative: get only Odd numbers
+    List<int> results = new List<int>();
+    foreach(var num in collection)
+    {
+        if (num % 2 != 0)
+              results.Add(num);
+    }
+
+    # The code below has detailed instructions of what to do step-by-step
+
+    # Declarative: get only Odd numbers  
+    var results = collection.Where( num => num % 2 != 0);
+
+    # or even more Declarative:
+    from item in collection where item%2 != 0 select item
+
+> declarative vs imperative is more about _declaring what you want to have_ happen vs. explaining exactly _how it needs to occur_.
+
+Terraform, the same as Ansible are the higher level abstraction tools that are Declarative.  
+The user only declares what he wants - tool inistalled or EC2 Instance created from specific image within specific subnet with a specific name etc. and the Tool will ensure for the User that this happened.
+
+Bash scripts on the other hand are Imperative.   
+Where everything is explicitly and in a detailed way is explained to the interpreter which will go step by step doing what it is told, and at the and we need to ensure that everything is in place as we Wanted it.
+
+[read more](https://stackoverflow.com/questions/1784664/what-is-the-difference-between-declarative-and-imperative-programming)
+
+## IaC Demo:
+
+https://github.com/iac-demo
+
 -------------
 
 Other at all:

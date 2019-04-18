@@ -9,13 +9,19 @@ cheatsheets: convert to markdown
 
 Interview preps:
 networking 
-  how dns works
-   What is A name
-   What is AAA name(or AAAA?)
-   WHat is C name
+  +how dns works - it asks local cache, then resolver(ISP cache), then root server for TLD address, then TopLevelDomain server for domain address, then authority DNS for A name, and saves IP address in local cache( and resolver's cache), then passes that IP to browser to open connection. The asked data will be stored in cache for its TTL time
+   +What is A name - Address, IP-Domain pair
+   +What is AAAA - Address but higher version
+   +WHat is C name - pointer to domain name, there are no Pointer to C name tho
   ports checks basics
-  How NAT works (ports and addresses change on NAT Gateway)
+   +What is URL record - redirect record
+   +What is TTL - time to live, how many seconds record is cached by resolver
+  +How NAT works (ports and addresses change on NAT Gateway)
+   +Private addresses: Class A (10.0.0.0- 10.255.255.255); Class B(172.16.0.0-172.31.255.255); Class C(192.168.0.0-192.168.255.255). Private addresses are not routed to the internet. NAT routers changes pairs of private_ip:port1 to router_ip:port2 , and saves the pairs of those addresses:ports into Routing table, so outer servers always thinks they are talking to Router itself, and private computers always thinks they are talking to servers directly (NAT substitues addresses in packages on the fly).
+  +What is MAC Address - Network interface Card identifier, MAC is checked by NICinside the network packet header, if it matches NIC's it's accepted, otherwise droppet (if Promisc mode disabled). MAC is the lowest level of layers in networking, it works only in single networ, and wont go over the router, this is where IP comes in play, together with APR layer above it, which searches for Ip of next hop(router of the next network) to pass the original packet with another ip\mac addresses.
+MAC also is used in DHCP to identify devices and give IP addresses to them.
   Network Mask
+  What is Reverse Proxy
 bash \ powershell
   collection iteration
   env var setting \ getting

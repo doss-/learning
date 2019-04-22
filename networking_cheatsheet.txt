@@ -1,3 +1,5 @@
+https://www.youtube.com/user/JeffreyMRichter/videos?view=0&sort=dd&shelf_id=1
+
 # DNS
 
 [Guide](https://dyn.com/blog/dns-why-its-important-how-it-works/)
@@ -137,4 +139,75 @@ Then Router takes info from routing table, where matches router_address:random_p
 
     40.30.20.10:80 answers to 192.168.0.3:40213
 
+# Subnet Mask
 
+https://www.iplocation.net/subnet-mask  
+https://en.wikipedia.org/wiki/Subnetwork  
+
+calculator http://jodies.de/ipcalc
+
+# Proxy
+
+https://www.youtube.com/watch?v=0OukrSld3sY
+
+![image](cheatsheets/docs/img/forward_proxy_vs_reverse_proxy.jpg)
+
+## Forward Proxy
+
+Or just Proxy, processes Outgoing requests. Computers in the network connects to it, and it connects to the servers.  
+See p4 proxy as example, with its own address, port - it accepts connections and does everything on its own - checks whether it needs to look furhter or not etc.
+
+Usual use:
+  - Content filtering:
+> censoring some addresses or resources(prevents traffic to coming in)
+> translation some content before shipping it to computers inside network  
+  - Caching (see p4 proxy)
+  - logging, monitoring  - what comes in, what comes out, etc.
+  - anonimization  
+> because not the computer bu proxy connects to server, it could ship different information
+
+## Reverse Proxy
+
+Processes Incoming requests. Computers from outside world connects to the Proxy and not to the server itself, which is more secure, more stable(only 1 static address for outer world), more managable.
+
+Usual use:
+  - __Stable client endpoint__ whereas servers behind id could change addresses, cease to exist, turn on and off, scale and descale
+  - __Load balancing__: Level 4 (udp/tcp traffic) & Level 8 (http traffic,with headers and other info for better balancing
+  - __Load balancing__: server selection like Green\Blue schamas or A\B testing
+  - __SSL Termination__ - when encryption ends on Proxy and internal traffic to servers and between internal servers is unencrypted and over http
+  - __Caching__ - frequent requests could be cached w/o going to internal servers at all (during TTL ofc)
+  - __Authentication/validation__ - all the auth is done on the Proxy so no further auth is required.
+  - __Tenant throttling/billing__ - deny connection\answer to computers that made too many requests per second. Or bill such customers, if we are charging by the amount\frequency of requests done to the servers.
+  - __DDoS mitigation__ - deny connection if suspicious about DDoS attack for some amount of time (1 hour or 1 day etc)
+
+Reverse proxy examples:
+
+Webservers (such as Nginx)  
+Load Balancers  
+API Gateways  
+
+# Microservices
+
+Monolith split into little parts which are independent one from each other.
+Microservices have its own:  
+ - Data storage, and exclusive access to it for read and write
+ - Technology stack, so different services could be written in different languages and use different storages and stuff  
+ 
+Why to split:
+ - Different technology stacks could be used for different services  
+ - Scalability - some services could be scaled to more instances than the others. Which means that less resources is needed comparing to split of monolith service, where some parts are overscaled and no need at the moment, but still scaled bcs of monolith structure  
+ - Different services(clients) could use and depend on one single service (see it as inheritance, when different classes could be inherited from single base class)
+ - Versioning, some services could be upgraded with new featurs, but as long as they are backwards compatible other services could still use them w/o any additional changes
+ - Conflicting version dependencies of shared libs in monolith services could be solved by splitting this monolith in microservices so different shared libs goes independent on different services
+
+
+# Autoscaling instances
+
+One of the holy grails Cloud apps is Autoscaling, which means changing amount of instances(of same service\app) running at the same time.
+
+Autoscaling is performed automatically by 'orchestrator' - some cloud tool  
+There are couple of ways to autoscale:  
+ - Periodical Queue check: It has Queue which is in front of services, if amount of items in queue growth above some threshold for some period of time, the 'orchestrator' starts to scale instances up. When items in queue start to go down, 'orchestrator' will scale instances down.
+ - Periodical Resource usage check: Instances could have some metrics being monitored by 'orchestrator' like CPU or RAM or HDD etc usage, and when those instances start to heat, some usage goes up, 'orchestrator' could decide to spin up another instance(scale up), and vice versa when resources goes low, 'orchestrator' could scale down some extra instances(keep n+1 amount anyway).   
+Load Balancer also could be used to make sure all the instances getting equialent load amount.
+ - Scheduled: just some schedule related to day\night, weekdays\weekends\holidays etc. As a downside - scheduled manner could not always be up to real world, and sometimes there could be too many or too less instances available

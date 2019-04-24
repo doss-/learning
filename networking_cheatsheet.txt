@@ -211,3 +211,33 @@ There are couple of ways to autoscale:
  - Periodical Resource usage check: Instances could have some metrics being monitored by 'orchestrator' like CPU or RAM or HDD etc usage, and when those instances start to heat, some usage goes up, 'orchestrator' could decide to spin up another instance(scale up), and vice versa when resources goes low, 'orchestrator' could scale down some extra instances(keep n+1 amount anyway).   
 Load Balancer also could be used to make sure all the instances getting equialent load amount.
  - Scheduled: just some schedule related to day\night, weekdays\weekends\holidays etc. As a downside - scheduled manner could not always be up to real world, and sometimes there could be too many or too less instances available
+
+
+# Messaging
+
+Messaging communication [reactivemanifesto.org](reactivemanifesto.org)
+
+Benefits over standard HTTP network calls (like GET/PUT/POST etc) which are converted from Method calls
+
+Request\Reply pattern Downsides:
+
+1. Network calls could be sent to a services(instance of a server) by load balancer, but particular service could already be busy doing work, and LB could not know about it.  
+But there could be other server instances that are not busy (and LB does not know about it)
+
+2. Client could go down - crash or scale down, while waiting for message request.  
+
+Messaging benefits:
+
+1. Resource efficient - messages are taken from the queue by instance of a server which is done wokring, so all the instances have work and not overwhelmed with it. 
+
+2. Client Services are not waiting longer than it could with Request-Reply pattern. So less chance to crash scale down before the answer.
+
+3. Client and Server are both talking to Queue service, which is always there and is solid - it wont go down crashing or descaling (actially it could be reverse proxy endpoint hiding queue brokers like zookeper one)
+
+4. Resilient - if message from queue is taken and service which took it crashes - message will be returned to queue (in some magical way lol), and will be worked by with another service instance. 
+
+5. Queue should implies idempotency (or Server rather?), when Queue could push out _unordered_ messages multiple times, it is all need to be in Idempotent fashion.
+
+6. Messages are not lost even when consumer is fully offline. Messages will be stored in Queue until consumer comes back. This could be useful if consumer had a but, and was taken offline for fix, so new and fixed consumer now could handle all the messages.
+
+7. Elastic - Orchestrator could use queue length to determine whether we need to scale  number of instances up or down.

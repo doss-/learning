@@ -174,6 +174,9 @@ resource "aws_iot_topic_rule" "RSSIRule" {
    If will be linked in IAM , Replace could work our - i will know the ARN
    and will be able to link the Topic Rule, else probably will jsut
    create it as provisioning in whole
+
+   here is the topic_rule sources in terraform aws provider:
+https://github.com/terraform-providers/terraform-provider-aws/blob/master/aws/resource_aws_iot_topic_rule.go
 */
 }
 
@@ -355,8 +358,8 @@ resource "aws_iam_role" "rethink_db_lambda_vpc" {
 POLICY
 }
 
+/*
 #API GATEWAY 
-
 resource "aws_api_gateway_rest_api" "rest_api" {
   name = "HandHeld_Gateway"
 }
@@ -400,13 +403,14 @@ resource "aws_lambda_function" "lambda" {
   role = "${aws_iam_role.rethink_db_lambda_vpc.arn}"
 
 }
+*/
+# resource "aws_lambda_permission" "allow_apigw_provision" {
+#  action = "lambda:InvokeFuncion"
+#  function_name = "${aws_lambda_function.lambda.arn}"
+#  principal = "apigateway.amazonaws.com"
+#  source_arn = "${aws_api_gateway_deployment.example.execution_arn}/*/${aws_api_gateway_method.method.http_method} ${aws_api_gateway_resource.resource.path}"
+#}
 
-resource "aws_lambda_permission" "allow_apigw_provision" {
-  action = "lambda:InvokeFuncion"
-  function_name = "${aws_lambda_function.lambda.arn}"
-  principal = "apigateway.amazonaws.com"
-  source_arn = "${aws_api_gateway_deployment.example.execution_arn}/*/${aws_api_gateway_method.method.http_method} ${aws_api_gateway_resource.resource.path}"
-}
 
 #OUTPUT
 output "certificate_arn" {

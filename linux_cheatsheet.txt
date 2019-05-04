@@ -143,6 +143,17 @@ cd:
   -/<none>   - changes to current homedir
   ~username - changes to username homedir
 
+tree:
+  lists directories as trees, very useful
+   https://www.ostechnix.com/view-directory-tree-structure-linux/
+  sudo apt install tree
+   
+   Example:
+  tree .terraform/
+   will show everything inside .terraform directory in tree-view
+  tree -h --du .terraform/
+   will show sizes in human readable, and for directories too
+
 ls:
   list files in given directory or current one
    Params:
@@ -164,6 +175,9 @@ ls:
   -F - adds slash to dirs in list
   -h - human readable sizes (mb, gb etc)
   -i - inode number, address where contents is located, same for all hard links
+
+  Example:
+  ls -lSrh - sory by size, in reverse order with human readable sizes
 
 locale:
   displays all Locale related env variables, like
@@ -313,6 +327,7 @@ find:
    find . -size +10M  - will find with size more than 10 megabytes
    find . -size 10M - will find exactly of 10 megabytes
    find . -size -10M - will find with size less than 10 megabytes
+   find . -size +1G -exec mv {} delme/. \; - move everything more than 1Gb into another dir 'delme'
   -cmin n - files\dirs with attrs\contents changed exactly n minutes ago
 	supports +\ \- like -size
   -mmin n - files\dirs whos contents changed n minutes ago

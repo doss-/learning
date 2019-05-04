@@ -27,6 +27,37 @@ installation:
     profile                 = "terraform"
    }
 
+## State
+
+by default state is stored in terraform.tfstate file, located on filesystem in the same directory where `terraform init` was made  
+state is better to store remotely  
+in this case terraform state will be stored in [init_dir]/.terraform/terraform.tfstate file  
+terraform supports some 3rd party repos and its vault. s3 and artifactory isalso supported  
+
+### S3 backand storage:
+
+https://www.terraform.io/docs/backends/types/s3.html  
+https://medium.com/@jessgreb01/how-to-terraform-locking-state-in-s3-2dc9a5665cb6  
+https://medium.com/faun/terraform-remote-backend-demystified-cb4132b95057  
+
+backend is configured in `[init_dir]/terraform.tf` file:
+
+    terraform {
+      backend "s3" {
+        bucket = "dos-deepdiveresized"
+        region = "us-east-1"
+        key = "cdp/tfstate/terraform.tfstate"
+      }
+    }
+
+after it is created `terraform init` need to be executed  
+if `terraform.tfstate` is already present, user is promted to move it to remote location.  
+also all the directories along the path will be created in `key` value  
+terraform state will be stored in RAM now, and link to where it is will be stored in .terraform/terraform.tfstate file
+
+
+
+
 !!IMPORTANT
  Always use profile and shared_credentials file in 'provider' section
  Otherwise default values are gonna be used, which could differ

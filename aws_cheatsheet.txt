@@ -475,6 +475,16 @@ aws:
  Read more:
  https://docs.aws.amazon.com/cli/latest/userguide/installing.html
 
+ Configure:
+  aws configure
+   and enter all the necessary info
+  Access Key ID - treat it as Username
+  Secret Access Key - treat it as Password
+   both are created and attached for IAM user, user could have several, they are used for console, api and things like that access
+   Example:
+    aws configure --profile terraform
+   will create all the config for terraform profile
+
 aws iam list-users:
   list all configured IAM users for aws command line in configured format
   JSON by default

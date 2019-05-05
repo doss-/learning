@@ -77,7 +77,23 @@ Other:
   :wq - save and quite
   :q! - quit and ignore warnings (i.e. unsaved changes)
 
+# Search
+
+https://vim.fandom.com/wiki/Searching
+  :help :substitute -or- :help :s
+
+find count:
+
+  :%s/foo//gn
+  2 matches on 2 lines
+  will find all occurances in all lines 1+ times and return how many found in how many lines
+
 find and replace:
+  https://vim.fandom.com/wiki/Search_and_replace
+  :help :s_flags    # for flags, like g c i n
+
+    :[range]s[ubstitute]/{pattern}/{string}/[flags] [count]
+
 :%s/foo/bar/gci
  % 	- all lines [current line only if not specified]
  s 	- substitute - commad for Find and REplace

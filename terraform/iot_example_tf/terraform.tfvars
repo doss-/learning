@@ -1,6 +1,5 @@
 region = "us-east-1"
 
-shared_credentials_file = "/home/dos/.aws/credentials"
 profile = "terraform"
 
 s3_bucket = "dos-deepdive"

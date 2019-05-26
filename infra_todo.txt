@@ -5,6 +5,16 @@ install git
 clone learning
 install vim
 check that universe added
-install htop
+install htop; tree
 install docker
 install terraform
+  download archive from terraform.io/downloads
+  cp /usr/bin/terraform ; chmod +x
+
+aws cli
+  install pip3
+  pip3 install awscli --upgrade --user  
+   upgrade all required packages and install for current user
+  aws configure --profile terraform
+   supply access key id (associated with terraform user in IAM)
+   supply secret access key (shown only during creation, so copy it from similar place)

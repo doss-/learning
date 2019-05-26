@@ -172,9 +172,12 @@ ls:
   -r - reverse sorting order
   -S - sort by size
   -t - sort by date changed
-  -F - adds slash to dirs in list
+  -F - adds slash to dirs in list, * to g+r files and stuff
+  -p - appens slash to dirs
   -h - human readable sizes (mb, gb etc)
   -i - inode number, address where contents is located, same for all hard links
+  -I - ignore; dont list entries matching shell pattern
+
 
   Example:
   ls -lSrh - sory by size, in reverse order with human readable sizes

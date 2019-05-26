@@ -1150,8 +1150,62 @@ df:
   df -h - human readable sizes
   df / - will show info about root partition - where / is mount point
 
+##mount find usb disk hdd drive:
+
+format usb disk:
+https://www.wikihow.com/Format-a-USB-Flash-Drive-in-Ubuntu
+https://www.cyberciti.biz/faq/linux-disk-format/
+
+1. locate the disk and found its name:  
+  tail -f /var/log/syslog  
+> look for something like this:  
+May 26 15:57:00 dospc kernel: [ 9385.461071]  sdc: sdc1 sdc2
+
+2. #lsblk  
+
+> unmount everything that auto-mounted from that drive
+
+  sudo umount /dev/sdb1
+
+3. (OPTIONALLY)  override everything , will take HOURS:
+
+sudo dd if=/dev/zero of=/dev/sdc bs=4k status=progress && sync
+
+3.1 Faster option, which will override MBR and partition table:
+
+dd if=/dev/urandom of=/dev/sdc bs=1M count=2
+
+4. fdisk /dev/sdc
+
+option: o
+
+will create empty partition table
+
+option: n
+
+will create new partition, then use Defaults
+
+option: w
+
+will write changes, could take some time. wait for it
+
+5. lsblk
+
+will return all block devices with updated sdc device, check size
+
+6. format into FAT32
+
+sudo mkfs.vfat /dev/sdc1
+
+7. eject disk when done 
+
+sudo eject /dev/sdc
+
+---------------
+
 how to get block device name, partition, mount it and unmount after:
-  tail -f /var/log/messages 	- open messages and follow
+  tail -f /var/log/messages 	- open messages and follow. deprecated
+  tail -f /var/log/syslog - this is more standard log file.
   #mount disk, recheck messages for something like:
   "sdb: sdb1"
   "sd 3:0:0:0 [sdb] attached SCI removable disk"

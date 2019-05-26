@@ -241,3 +241,45 @@ Messaging benefits:
 6. Messages are not lost even when consumer is fully offline. Messages will be stored in Queue until consumer comes back. This could be useful if consumer had a but, and was taken offline for fix, so new and fixed consumer now could handle all the messages.
 
 7. Elastic - Orchestrator could use queue length to determine whether we need to scale  number of instances up or down.
+
+## Fault tolerant message processing
+
+1. Service takes message from a queue.   
+1.1 Message becomes invisible in the queue, but not deleted.  
+1.2 Message becomes visible again in X seconds (amount of time expected to process the message)
+1.3 MessageDequeue counter is incremented, counter shows how many times message was dequeued(taken from the queue for processing)
+
+2. Service takes message again if it is visible, and again increments counter. 
+2.1 If counter is greater than threshold, it means the message is poisonous and we need to log it and delete it w/o processing, because it could crash the service(the reason why it has dequeue number over threshold)
+2.2 If message is processed fine the Service asks the Broker to delete the message.
+
+This means that messages could be processed out of order(when retried), and could be even processed in parallel (if X seconds are not enough for processing at some point).
+
+Which means that messages processing should be:  
+
+- independent (one message processed should not affect others)  
+- idempotent (2+ message processings should have no ill effect)
+
+## Messages features
+
+1. Multiple subscribers could receive one same message. So we need to send 1 message and 2+ subscribers could receive it.
+
+2. Messages could have TTL and when TTL passes message got deleted from the queue. This could save costs in cloud when we are billed for storing messages, and unprocessed messages could pile up (e.g. noone can process the message at the moment for some period of time)
+
+3. Invisibility timeout of message (see previous secion for X value).  
+But it should be taken carefully because in case of short X message could be processed second time _in parallel_  
+And in case of too long X it could be invisible long time after unsuccessful processing being completed long ago
+Also Service could increase or decrease the X which is stored in Broker.
+
+4. Update message in queue.  
+In case message processing is really long, and one Service processed it partially, it could go to Broker and update the message, so in case of crash second Service could not do that part of work which was done by the Service number 1. To do not waste the resources on double work. _Which still should be idempotent_
+
+### At-most-once pattern
+
+There is cases when message should be processed 1 or 0 times, it applies to data which is actual now and does not matter as time passes.
+
+This could be accomplished by using TTL of the message, so it will be deleted by the Broker after the TTL expires, and TTL is the amount of time the data in the message _matters_  
+Additionally to add 1 ir 0 times processing, time of message invisibility should be more than TTL, so when service takes message into processing, it will stay invisible long enough for Broker to delete it
+
+
+

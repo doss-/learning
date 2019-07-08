@@ -7,6 +7,29 @@ cloud: scaling docker in AWS
 cloud2: ...  with terraform
 cheatsheets: convert to markdown
 
+## Books:  
+
+### Basics  
+
+0. Continuous Intergration in short: https://continuousdelivery.com/
+0.1 Branching strategies: https://rollout.io/blog/branching-strategy/
+0.2 CI and Feature Branching: http://www.davefarley.net/?p=247
+1. [Continuous Delivery: Reliable Software Releases through Build, Test, and Deployment Automation (Addison-Wesley Signature Series (Fowler))](https://www.amazon.com/Continuous-Delivery-Deployment-Automation-Addison-Wesley/dp/0321601912)  
+1.1 https://martinfowler.com/bliki/ContinuousDelivery.html  
+
+3. [The Phoenix Project: A Novel about IT, DevOps, and Helping Your Business Win](https://www.amazon.com/Phoenix-Project-DevOps-Helping-Business/dp/0988262592)
+
+
+### IaC  
+
+2. [Terraform: Up and Running: Writing Infrastructure as Code](https://www.amazon.com/gp/product/1491977086/ref=ox_sc_act_title_1?smid=ATVPDKIKX0DER&psc=1) Note that 2nd Edition should come out at August 2019  
+4. [Infrastructure as Code: Managing Servers in the Cloud](https://www.amazon.com/gp/product/1491924357?ie=UTF8&tag=martinfowlerc-20&linkCode=as2&camp=1789&creative=9325&creativeASIN=1491924357)  
+4.1 https://martinfowler.com/bliki/InfrastructureAsCode.html
+
+
+
+#Stuff below should be moved out somewhere in another file
+
 Interview preps:
 
 Theory: 

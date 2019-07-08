@@ -633,6 +633,7 @@ tail:
 
 Network troubleshooting:
   nmcli device 		# display all devices 
+   or: nmcli device show eth0 - will show info about the interface(eth0) including dns, gateway, address, mac etc.
   >DEVICE  TYPE      STATE      CONNECTION  
   >wlo1    wifi      connected  homenetwork 
   >lo      loopback  unmanaged  --     

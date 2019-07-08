@@ -1,4 +1,5 @@
 https://www.youtube.com/user/JeffreyMRichter/videos?view=0&sort=dd&shelf_id=1
+https://www.youtube.com/watch?v=V2SpN-OePzc - network intro course on CBT Nuggets
 
 # DNS
 
@@ -62,6 +63,7 @@ A record is returned back to the original asking computer by the Recursive serve
 
 https://www.howtogeek.com/169540/what-exactly-is-a-mac-address-used-for/
 http://www.linfo.org/mac_address.html
+https://www.youtube.com/watch?v=V2SpN-OePzc
 
 MAC is the uniq address of Network Interface Card.  
 

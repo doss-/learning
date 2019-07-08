@@ -60,6 +60,8 @@ exception handling:
 
 pip:
   python libraries manager
+   DO NOT UPGRADE PIP WITH PIP --upgrade option
+  https://github.com/pypa/pip/issues/5221
 
  install:
    installs libraries
@@ -68,6 +70,12 @@ pip:
 	 Example:
 	Flask   	- will install Flask
 	Flask==0.10.1   - will install Flask of given version
+ search whether package is installed:
+ ALSO NOTICE THAT PIP3 and PIP ARE TWO DIFFERENT PROGRAMS WITH DIFFERENT
+ PACKAGES (i believe)  
+   sudo apt-get install python-pip
+  OR
+   pip list <package_name>
 
 mysql+python:
   mysql-connector-python - contains mysql libs for work with database

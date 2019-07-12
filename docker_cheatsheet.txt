@@ -1457,3 +1457,10 @@ config:
 
 docker-compose examples:
   https://github.com/ramkulkarni1/django-apache2-docker - subj
+
+
+General concepts:
+
+Volumes volumes -v
+ Comprehencive guide about volumes(as everything on Digital Ocean)
+https://www.digitalocean.com/community/tutorials/how-to-share-data-between-docker-containers

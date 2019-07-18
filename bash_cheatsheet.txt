@@ -209,6 +209,15 @@ this seems to be <current dir>/scriptname (so basically full path, which is also
     $/home/dos/scripts/some_script.sh
     in script >> echo basename $0
     will return 'some_script.sh'
+
+##dirname:
+  returns directory name (everything except latest nodein the path)  
+  antipod of `basename`
+   Example:
+
+    cd /home/dos/directory/filename
+    dirname $PWD
+    > /home/dos/directory
   
 
 ##variables:

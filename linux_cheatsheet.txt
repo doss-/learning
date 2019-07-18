@@ -226,8 +226,12 @@ grep:
    '[b]ash' will also do the trick, dunno why
     why it works: 
      https://askubuntu.com/questions/153419/how-does-this-tricky-bracket-expression-in-grep-work
-    TL;DR - basically string 'grep [f]irefox'(returned by ps aux) will not be 
-	matched by regular expression '[f]irefox' (executed by grep)
+ TL;DR - ps returns process of grep with a parameter '[f]irefox', and
+ grep it its turn searches for 'firefox' this pattert will not match string
+ from ps output with displayed grep params that includes braces
+ So basically string 'grep [f]irefox'(returned by ps aux) will not be 
+ matched by regular expression '[f]irefox' (executed by grep)
+ Params:
   -i  - case INsensitive
   <filepath> - is not required if used in pipe
   -c - Count matched lines, return number of lines matched
@@ -486,6 +490,7 @@ sort:
   Sort [option] file
    Params:
   -r - reverse
+  -R - random sort
   -n - sort by numbers
   -b - ignore leading blanks i.e. '   a'
   -f - ignore case

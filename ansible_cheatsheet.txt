@@ -41,10 +41,19 @@ located in
 /etc/ansible/hosts
 back it up
 
+[all:vars]  - It could have variables that instruct ansible
+ansible_connection = ssh - this instructs ansible how to connect to 
+the machines from the groups
+
 groups are started with [<group_name>]
 and could has domain names or addresses or other aliases of the kind. i.e.:
 [local]
 localhost
+
+This is line which inscructs ansible how to connect to particular machine
+inside the group - connections string+secret key:
+ Example:
+<alias> ansible_host=<hostnameOrIP> ansible_user=<user to use> ansible_private_key_file=<path to private ssh key>
 
 =====User
 create new user for ansible(lets call it ansible), add it to sudoers, because playbooks will fail
@@ -144,3 +153,13 @@ setup - gather facts checked by default and display it
 ansible-playbook:
  to execute playbooks
  ansible-playbook <playbook.yaml>
+
+ -i - change default hosts location
+ Example:
+ ansible-playbook -i /path/to/hosts playbookd.yml
+
+####Playbooks structure:
+hosts: <hosts to be executed upon>
+tasks: 
+  - shell: <command to be executed in 'shell' task>
+  <-another task, like 'yum'>

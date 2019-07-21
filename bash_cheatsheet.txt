@@ -1248,6 +1248,17 @@ functions:
   back to parent shell. subshell can not change parent shell - so 'read' command
   will not work in pipe
 
+breaking line; new line:
+ use \ at the end of the line.
+  NO SPACES OR ANYTHING AFTER THE BACK SLASH.
+ Guideline: split the long(80 chars) line into two lines.
+ Also break the line everytime there is an &&, | or || characters.
+ Example:
+command1 \
+ && command2 \
+ || command3 \
+ | command4
+
 read:
   reads line from keyboard input, accepts here-strings, does not work with |
   By default saves entered value into $REPLY global variable

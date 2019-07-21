@@ -116,6 +116,8 @@ version:
 
 info:
   command that returns lots of information about Docker engine
+   Example:
+  docker info | grep -i root - returns where docker saving files
 
 images:
   displays list of locally available images

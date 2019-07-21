@@ -484,6 +484,17 @@ update-alternatives:
   See here: 
    http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
 
+shuf:
+ shuffles the deck lol
+ generages random output for range
+ -i num-num - input range
+ -n num - number of items from the list to display
+  Example:
+ shuf -i 20-25
+  will output 5 numbers in range in random order
+ shuf -i 20-25 -n 1
+  will output 1 number from the range
+
 sort:
   sorts by alphabet by default
    Synopsis:
@@ -2331,6 +2342,14 @@ yum:
   yum search <pkg> - searches for package, search in name and description
   yum install <pkg> - install package, and its dependencies
 	-y - answer Yes for prompts automatically
+  ..  install https://...../package.rmp 
+        will install package from remote location
+        or this installs repolist.. from which that packages could be 
+        installed..
+        --enablerepo=<reponame>  - enables repo
+    Example:
+   yum install -y https://centos7.iuscommunity.org/ius-release.rpm && \
+    yum install -y php71u-fpm
   yum localinstall <pkg> - installs .rpm package downloaded to local machine
 	will ALSO install needed dependencies, unlike 'rpm' tool
   yum info <pkg> - info about a package: descr, url, size, arch, etc
@@ -2350,6 +2369,8 @@ yum:
   	file-glob-syntax wild‐cards to list the packages available or installed
 	that provide that feature or file.
   yum clean all - clears cache similar to apt-get autoclean
+    Example of usage:
+     use it after some bunch of packages has been installed to clean space
   yum history - history of yum - install\remove\upd package and stuff, sudo
 
 =======Manage repositories

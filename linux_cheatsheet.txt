@@ -906,7 +906,8 @@ wget:
   wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb - will download .deb file in current directory w/o any output
 
 curl:
-  tool for view-download web pages and content
+  web requests issuer - HTTP[S] requests.
+  Or could download web pages and files and stuff
    -o - output, redirects output to a file, usefull when downloading files
     sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest
      will download ecs-cli binary file from amazon storage into /usr/... path
@@ -916,6 +917,15 @@ curl:
       will display path to local ecs-cli, which will go into pipe to md5 sum
       which will compare given md5 and md5 from file under given path, and will
       return OK if everything if fine
+  Example: Generate crumb(token) and use it as a header to POST request
+ to the server restfull call
+    crumb=$(curl -u "builder:1234" -s 'http://jenkins.local:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)')
+    curl -u "builder:1234" -H "$crumb" -X POST http://jenkins.local:8080/job/ENV/build?delay=0sec
+  -H - header of a request(contains Token)
+  -u - "user:password"
+  -X - Request type (GET or POST, PUT, DELETE etc) 
+   default: GET
+  
 
 du:
   disk usage

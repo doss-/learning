@@ -38,5 +38,17 @@ services:
       - "80:80"
     networks:
       - net
+  git:
+    container_name: git-server
+    image: 'gitlab/gitlab-ce:latest'
+    hostname: 'gitlab.example.com'
+    ports:
+      - '8090:80'
+    volumes:
+      - '/srv/gitlab/config:/etc/gitlab'
+      - '/srv/gitlab/logs:/var/log/gitlab'
+      - '/srv/gitlab/data:/var/opt/gitlab'
+    networks:
+      - net
 networks:
   net:

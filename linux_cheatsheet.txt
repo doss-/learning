@@ -1029,6 +1029,9 @@ zip:
 Encryption 
 public private keys ssl , stuff
 https://www.devco.net/archives/2006/02/13/public_-_private_key_encryption_using_openssl.php
+Sign with private key
+ Example:
+https://raymii.org/s/tutorials/Sign_and_verify_text_files_to_public_keys_via_the_OpenSSL_Command_Line.html
 
 Create CRS - certificate signing request (csr)
 https://www.sslshopper.com/what-is-a-csr-certificate-signing-request.html

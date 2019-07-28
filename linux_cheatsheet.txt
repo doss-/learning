@@ -1742,7 +1742,7 @@ getent:
 
 usermod:
   modify existing users
-  usermod [<params>] <user>
+  usermod [<params>] [groups] <user>
    -l - change LOGIN of the user. i.e.:
       usermod -l johnny john - change username john to johnny
    -d - DIRECTORY path for New home directory of the user
@@ -1753,8 +1753,9 @@ usermod:
    -G - add to other GROUPs delimited , and no spaces adds, more groups for user
 	will overwrite other supplementary groups except primary
    -a - APPEND groups, used with -G, to append existing supplementary groups:
+   Example:
       usermod -a -G newgroup1,newgroup2 johnny - will add two groups to the
-	end of the list of a groups user have
+	end of the list of a groups user johnny have
    -L - LOCK user
 	after lock there will be exclamation mark in /etc/shadow file before
 	user passwod:

@@ -12,6 +12,8 @@ RUN pip install ansible --upgrade
 
 # Install Docker
 
+RUN groupadd -g 998 docker
+
 RUN apt-get update && \
     apt-get -y install \
      apt-transport-https \

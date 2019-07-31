@@ -748,6 +748,8 @@ https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-s
     sed -n 'p' file - will print every line of file
     sed 'p' file - will print every line of file TWICE
   '1p' - print first line (address range)
+    Example:
+    sed -n '1p' /path/to/file    - will show only first line
   '1,5p' - print from first to fifth line (address range) 
   '1,+4p' - print 4 lines from first(inclusively) (address range)
   '1~3d' - print every other line: first then skip until 3rd line and again

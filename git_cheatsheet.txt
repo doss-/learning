@@ -1,3 +1,8 @@
+Links:
+ https://coolaj86.com/articles/vanilla-devops-git-credentials-cheatsheet/
+  clone git w/o credentials
+
+
 config:
   configure git account - addresses, user name, email etc.
    Synopsys:

@@ -6,7 +6,7 @@ package com.mycompany.app;
 public class App
 {
 
-    private final String message = "Hello World by the hook!";
+    private final String message = "Hello World by the hook from pipeline deploying to AWS!";
 
     public App() {}
 

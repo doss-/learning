@@ -34,7 +34,7 @@ public class AppTest
     {
         App.main(null);
         try {
-            assertEquals("Hello World by the hook!" + System.getProperty("line.separator"), outContent.toString());
+            assertEquals("Hello World by the hook from pipeline deploying to AWS!" + System.getProperty("line.separator"), outContent.toString());
         } catch (AssertionError e) {
             fail("\"message\" is not \"Hello World!\"");
         }

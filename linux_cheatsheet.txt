@@ -1919,6 +1919,22 @@ general processes:
   so there is a PID which is Process ID
   and PPID which is Parent Process ID, so every process has parent, except PID 1  it seems
 
+strace:
+  shows trace of used files byt the given command - magic eh?
+   Example:
+  strace -s 2000 hostnamectl |& grep ^open | tail -5
+   will return files directly opened by 'hostnamectl' tool
+   still it could iteract with other services which could read from files, and this is not 
+   seen here, alas.
+
+watch:
+  cool debug tool again:
+  execute a program periodically, showing output fullscreen
+   Example:
+  watch "ps -eaf|grep [h]ostname"
+  #execute 'hostnamectl' and new entry will be added 
+  > root     11003     1  0 02:51 ?        00:00:00 /lib/systemd/systemd-hostnamed
+
 ps:
   by default returns processes run by my current user and current terminal 
   session

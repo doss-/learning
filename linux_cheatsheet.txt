@@ -2013,11 +2013,18 @@ initd but it wrapped in systemd
 
 
 service: daemon:
+service vs systemctl vs upstart
+service is an "high-level" command used for starting and stopping services in different unixes and linuxes. Depending on the "lower-level" service manager, service redirects on different binaries.
+For example, on CentOS 7 it redirects to systemctl, while on CentOS 6 it directly calls the relative /etc/init.d script. On the other hand, in older Ubuntu releases it redirects to upstart
+service is adequate for basic service management, while directly calling systemctl give greater control options.
+https://serverfault.com/questions/867322/what-is-the-difference-between-service-and-systemctl
+
   RHEL-like - systemd (moved from SysVinit)
 	https://fedoraproject.org/wiki/SysVinit_to_Systemd_Cheatsheet
   Debian-like - upstart service (also adopted systemd)
   for Debian-like and RHEL-like systems its two different ways
    for Ubuntu since 15.xx it seems it is even more different..
+   okay its systemd again(which uses systemctl as cli)
   Debian-like:
   status <service> 
   start <service>
@@ -2055,6 +2062,26 @@ service: daemon:
   it exactly called now
   it seems it also supports systemctl and disable\enable with same commands,
    but creating .override file in the Debian way
+
+systemctl:
+  cli for systemd service controller
+  it is called by 'service' command for backwards and cross compatibility reasons
+
+hostnamectl:
+  cli of systemd service controller related to hostname changes and management
+  unified way to deal with hostname, list /etc/*-release, uname and stuff
+   read more here, like really detailed - good stuff:
+  https://unix.stackexchange.com/questions/459610/whats-the-point-of-the-hostnamectl-command
+   Example:
+  hostnamectl set-hostname 'gfs-server-03'
+  
+change hostname:
+  read more:  https://www.cyberciti.biz/faq/linux-change-hostname/
+   with systemd adopted:
+  hostnamectl set-hostname 'gfs-server-03'
+   before
+  /etc/hostname
+   + edit everything with old hostname in /etc/hosts, and add hostname to localhost addr
 
 supervisor:
   lightweight services controller, available for both RHEL and Debian like

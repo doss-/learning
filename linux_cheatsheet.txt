@@ -1332,9 +1332,31 @@ sshd(openssh)
   ==
   RSA keys for ssh authentication generation process:
   https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7
-  ssh-keygen [-b 4096] - generates key pair into given path
-  ssh-copy-id user@34.250.25.207 - copy pub rsa from local machine to remote
-   for the user given further access will be w/o password(could ask passphrese)
+  Passwordless:
+  to add security ssh login with Password could be disabled, to login
+  only with keypair:
+  https://linuxize.com/post/how-to-setup-passwordless-ssh-login/#disabling-ssh-password-authentication
+
+ssh-keygen:
+  generates keypair private\public
+  -t rsa - key type
+  -b 4096 - generates key pair into given path
+  -C "text" - comment for key
+   Example:
+  ssh-keygen -t rsa -b 4096 -C "email"  - will create new keypair
+	in the path ~/.ssh/id_rsa and its id_rsa.pub part
+
+ssh-copy-id:
+  copies public keys securely to remote machine for paswordless login
+  keys are concatenated into ~/.ssh/authorized_keys file
+  it will copy all public keys available in ~/.ssh/
+   Example:
+  ssh-copy-id dmitry2@192.168.42.74
+  
+  
+  if ssh-copy-id is not available here is analoug:
+   cat ~/.ssh/id_rsa.pub | ssh remote_username@server_ip_address "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+   
 
 ssh-keygen:
   Known hosts are stored in a file /home/<username>/.ssh/knonwn_hosts.
@@ -3159,6 +3181,12 @@ netstat:
    - p - show related PID and Program Name
   Example:
    netstat -vat - display used porta and established connections
+   sudo netstat -tulw - will display all ports for local machine
+
+ss:
+  netstat could be outdated on some systems, use it instead
+   Example:
+  sudo ss -tulwn - display all opened ports on local machine
 
 lsof:
   also checks ports, could display processes that are using
@@ -3179,6 +3207,9 @@ nmap:
    -O - OS detection
    -T - TCP
    -U - UDP
+    Example:
+   sudo nmap -sT -O 192.168.42.74  - scan remote machine for opened ports
+   sudo nmap -sT -O localhost - scan local machine
 
   NOTE: 
    Read MAN - it has examples and lots of stuff:

@@ -1,3 +1,4 @@
+#General
 Runs w/o any daemons, but still needs a server installed on the main machine
 Manages nodes which are not required to have ansible installed
 Uses SSH for access the nodes, so OpenSSH-Server need to be installed
@@ -7,6 +8,10 @@ When running Ansible commands, they are run against nodes
  nodes are identified by Names
 List of nodes is stored in 'inventory' option of config , which points to
  a file which describes Nodes - /etc/ansible/hosts , by default
+All the configuration are stored in /etc/ansible/ansible.cfg
+ also could stored in ~/ansible.cfg or ./ansible.cfg, or in playbook
+ or in ANSIBLE_CONFIG env var , which override all above
+ Ansible.cfg also has default path for Inventory(hosts)
 
 things to install to get ansible environment up and running:
  sudo yum install python python-devel python-pip openssl ansible
@@ -19,8 +24,9 @@ python-markupsafe
 python2-crypto
 python2-paramiko
 
-===Documentation
+##Documentation
 available at ansible.com
+ also see: man ansible; ansible-doc; etc
 it has two documentations for
 Ansible - opensource\free 
 Ansible Tower - proprietary\paid
@@ -28,18 +34,28 @@ Documentations split into sections, check out
 Module Indes section which will describe Ansible modules with examples
  and stuff
 
-===Configuration
+#
+
+##Configuration
 Config files:
 /etc/ansible/ansible.cfg - has a configuration settings all of which are 
    commented out by default
  'sudo_user' option should be uncommented to be sure, but it is by default
    behaviour
+ could be placed in home dir or current dir or passed via env var
  inventory - path to file where all the Nodes are stored
 
-=====Hosts
+##Inventory \ Hosts
 located in
 /etc/ansible/hosts
 back it up
+
+
+###Roles
+preset of software to be installed 
+so node could done some Role job, like DB or WebServer
+
+
 
 [all:vars]  - It could have variables that instruct ansible
 ansible_connection = ssh - this instructs ansible how to connect to 
@@ -55,7 +71,7 @@ inside the group - connections string+secret key:
  Example:
 <alias> ansible_host=<hostnameOrIP> ansible_user=<user to use> ansible_private_key_file=<path to private ssh key>
 
-=====User
+###User
 create new user for ansible(lets call it ansible), add it to sudoers, because playbooks will fail
 in case of password request promt
 sudo visudo
@@ -65,7 +81,7 @@ ansible ALL=(ALL)	NOPASSWD: ALL
 !! This user account need to be created on EACH of the nodes
 !! and also need to be added to sudoers file
 
-=====SSH Keys
+###SSH Keys
 it is probably good practice to have key files generated and used for shh 
 connection:
 from under ansible user on Control Node generate keys:
@@ -79,9 +95,14 @@ then copy public keys to other nodes:
    and SSH will try to connect to local machine via SSH and will ask for 
    password too
 
+ansible:
 --version - returns version name and configuration info like config file 
   locations, paths, modules locations etc.
 --list-hosts - list all hosts from Inventory
+  requires pattern to look for either group name or hostname
+   Example:
+  ansible my_group --list-hosts - will list hosts from the group
+  ansible 192.* --list-hosts - will list all hosts starting from 192.
 
  all - executed from command line for all items in 
 	Inventory (/etc/ansible/hosts)
@@ -115,7 +136,7 @@ then copy public keys to other nodes:
 	 --extra-vars proides extra parameters sent into execution 
 		key value pairs, like name=value
 		ansible_become_pass - special Ansible variable to store pass
-===Modules
+##Modules
 ping - checks nodes, like pings and pongs back
 copy - copies files, requires attributes (-a)
 	src=<relative\absolute path> - source path
@@ -149,7 +170,7 @@ setup - gather facts checked by default and display it
 	hostname from Inventory for that machine
 	Tree could be used the check all the available facts, forfurther filtering
 
-===Playbooks
+##Playbooks
 ansible-playbook:
  to execute playbooks
  ansible-playbook <playbook.yaml>

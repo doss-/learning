@@ -576,7 +576,7 @@ split:
   split -l 2 <file name> -  will split the file by 2 Lines into new files named
 			    xaa, xab, xac, etc.
 
-ln:
+nl: 
   number lines, 
   number lines by pages(number from 1 on second page)
   number only regex matched lines (-b regex)
@@ -872,6 +872,10 @@ ln:
   create hard link by default
   ln <param> <path> <link name>
   -s - create soft link
+   Example:
+  ln -s /src/file /dest/symlink
+	first param is where the file is 
+	second param where to put symlink
   
   Hard link: every file has 1 , create another one in different place
    it will has size of its name, and will point to place on HDD for original file

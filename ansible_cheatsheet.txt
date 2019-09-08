@@ -95,6 +95,12 @@ then copy public keys to other nodes:
    and SSH will try to connect to local machine via SSH and will ask for 
    password too
 
+##Parallelism
+  By default Ansible executeds commands in parallel on multiple servers;
+  So for all servers in the group command will be executed in different 
+  process(fork). This behaviour could be disabled(config) or altered by -f param
+  of ansible cli (see -f below)
+
 ansible:
 --version - returns version name and configuration info like config file 
   locations, paths, modules locations etc.
@@ -107,6 +113,20 @@ ansible:
  all - executed from command line for all items in 
 	Inventory (/etc/ansible/hosts)
   Or use name of the section from Inventory file instead of 'all'
+ --limit "<ip/hostname>" - limit operation to only given ip\hostname from
+  the group selected from inventory file
+   Example:
+  ansible app -b -a "service ntpd restart" --limit "192.168.60.4"
+  could use regex when prefixed with ~
+   Example:
+  ansible app -b -a "service ntpd restart" --limit ~".*\.4"
+  or wildcards
+   Example:
+  ansible app -b -a "service ntpd restart" --limit "*.4"
+  This also works with --list-hosts to test the pattern:
+   Example:
+  ansible app --list-hosts -limit ~".*\.4"  
+    will return only matched hosts from the group
  -m - Module to use
    ansible all -m ping - will ping-pong all items, green output is good
 	red - bad, it could be if user is prompted for password enter
@@ -126,16 +146,28 @@ ansible:
 	rc=0 - return code
 	and command line output of executed command
  -s - SUDO, use elevated privileges, or something like that DEPRECATED
+ -f - forks number, Ansible executes in parallel , but amount of forked processes
+      could be set manually
+       Example:
+      ansible multi -a "hostname" -f 1 - execute hostname on all servers in
+		group 'multi' with only 1 fork, so sequentally
  -b --become - use to Become a SUDO
 	this could also want a password for Root or user with root privileges:
 	    "module_stderr": "Shared connection to localhost closed.\r\n",
 	    "module_stdout": "sudo: a password is required\r\n",
 	https://stackoverflow.com/questions/21870083/specify-sudo-password-for-ansible
-	use this line:
+     Example use this line:
    ansible local -b --extra-vars "ansible_become_pass=LAvmCenAns" -a "cat /var/log/messages"
 	 --extra-vars proides extra parameters sent into execution 
 		key value pairs, like name=value
 		ansible_become_pass - special Ansible variable to store pass
+  -K --ask-become-pass - prompts for sudo password manual entry
+
+##Env Vars  
+ANSIBLE_HOST_KEY_CHECKING=False  - this will not do first-time key check during 
+first time login, supressing message 'The authenticity of host '192.168.60.5 
+(192.168.60.5)' can't be established.'; followed by manual input of yes/no
+
 ##Modules
 ping - checks nodes, like pings and pongs back
 copy - copies files, requires attributes (-a)
@@ -150,10 +182,28 @@ apt - installs packages (UBUNTU only), attributes:
 	  latest - installs latests version of package, even if older exists
 	  absent - makes sure package is absent
 yum - installs packages for CentOS7
+   Example:
+  ansible multi -b -m yum -a "name=ntp state=present"
+easy_install - module for python libraries installation, analog for pip
+  see differences between easy_install and pip here:
+  https://packaging.python.org/discussions/pip-vs-easy-install/
+   Example:
+  ansible app -b -m easy_install -a "name=django<2 state=present"
+   install django
+  ansible app -a "python -c 'import django; print django.get_version()'"
+   checks that django installed correctly
+
+service - wrapper around systemd and other services managers
+   Example:
+  ansible multi -b -m service -a "name=ntpd state=started enabled=yes"
 user - adds users, parameters:
 	name=<username> - username for user to be created
 	state=<state>
 	  absent - remove the user
+shell - run command in the shell utilizing Ansible abstraction and idempotency 
+  powers
+   Example:
+  ansible multi -m shell -a "date"
 setup - gather facts checked by default and display it
 	ansible all -m setup - will return facts about all groups in Inventory
 	Parameters:
@@ -169,6 +219,69 @@ setup - gather facts checked by default and display it
 	facts gathered for that particular machine. And will be named after the
 	hostname from Inventory for that machine
 	Tree could be used the check all the available facts, forfurther filtering
+group - manages groups
+	name=[groupname]
+	state=absent - to delete
+	state=present - to add
+	git=[gid] - to manually set group id
+	system=yes - indicate that group is system
+user - manages users
+	name=[username] - username
+	group=[groupname] - add to existing group
+	createhome=yes - create home folderin /home/username
+	generate_ssh_key=yes - add ssh key for user logon
+	uid=[uid] - manually sed user id
+	shell=[shell] - specify different shell(/bin/bash is default)
+	password=[encrypted-password] - set user password, not sure with 'encrypted'
+	remove=yes - delete user
+	state=absent
+stat - just regular stat command but as a module. Returns JSON
+ 	path=/path/to/file - sets path to get stats about
+copy - copies files between hosts. Good for single files or small dirs
+	src=</path/to/file/or/dir[/]> - with trailing slash copies directory with
+	 its contents, w/o slash - copies only directory contents w/o dir itself
+	dest=/path/where/to/put
+	 Example:
+	ansible multi -m copy -a "src=/etc/hosts dest=/tmp/hosts"
+synchronize - copy, good for lots of files, nested dirs etc
+rsync - copy, good for lots of files, nested dirs etc
+ If need to copy lots of files in many dirs use archive and unpack with:
+unarchive - unpacks the archive(not sure about compression here)
+fetch - same as copy but vice versa to get files from remote machines onto server
+	 for multiple servers create directory with ip/hostname in 'dest' and
+ 	 puts fetched stuff there keeping dir structure
+	src=/path/to/source
+	dest=/path/to/dir
+	 Example:
+	ansible multi -b -m fetch -a "src=/etc/hosts dest=/tmp"
+	 Result:
+	$ tree /tmp/192.*
+        /tmp/192.168.60.4
+        └── [4.2K]  etc
+            └── [ 191]  hosts
+        /tmp/192.168.60.5
+        └── [4.2K]  etc
+            └── [ 191]  hosts
+        /tmp/192.168.60.6
+        └── [4.2K]  etc
+            └── [ 187]  hosts
+	flat=yes - with dest=/path/ with trailing slash - will fetch files directly
+	 in the 'dest' dir, but names need to be Uniq
+file - create files and directoreis(like touch), manage permissions and ownership
+	 on files and directories, modife SELinux properties and create symlinks
+	dest=/path/to/file
+	mode=644 - octal ownership
+	state=directory - entity of a file(in this case it is directory)
+	     =link - creates symlink
+	     =absent - deletes stuff
+	force=yes - force creation of dirs in the middle of path for dest(?)
+	 Example:
+	ansible multi -m file -a "dest=/tmp/test mode=644 state=directory"
+	 Example symlink:
+	ansible multi -m file -a "src=/src/file dest=/dest/symlink state=link"
+       The src is the symlink’s target file, and the dest is the path where 
+	the symlink itself should be.
+
 
 ##Playbooks
 ansible-playbook:

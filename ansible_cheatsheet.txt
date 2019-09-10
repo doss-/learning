@@ -94,6 +94,20 @@ then copy public keys to other nodes:
   SSH Key also need to be copied to local machine, because Ansible will use SSH
    and SSH will try to connect to local machine via SSH and will ask for 
    password too
+Known hosts:
+  accept_hostkey=yes - this will prevent 'unknown hostkey' error, when
+	hostname is not added to known_hosts, and ansible can't ssh into
+ansible_ssh_port - inventory option for port ssh port if differs from 22
+pipelining=True - ansible.cfg under [ssh_connection] enables OpenSSH with
+	pipelining, where not files but commands sent over ssh to server
+	to be executed, and no file deletion happens after execution
+	Additionally:
+	make sure 'Defaults requiretty' option in /etc/sudoers is commented
+OpenSSH, which is used for ssh , should be 5.6+ version, to enable 
+	ControlPersist option, which persists connection and do not
+	make handshake again after ControlPersist timeout set in server's
+	SSH config is reached
+
 
 ##Parallelism
   By default Ansible executeds commands in parallel on multiple servers;

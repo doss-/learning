@@ -101,7 +101,29 @@ then copy public keys to other nodes:
   process(fork). This behaviour could be disabled(config) or altered by -f param
   of ansible cli (see -f below)
 
+###Background
+  tasks could run in background and in parallel at the same time
+  this is usefull for long running tasks
+   Params to enable:
+  -B <seconds> - maximum time for task to run
+  -P <seconds> - poll, ask server for progress with <seconds> interval
+   Example:
+  ansible multi -b -B 3600 -P 0 -a "yum -y update"
+   will update all servers in multi group, time to run is 1 hour, poll every second
+  This command will retunr ansible_job_id (jid) like 
+   status of which could be checked:
+  ansible multi -b -m async_status -a "jid=507645957735.4189" --limit "192.168.60.4"
+   will return errors for servers where jid is different, and all the info
+   for server where jid is found(jid is uniq for every server)
+    so consider using --limit
+
 ansible:
+https://docs.ansible.com/ansible/latest/cli/ansible.html
+--tree / -t <path> - save output into this path(file for every host
+--one-line / -o - output in one line
+--verbose / -v - verbose output
+ -vvv - more verbose
+ -vvvv - more verbose and connection debugging
 --version - returns version name and configuration info like config file 
   locations, paths, modules locations etc.
 --list-hosts - list all hosts from Inventory
@@ -146,8 +168,8 @@ ansible:
 	rc=0 - return code
 	and command line output of executed command
  -s - SUDO, use elevated privileges, or something like that DEPRECATED
- -f - forks number, Ansible executes in parallel , but amount of forked processes
-      could be set manually
+ -f - default:5; forks number, Ansible executes in parallel, but amount of forked 
+      processes could be set manually
        Example:
       ansible multi -a "hostname" -f 1 - execute hostname on all servers in
 		group 'multi' with only 1 fork, so sequentally
@@ -200,10 +222,20 @@ user - adds users, parameters:
 	name=<username> - username for user to be created
 	state=<state>
 	  absent - remove the user
+command - default module, which is do not need to be set, so -a is its arguments
+   Example:
+  ansible multi -b -m command -a "tail /var/log/messages"
+   is the same as
+  ansible multi -b -a "tail /var/log/messages"
 shell - run command in the shell utilizing Ansible abstraction and idempotency 
   powers
    Example:
   ansible multi -m shell -a "date"
+   Also it is able to use pipes:
+   Example:
+  ansible multi -b -m shell -a "tail /vag/log/messages | grep ansible-command | wc -l"
+   this will return wc result of grep, which wont work w/o module usage
+	in fact 'command' is standard module
 setup - gather facts checked by default and display it
 	ansible all -m setup - will return facts about all groups in Inventory
 	Parameters:
@@ -246,7 +278,9 @@ copy - copies files between hosts. Good for single files or small dirs
 synchronize - copy, good for lots of files, nested dirs etc
 rsync - copy, good for lots of files, nested dirs etc
  If need to copy lots of files in many dirs use archive and unpack with:
-unarchive - unpacks the archive(not sure about compression here)
+unarchive - Unpacks an archive after (optionally) copying it from the local machine
+	remote_src=yes - unpack archive which already on host
+win_unzip - same as unarchive but for windows
 fetch - same as copy but vice versa to get files from remote machines onto server
 	 for multiple servers create directory with ip/hostname in 'dest' and
  	 puts fetched stuff there keeping dir structure
@@ -281,6 +315,41 @@ file - create files and directoreis(like touch), manage permissions and ownershi
 	ansible multi -m file -a "src=/src/file dest=/dest/symlink state=link"
        The src is the symlink’s target file, and the dest is the path where 
 	the symlink itself should be.
+	 Example deletion:
+	ansible multi -m file -a "dest=/tmp/test state=absent"
+lineinfile - changes one line in single file
+replace - changes multiple or similar lines
+blockinfile - insert/update/remove block of lines in a file
+template - changes placeholders with something, based on Jinja2 templating lang
+ini_file - manages ini files
+xml - manages xml files 
+async_status - checks status of asynchronously running jobs
+	requires jid (ansible_job_id) passed as Attribute(-a)
+	reutrns start, end, length(delta) time of task
+	stderr ans stdout , both parsed in lines array and unparsed
+	aswell as command itself, parsed as array
+	 Example:
+	ansible multi -b -m async_status -a "jid=507645957735.4189" --limit "host_ip"
+cron - manages cron jobs on servers
+	name='job-name'
+	job='/path/to/job.sh'
+	day=num
+	hour=num
+	minute=num
+	month=num
+	weekday=num?
+	special_time=[reboot\yearly\monthly]
+	user=[user] - user under which job will run
+	backup=yes - backup current crontab
+	cron_file=file_name - for custom crontab files, /etc/cron.d/file_name
+	ansible assumes * for every unspecified field
+	 Example:
+	ansible multi -b -m cron -a "name='daily-cron-all-servers' \
+	hour=4 job='/path/to/daily-script.sh'"
+	state=absent - delete job
+	 Example:
+	ansible multi -b -m cron -a "name='daily-cron-all-servers' state=absent"
+
 
 
 ##Playbooks

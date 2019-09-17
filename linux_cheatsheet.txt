@@ -1340,6 +1340,7 @@ sshd(openssh)
   to add security ssh login with Password could be disabled, to login
   only with keypair:
   https://linuxize.com/post/how-to-setup-passwordless-ssh-login/#disabling-ssh-password-authentication
+  https://help.ubuntu.com/community/SSH/OpenSSH/Keys
 
 ssh-keygen:
   generates keypair private\public
@@ -1356,6 +1357,8 @@ ssh-copy-id:
   it will copy all public keys available in ~/.ssh/
    Example:
   ssh-copy-id dmitry2@192.168.42.74
+   if there issues with a default 22 port , another port could be changed:
+  ssh-copy-id "<username>@<host> -p <port_nr>"
   
   
   if ssh-copy-id is not available here is analoug:

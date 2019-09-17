@@ -138,6 +138,14 @@ https://docs.ansible.com/ansible/latest/cli/ansible.html
 --verbose / -v - verbose output
  -vvv - more verbose
  -vvvv - more verbose and connection debugging
+--check - verifies the configuration matches what's defined in the playbook
+	w/o actually running the tasks on the server
+   Example:
+	ansible-playbook --check playbook.yml
+	 imagine it installs 'httpd' on 'app' group
+    Ensure nothing is installed after check:
+	ansible app -b -m yum -a "list=httpd"
+	 'yumstate:' should be 'available' in all yum repos and not 'installed'
 --version - returns version name and configuration info like config file 
   locations, paths, modules locations etc.
 --list-hosts - list all hosts from Inventory
@@ -220,6 +228,13 @@ apt - installs packages (UBUNTU only), attributes:
 yum - installs packages for CentOS7
    Example:
   ansible multi -b -m yum -a "name=ntp state=present"
+   List installed packages:
+  https://stackoverflow.com/questions/41551620/how-to-get-the-installed-yum-packages-with-ansible
+   Example:
+  ansible app -b -m yum -a "list=httpd"
+   'yumstate:' of every yum repo will have state.
+   'installed' in any state means package is installed
+   'available' in all repos means package is not installed
 easy_install - module for python libraries installation, analog for pip
   see differences between easy_install and pip here:
   https://packaging.python.org/discussions/pip-vs-easy-install/
@@ -365,7 +380,6 @@ cron - manages cron jobs on servers
 	ansible multi -b -m cron -a "name='daily-cron-all-servers' state=absent"
 
 
-
 ##Playbooks
 ansible-playbook:
  to execute playbooks
@@ -376,7 +390,73 @@ ansible-playbook:
  ansible-playbook -i /path/to/hosts playbookd.yml
 
 ####Playbooks structure:
+comments starts from #
 hosts: <hosts to be executed upon>
 tasks: 
   - shell: <command to be executed in 'shell' task>
   <-another task, like 'yum'>
+
+hosts:
+ limits playbook to where run on, groups defined in inventory file
+ values could be:
+ every host - all
+ groups - webservers,dbservers
+ individual hosts - atl.example.com
+ some mixture of hosts, probably delimited similar to groups
+ wildcards - *.example.com
+  Also could be limited by ansible-playbook cli flag:
+   This option overrides what defined in playbook
+ --limit <group_name\hostname>
+  Example:
+ ansible-playbook playbook.yml --limit webservers
+ ansible-playbook playbook.yml --limit xyz.example.com
+ --list-hosts  To see what hosts would be affected by playbook run
+  Example:
+ ansible-playbook playbook.yml --list-hosts
+
+remote_user:
+  User to log in under, defined alongside with 'hosts:' in playbook
+  If none Ansible assumes you connect as user from Inventory file for particular 
+  host(ansible_ssh_user)
+  Afterwards, if no user in Inventory, it will use current user on Ansible host
+  --remote-user/-u - explicitly defines user for login
+   Example:
+  ansible-playbook playbook.yml --remote-user=johndoe
+  --ask-become-pass/-K - when need pass password on the server
+  --become/-b - force all the tasks in playbook to use 'sudo'
+  --become-user/-U - define user which would use 'sudo'. default is 'root'
+   Example:
+  ansible-playbook playbook.yml --become --become-user=janedoe --ask-become-pass
+   will run all tasks with 'sudo' from under user 'janedoe' and will ask for pass
+  --ask-pass - will ask regular(?) pass, but BETTER to use key auth
+
+Iteration:
+Ansible support iteration of lists supplied into modules
+ Example:
+tasks:
+  - yum:
+      name:
+       - httpd
+       - httpd-devel
+this will instruct yum module to address 2 packages given in simple list
+
+Variables:
+ansible suports variables with values
+variables are addressed by {{ item }} structure, where 'item' is predefined
+name, dot . is used to access exact item from items list
+item list is supplied in 'with_items' dict, with array as a value
+ Example:
+tasks:
+  - copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+    with_items:
+      - src: httpd.conf
+        dest: /etc/httpd/conf/httpd.conf
+      - src: htpd-vhosts.conf
+        dest: /etc/httpd/conf/httpd-vhosts.conf
+where 'copy' module is in the same dictionary as 'with_items' - single task
+copy addresses 'item' which is stored in 'with_items', using . takes value
+with_items key have value of array of 2 dicts having 2 key-val pairs
+value of each key from with_items is accesed with item.<key_name>
+and expanded in 'copy' task

@@ -16,6 +16,13 @@ All the configuration are stored in /etc/ansible/ansible.cfg
 things to install to get ansible environment up and running:
  sudo yum install python python-devel python-pip openssl ansible
 
+Since Ansible uses YAML/YML this is handy to have tool for yaml validation
+yamllint
+ it is available for RHEL\Debian and through 'pip' packages
+ Example:
+yamlling playbook.yml
+ it will return errors, trailing spaces, variable name dups and stuff
+
 
 specific package dependencies for Ansible:
 python-httplib2
@@ -215,16 +222,28 @@ first time login, supressing message 'The authenticity of host '192.168.60.5
 ##Modules
 ping - checks nodes, like pings and pongs back
 copy - copies files, requires attributes (-a)
+       seems like it works recursively by default(similar to scp or rsync recurse)
+       COPY is good for small groups of files or not so nested dirs
+       For many files use: synchronize; rsync; unarchive(copy arch and unarch on 
+       the server, like ADD in Dockerfile)
 	src=<relative\absolute path> - source path
 	dest=<path> - destination path, where to copy a source 
-	Example:
+	 Example:
 	ansible centos -m copy -a "src=./ansible/test.txt dest=/tmp/test.txt"
+	 Example(playbook), copy directory app into variable stored path:
+	vars: apps_location: /usr/local/opt/node
+	copy: "src=app dest={{ apps_location }}"
 apt - installs packages (UBUNTU only), attributes:
 	name=<package_name> - package to do something with
 	state=<state> - state of package to be after command executed:
 	  present - installs package if abscent, does nothing otherwise
 	  latest - installs latests version of package, even if older exists
 	  absent - makes sure package is absent
+npm - node.js package manager
+	name=<package name to install>
+	global=yes - whether it is globak(-g cli param of npm) or something else
+	state=present
+	path=<path to dir with package.json>
 yum - installs packages for CentOS7
    Example:
   ansible multi -b -m yum -a "name=ntp state=present"
@@ -235,6 +254,8 @@ yum - installs packages for CentOS7
    'yumstate:' of every yum repo will have state.
    'installed' in any state means package is installed
    'available' in all repos means package is not installed
+ disable_gpg_check: yes
+  turns off gpg check for repo, like '--nogpgcheck' for yum cli
 easy_install - module for python libraries installation, analog for pip
   see differences between easy_install and pip here:
   https://packaging.python.org/discussions/pip-vs-easy-install/
@@ -252,7 +273,11 @@ user - adds users, parameters:
 	state=<state>
 	  absent - remove the user
 command - default module, which is do not need to be set, so -a is its arguments
-   Example:
+  for idempotency of commands and piping use 'shell' module.
+   The command(s) will not be processed through the shell, so variables like $HOME 
+   and operations like "<", ">", "|", ";" and "&" will not work. Use the shell 
+   module if you need these features.
+    Example:
   ansible multi -b -m command -a "tail /var/log/messages"
    is the same as
   ansible multi -b -a "tail /var/log/messages"
@@ -333,6 +358,7 @@ fetch - same as copy but vice versa to get files from remote machines onto serve
 file - create files and directoreis(like touch), manage permissions and ownership
 	 on files and directories, modife SELinux properties and create symlinks
 	dest=/path/to/file
+	path=/path/to/file/to/create
 	mode=644 - octal ownership
 	state=directory - entity of a file(in this case it is directory)
 	     =link - creates symlink
@@ -346,6 +372,8 @@ file - create files and directoreis(like touch), manage permissions and ownershi
 	the symlink itself should be.
 	 Example deletion:
 	ansible multi -m file -a "dest=/tmp/test state=absent"
+	 Example creation dir(playbook):
+	file: "path=/path/to/copy" state=directory"
 lineinfile - changes one line in single file
 replace - changes multiple or similar lines
 blockinfile - insert/update/remove block of lines in a file
@@ -385,9 +413,17 @@ ansible-playbook:
  to execute playbooks
  ansible-playbook <playbook.yaml>
 
- -i - change default hosts location
- Example:
+ --inventory=PATH\-i PATH - change default hosts location
+  Example:
  ansible-playbook -i /path/to/hosts playbookd.yml
+ --verbose\-v - verbose
+ -vvvv - very verbose
+ --extra-vars=VARS\-e VARS - variables to use "key=value,key=value" format
+ --forks=NUM\-f NUM - integer of forks(num of servers to run concurrently)
+  default is 5
+ --connection=TYPE\-c TYPE - type of connection to use
+  default is ssh; also could be - local
+ --check - dry run, nothing actually run and no changes are made
 
 ####Playbooks structure:
 comments starts from #
@@ -404,9 +440,10 @@ hosts:
  individual hosts - atl.example.com
  some mixture of hosts, probably delimited similar to groups
  wildcards - *.example.com
-  Also could be limited by ansible-playbook cli flag:
-   This option overrides what defined in playbook
+
  --limit <group_name\hostname>
+ Also could be limited by ansible-playbook cli flag:
+ This option overrides what defined in playbook
   Example:
  ansible-playbook playbook.yml --limit webservers
  ansible-playbook playbook.yml --limit xyz.example.com
@@ -429,6 +466,53 @@ remote_user:
   ansible-playbook playbook.yml --become --become-user=janedoe --ask-become-pass
    will run all tasks with 'sudo' from under user 'janedoe' and will ask for pass
   --ask-pass - will ask regular(?) pass, but BETTER to use key auth
+
+vars:
+ variables declared inside the playbook, like hardcoded values
+ value could be overriden either in Inventory file or by --extra-vars cli option
+  Example:
+ vars:
+   node_apps_location: /usr/local/opt/node
+
+register:
+  https://docs.ansible.com/ansible/latest/user_guide/playbooks_conditionals.html
+  Registers command or shell modules output(stderr\stdout) into a variable given
+  Registered variables can be used in templates, action lines, or when statements
+  NOTE: variable registered even when task is skipped due to condition 
+   use 'is skipped' to check 
+   Example regular use:
+  - command: ls /home
+    register: home_dirs_variable
+   Example with 'is skipped':
+  when: home_dirs_variable is skipped
+
+changed_when:
+  true or false
+  directive for module, which explicitly tells ansible whether this action performed
+  by the module will ever change server or not(probably to ansible know whether it
+  is idempotent or how to handle it during dry run..)
+  Could probably work only with shell\command modules i believe, 
+  ones that could execute something unexpected(unlike standard modules which should
+  handle such stuff by themselves, may be in the same way on the inside)
+   Example:
+  - command: forever list
+    register: forever_list
+    changed_when: false
+   Module 'command' calls forever(node.js package) with 'list' param
+    then registers variable 'forever_list' with contents of 'list' stdout\err 
+    then tells ansible that 'forever list' will never change server where executed
+
+Conditions:
+when:
+  https://docs.ansible.com/ansible/latest/user_guide/playbooks_conditionals.html
+  decides whether to perform task or not
+   Example:
+  when: home_dirs_variable is failed
+
+ignore_errors:
+  true or false
+  similar to other error skippging directives probably
+
 
 Iteration:
 Ansible support iteration of lists supplied into modules

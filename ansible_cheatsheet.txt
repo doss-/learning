@@ -239,6 +239,12 @@ apt - installs packages (UBUNTU only), attributes:
 	  present - installs package if abscent, does nothing otherwise
 	  latest - installs latests version of package, even if older exists
 	  absent - makes sure package is absent
+	update_cache=yes - updates cache like 'apt update'
+	cache_valid_time=3600 - updates cache if it's older than 3600 seconds
+apt_repository - module to manage apt repositories
+	requires python-apt and python-pycurl packages on OS to work
+	repo='ppa:ondrej/php' - repository to add
+	update_cache=yes - probably updates cache from the repo inplace
 npm - node.js package manager
 	name=<package name to install>
 	global=yes - whether it is globak(-g cli param of npm) or something else
@@ -274,13 +280,20 @@ user - adds users, parameters:
 	  absent - remove the user
 command - default module, which is do not need to be set, so -a is its arguments
   for idempotency of commands and piping use 'shell' module.
+	Playbook:
+	 command: >
+	 will wrap all lines after it into one quoted single line.
    The command(s) will not be processed through the shell, so variables like $HOME 
    and operations like "<", ">", "|", ";" and "&" will not work. Use the shell 
    module if you need these features.
-    Example:
-  ansible multi -b -m command -a "tail /var/log/messages"
-   is the same as
-  ansible multi -b -a "tail /var/log/messages"
+	 Example:
+	ansible multi -b -m command -a "tail /var/log/messages"
+	 is the same as
+	ansible multi -b -a "tail /var/log/messages"
+	 Params:
+	chdir=/path/to/dir - change into dir before executing command
+	creates=/path/to/file* - if exists, command won't be executed
+
 shell - run command in the shell utilizing Ansible abstraction and idempotency 
   powers
    Example:
@@ -309,7 +322,7 @@ group - manages groups
 	name=[groupname]
 	state=absent - to delete
 	state=present - to add
-	git=[gid] - to manually set group id
+	gid=[gid] - to manually set group id
 	system=yes - indicate that group is system
 user - manages users
 	name=[username] - username
@@ -355,6 +368,7 @@ fetch - same as copy but vice versa to get files from remote machines onto serve
             └── [ 187]  hosts
 	flat=yes - with dest=/path/ with trailing slash - will fetch files directly
 	 in the 'dest' dir, but names need to be Uniq
+get_url - 
 file - create files and directoreis(like touch), manage permissions and ownership
 	 on files and directories, modife SELinux properties and create symlinks
 	dest=/path/to/file
@@ -374,10 +388,19 @@ file - create files and directoreis(like touch), manage permissions and ownershi
 	ansible multi -m file -a "dest=/tmp/test state=absent"
 	 Example creation dir(playbook):
 	file: "path=/path/to/copy" state=directory"
-lineinfile - changes one line in single file
+lineinfile - changes one line in single file, looks for regex
+	dest: "/path/on/server/to/look/in/file"
+	regex: "line need match this regex(python style)"
+	line: "matched line should look exactly like this"
+	state: present  #absent to delete line or ensure its not there
 replace - changes multiple or similar lines
 blockinfile - insert/update/remove block of lines in a file
 template - changes placeholders with something, based on Jinja2 templating lang
+	src="relative/path/to/template.j2" to be copied on server
+	dest: "/path/to/file_from_template" location on server
+	owner: root
+	group: root
+	mode: 0644
 ini_file - manages ini files
 xml - manages xml files 
 async_status - checks status of asynchronously running jobs
@@ -406,6 +429,18 @@ cron - manages cron jobs on servers
 	state=absent - delete job
 	 Example:
 	ansible multi -b -m cron -a "name='daily-cron-all-servers' state=absent"
+mysql_db - manages databases in MySQL
+	Ansible supports out of the box following databases:
+	Mongo, MySQL\Mariadb, Postgres, Redis, Riak
+	db=dbname - name of db to be created/deleted
+	state=present - db need to be created if does not exist
+mysql_user - module to manage MySQL users
+	Example:
+	name: "{{ domain }}"
+	password: "1234
+	priv: "{{ domain }}.*.:ALL"
+	host: localhost  - this probably limits user to a host..
+	state: present
 
 
 ##Playbooks
@@ -424,8 +459,21 @@ ansible-playbook:
  --connection=TYPE\-c TYPE - type of connection to use
   default is ssh; also could be - local
  --check - dry run, nothing actually run and no changes are made
+ --force-handlers - call handlers even if task and playbook fails 
+ --limit <group_name\hostname>
+ Also could be limited by ansible-playbook cli flag:
+ This option overrides what defined in playbook
+  Example:
+ ansible-playbook playbook.yml --limit webservers
+ ansible-playbook playbook.yml --limit xyz.example.com
+ --list-hosts  To see what hosts would be affected by playbook run
+  Example:
+ ansible-playbook playbook.yml --list-hosts
 
 ####Playbooks structure:
+
+#####Root elements:
+
 comments starts from #
 hosts: <hosts to be executed upon>
 tasks: 
@@ -441,15 +489,6 @@ hosts:
  some mixture of hosts, probably delimited similar to groups
  wildcards - *.example.com
 
- --limit <group_name\hostname>
- Also could be limited by ansible-playbook cli flag:
- This option overrides what defined in playbook
-  Example:
- ansible-playbook playbook.yml --limit webservers
- ansible-playbook playbook.yml --limit xyz.example.com
- --list-hosts  To see what hosts would be affected by playbook run
-  Example:
- ansible-playbook playbook.yml --list-hosts
 
 remote_user:
   User to log in under, defined alongside with 'hosts:' in playbook
@@ -473,6 +512,52 @@ vars:
   Example:
  vars:
    node_apps_location: /usr/local/opt/node
+
+vars_files:
+  contains a list of filenames of yml format which would contain list of 
+  variables and their values
+   Example:
+  vars_files:
+    - vars.yml
+
+pre_tasks:
+  run before main set of tasks tasks
+   Example:
+  pre_tasks:
+    - name: Update apt cache if needed
+      apt: update_cache=yes cache_valid_time=3600
+   this wil update cache if it older than 1 hour before running other taks
+   in the playbook
+
+post_tasks:
+  run after main set of tasks
+
+handlers:
+  taks that will be run if 'notified' by standard task(s), after all 
+  standard tasks that could 'notify' are done.
+  As variables the handlers could be placed in separate yml file
+  By default handlers are not called if task fails as per ansible stops
+  playbook execution. 
+  CLI option --force-handlers could fix it and still call notified handlers
+  to notify standard task should:
+  1. complete with 'changed' result and not fail
+  2. have 'notify: <value in handler name: field>' as its parameter
+   Example:
+  tasks:
+   - name: shold call 'restart apache' handler if succeeds with 'changed'
+     yum: 
+       name: some_package 
+       state: present
+       notify: restart apache
+  handlers:
+   - name: restart apache
+     service: name=apache2 state=restarted
+   So handler will be called by yum module from regular task, and handler
+   will call 'service' module to restart apache, if yum module will make
+   a change on the server and will not fail 
+      
+
+#####Params:
 
 register:
   https://docs.ansible.com/ansible/latest/user_guide/playbooks_conditionals.html

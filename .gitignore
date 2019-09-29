@@ -33,3 +33,6 @@ remote-key
 #all required files are next to Vagrantfile
 #do not need /* for now as per i'm not planning uninclude anything
 /ansible-book/vagrant/.vagrant/
+
+#ignore all .swp files as they are from opened VIM, and this annoys me
+/**/*.swp

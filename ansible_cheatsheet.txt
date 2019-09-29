@@ -345,7 +345,11 @@ copy - copies files between hosts. Good for single files or small dirs
 synchronize - copy, good for lots of files, nested dirs etc
 rsync - copy, good for lots of files, nested dirs etc
  If need to copy lots of files in many dirs use archive and unpack with:
-unarchive - Unpacks an archive after (optionally) copying it from the local machine
+unarchive - Unpacks an archive after (optionally) copying it 
+        from the local machine
+        src: "/file/name.tgz" # if URL will download and unpack
+                              # but won't leave the archive in place
+        dest: /dir/with/archive
 	remote_src=yes - unpack archive which already on host
 win_unzip - same as unarchive but for windows
 fetch - same as copy but vice versa to get files from remote machines onto server
@@ -368,7 +372,15 @@ fetch - same as copy but vice versa to get files from remote machines onto serve
             └── [ 187]  hosts
 	flat=yes - with dest=/path/ with trailing slash - will fetch files directly
 	 in the 'dest' dir, but names need to be Uniq
-get_url - 
+get_url - download fils over HTTP[S] or FTP, supports various authes
+        and checksum checks. 
+        URL is checked(header) if '--check' param is used aka dry run.
+        Also supports some SELinux checks(i still dunno wtf this for sure)
+        url: <url to download from.tgz> # no redirects allowed
+        dest: "/path/to/download/file.tgz # if dir provided file will be 
+                                          # placed there.
+                                          # BUT re-downloaded every time
+        checksum: <sha512:asdfasdfasdf>
 file - create files and directoreis(like touch), manage permissions and ownership
 	 on files and directories, modife SELinux properties and create symlinks
 	dest=/path/to/file

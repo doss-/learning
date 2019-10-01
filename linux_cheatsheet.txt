@@ -1641,7 +1641,47 @@ dot (.):
   and kills it after everything is done - basic behaviour of everything
 
 
+===Login process
+Read More:
+http://mywiki.wooledge.org/DotFiles
 
+No GUI login into text console. Local login shell:
+1. getty(8) starts and produces 'login:' prompt
+2. getty reads login and passes it to login(1)
+3. login reads password db and decides whether to ask for password
+4. after password provided PAM could be loaded - /etc/pam.d/login
+   this could load additional settings for environment or session etc.
+5. login 'execs' login shell(probably from /etc/passwd) with -
+   -/bin/bash - means "this is login shell, not a regular shell"
+6. since it's login shell it reads /etc/profile and /etc/profile.d
+   /etc/profile should have code to read profile.d
+   then ~/.bash_profile, 
+   then if no - .bash_login, 
+   then if no - .profile
+     .profile is standard Bourne/POSIX/Korn shell config file
+7. bash stops look for config files and displays prompt
+
+ Example of login process:
+Let's take a moment to review. A system administrator has set up a Debian system (which is Linux-based and uses PAM) and has a locale setting of LANG=en_US in /etc/environment. A local user named pierre prefers to use the fr_CA locale instead, so he puts export LANG=fr_CA in his .bash_profile. He also puts source ~/.bashrc in that same file, and then puts set +o histexpand in his .bashrc. Now he logs in to the Debian system by sitting at the console. login(1) (via PAM) reads /etc/environment and puts LANG=en_US in the environment. Then login "execs" bash, which reads /etc/profile and .bash_profile. The export command in .bash_profile causes the environment variable LANG to be changed from en_US to fr_CA. Finally, the source command causes bash to read .bashrc, so that the set +o histexpand command is executed for this shell. After all this, pierre gets his prompt and is ready to type commands interactively. 
+
+.bashrc is not read for login shells, it could to be read manually in .profile
+In case this is .profile, before read it, need to ensure that Bash is used:
+  if  [ -n $BASH ] && [ -r ~/.bashrc ]; then
+    . ~/.bashrc
+  fi
+
+Remote Login Shell:
+alsmost same as previous, but except 'getty' and 'login' - 'sshd' handles
+greetings(login prompt by 'getty') and password auth('login').
+PAM also linked with 'sshd', but will read /etc/pam.d/ssh (not .../login).
+ Once sshd has run through the PAM steps (if applicable to your system), it 
+"execs" bash as a login shell, which causes it to read /etc/profile and then 
+one of .bash_profile or .bash_login or .profile.
+
+NOTE:
+during ssh login, some of local Env Vars could be sent to remote sshd
+like LANG and LC_* variables want to be preserved by the remote login.
+Unfortunately, the configuration files on the server may override them.
 
 
 ===User\Groups Management
@@ -2991,6 +3031,7 @@ test:
   -s <file> - exists and has size greater than 0
   -u <file> - exists and set-user-ID bit is set
   -k <file> - exists and its sticky bit set 
+  -n <string> - length is not zero
   -r <file> - file exists and with read permission
   -w <file> - file exists and with write permission 
   -x <file> - file exists and with execute permission

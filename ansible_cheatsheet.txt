@@ -4,6 +4,15 @@ Manages nodes which are not required to have ansible installed
 Uses SSH for access the nodes, so OpenSSH-Server need to be installed
 Playbooks are the thing that define and install software
 
+##SSH Connection:
+ New SSH session for EVERY TASK is Default.
+  SSH Multiplexing is used to significantly reduce time to establish conn.
+ 'Pipelining' feature enables reuse SSH connection.
+   But sometimes ANsible still will spawn new connection!
+  To Enable pipelining, update 'ansible.cfg':
+  [ssh_connection]
+  pipelining = True
+
 When running Ansible commands, they are run against nodes
  nodes are identified by Names
 List of nodes is stored in 'inventory' option of config , which points to
@@ -545,25 +554,35 @@ post_tasks:
   run after main set of tasks
 
 handlers:
-  taks that will be run if 'notified' by standard task(s), after all 
+  Taks that will be run if 'notified' by standard task(s), after all 
   standard tasks that could 'notify' are done.
+  Handlers run ONLY ONCE.
+  Handlers run AT THE END of the play. 'meta' module could override this
+   - meta: flush_handlers
+  Handlers won't run on hosts that become 'unreachable' during playbook run.
   As variables the handlers could be placed in separate yml file
   By default handlers are not called if task fails as per ansible stops
-  playbook execution. 
-  CLI option --force-handlers could fix it and still call notified handlers
-  to notify standard task should:
-  1. complete with 'changed' result and not fail
-  2. have 'notify: <value in handler name: field>' as its parameter
+  playbook execution.
+  Handler is not run if notifier did not run due to 'when' condition.
+  --force-handlers could fix it and still call notified handlers
+  To notify standard task should:
+   1. complete with 'changed' result and not fail
+   2. have 'notify: <value in handler name: field>' as its parameter
+  Taks could notify multiple handlers
+  Handlers could notify another handlers
    Example:
   tasks:
    - name: shold call 'restart apache' handler if succeeds with 'changed'
      yum: 
        name: some_package 
        state: present
-       notify: restart apache
+       notify: 
+       - restart apache
+       - another handler
   handlers:
    - name: restart apache
      service: name=apache2 state=restarted
+     notify: another handler
    So handler will be called by yum module from regular task, and handler
    will call 'service' module to restart apache, if yum module will make
    a change on the server and will not fail 
@@ -574,7 +593,7 @@ handlers:
 register:
   https://docs.ansible.com/ansible/latest/user_guide/playbooks_conditionals.html
   Registers command or shell modules output(stderr\stdout) into a variable given
-  Registered variables can be used in templates, action lines, or when statements
+  Registered variables can be used in templates\action lines or when statements
   NOTE: variable registered even when task is skipped due to condition 
    use 'is skipped' to check 
    Example regular use:
@@ -585,21 +604,23 @@ register:
 
 changed_when:
   true or false
-  directive for module, which explicitly tells ansible whether this action performed
-  by the module will ever change server or not(probably to ansible know whether it
-  is idempotent or how to handle it during dry run..)
-  Could probably work only with shell\command modules i believe, 
-  ones that could execute something unexpected(unlike standard modules which should
-  handle such stuff by themselves, may be in the same way on the inside)
+  Directive for module, which explicitly tells ansible 
+  whether this action performed by the module will ever change server or 
+  not(probably to ansible know whether it is idempotent or how to handle 
+  it during dry run..)
+  Could probably work only with shell\command modules i believe, ones that could
+  execute something unexpected(unlike standard modules which should handle such
+  stuff by themselves, may be in the same way on the inside)
    Example:
   - command: forever list
     register: forever_list
     changed_when: false
    Module 'command' calls forever(node.js package) with 'list' param
     then registers variable 'forever_list' with contents of 'list' stdout\err 
-    then tells ansible that 'forever list' will never change server where executed
+    then tells ansible that 'forever list' will never change server 
+    where executed
 
-Conditions:
+#####Conditions:
 when:
   https://docs.ansible.com/ansible/latest/user_guide/playbooks_conditionals.html
   decides whether to perform task or not
@@ -611,7 +632,7 @@ ignore_errors:
   similar to other error skippging directives probably
 
 
-Iteration:
+#####Iteration:
 Ansible support iteration of lists supplied into modules
  Example:
 tasks:
@@ -621,7 +642,7 @@ tasks:
        - httpd-devel
 this will instruct yum module to address 2 packages given in simple list
 
-Variables:
+#####Variables:
 ansible suports variables with values
 variables are addressed by {{ item }} structure, where 'item' is predefined
 name, dot . is used to access exact item from items list
@@ -641,3 +662,28 @@ copy addresses 'item' which is stored in 'with_items', using . takes value
 with_items key have value of array of 2 dicts having 2 key-val pairs
 value of each key from with_items is accesed with item.<key_name>
 and expanded in 'copy' task
+
+#####ENV VARiables:
+By default Ansible uses new SSH connection for every task, so ENV_VARS need
+to be added into .bash_profile(or .profile in ubuntu).
+.bash_profile is loaded on login shells(which ssh is), so every new task which also a new ssh session will have those.
+   Example:
+  - name: Add an environment variable to the remote user's shell.
+   lineinfile: "dest=~/.bash_profile regex=^ENV_VAR= line=ENV_VAR=value"
+NOTE: to use env vars 'shell' module need to be used as per 'shell' can see
+env vars on remote machine, and 'command' can not.
+
+Also to read the newly added env var, it could be read and saved 
+and saved into variable, Registered in Ansible words. 
+To be used later by Ansible.
+   Example:
+  - name: Add an env variable to the remote user's shell.
+    lineinfile: "dest=/.bash_profile regex=^ENV_VAR= line=ENV_VAR=value"
+  - name: Get value of env var we just added.
+    shell: 'source ~/.bash_profile && echo $ENV_VAR'
+    register: foo
+  - name: Print the value of the env var.
+    debug: msg="The variable is {{ foo.stdout }}"
+If there are lots of env variables(like some Java app) it is better to use
+'copy' or 'template' modules instead of 'lineinfile' module with long list
+of items

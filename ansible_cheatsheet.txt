@@ -673,8 +673,8 @@ to be added into .bash_profile(or .profile in ubuntu).
 NOTE: to use env vars 'shell' module need to be used as per 'shell' can see
 env vars on remote machine, and 'command' can not.
 
-Also to read the newly added env var, it could be read and saved 
-and saved into variable, Registered in Ansible words. 
+Also to read the newly added env var to use later in playbook, save it
+into variable, Register in Ansible words.
 To be used later by Ansible.
    Example:
   - name: Add an env variable to the remote user's shell.
@@ -687,3 +687,48 @@ To be used later by Ansible.
 If there are lots of env variables(like some Java app) it is better to use
 'copy' or 'template' modules instead of 'lineinfile' module with long list
 of items
+
+Env vars for some tasks:
+environment:
+  this param creates env var for one play (1 task or handler)
+   Example:
+  tasks:
+  - name: Task that will have some env var available for it
+    some_module: something=something
+    environment:
+      my_env_var: my_env_var_value
+
+ If 1+ task, but not all, require same env vars:
+  vars:
+   proxy_vars:
+     http_proxy: http://example-proxy:80/
+     https_proxy: https://example-proxy:443/
+     [etc....]
+  tasks:
+  - name: This task will use whole list of proxy_vars(custom name)
+    get_url: url=http://www.example.com/file.tar.gz dest=~/Downloads/
+    environment: proxy_vars
+
+ Or iterate throuth variables with some common flag:
+  vars:
+    proxy_state: present    #change to 'absent' to disable proxy
+  tasks:
+    - name: Configura proxy
+      lineinfile:
+        dest: /etc/environment
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: "{{ proxy_state }}"
+      with_items:
+        - regexp: "^http_proxy="
+          line: "http_proxy=http://example-proxy:80/"
+        - regexp: "^https_proxy="
+          line: "https_proxy=https://example-proxy:443/"
+        - regexp: "^ftp_proxy="
+          line: "ftp_proxy=http://example-proxy:80/"
+  This will run 'lineinfile' 3 times, which will update values in 
+  /etc/environment file, which will be read upon login shell for every
+  other task, if 'proxy_state' is 'present', making all those values
+  to be the Environment variables(same it could be added into .bash_profile
+  If 'proxy_state' is 'absent' this will ensure there are no such lines in
+  /etc/environment, thus disabling proxy if it was enabled

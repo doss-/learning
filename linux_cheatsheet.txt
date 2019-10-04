@@ -57,6 +57,13 @@ check linux distro:
   lsb_release - command that returns info about distro
   cat /proc/version - file with linux version info
 
+facter:
+  tool to get info about the system, hardware, network, user, distro..
+  121 property in total
+  Useful for Ansible, to get different facts like os name.
+   Ubuntu: sudo apt-get install facter
+   CentOS: yum install facter # enable EPEL repo
+
 directories structure:
  / - root
  /bin - binaries for system boot, goes with distro

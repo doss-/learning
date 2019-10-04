@@ -474,7 +474,11 @@ ansible-playbook:
  ansible-playbook -i /path/to/hosts playbookd.yml
  --verbose\-v - verbose
  -vvvv - very verbose
- --extra-vars=VARS\-e VARS - variables to use "key=value,key=value" format
+ --extra-vars=VARS\-e VARS - variables to use "key=value key=value" format
+   Example:
+  --extra-vars "foo=bar"
+  --extra-vars "@even_more_vars.json" - pass json file
+  --extra-vars "@even_more_vars.yml" - pass yaml file
  --forks=NUM\-f NUM - integer of forks(num of servers to run concurrently)
   default is 5
  --connection=TYPE\-c TYPE - type of connection to use
@@ -535,11 +539,31 @@ vars:
    node_apps_location: /usr/local/opt/node
 
 vars_files:
+  Load variables from file or files if array passed
   contains a list of filenames of yml format which would contain list of 
   variables and their values
+  !NOTE: all listed files MUST EXIST
+  !NOTE: all files are read
    Example:
   vars_files:
-    - vars.yml
+    - vars.yml                  # Note: file must exist
+    - another_vars.yml          # Note: file must exist
+
+  Could be used with default file with values, and other files
+  that are Optionally exist - some could be absent and first file is read
+  !NOTE: Only ONE file is read - the one found first
+  !NOTE: Files listed AFTER firstly found file are ignored
+   Example:
+  vars_files:
+   - [ "file1_{{ some_var }}.yml", "file2_{{ some_var }}.yml", file3.yml ]
+    # as some_var 'ansible_os_family' could be used to load configs for
+    # different distros like Debian and CentOS
+    # file3.yml will be read ONLY IF file1 and file2 absent
+
+  Where:
+   if file1_value.yml exists it will be read, others ignored
+   if file1_value.yml missing, file2_value.yml will be read, file3 ignored
+   if both file1 and file2 are missing, then file3.yml will be read
 
 pre_tasks:
   run before main set of tasks tasks
@@ -643,12 +667,29 @@ tasks:
 this will instruct yum module to address 2 packages given in simple list
 
 #####Variables:
-ansible suports variables with values
-variables are addressed by {{ item }} structure, where 'item' is predefined
-name, dot . is used to access exact item from items list
-item list is supplied in 'with_items' dict, with array as a value
- Example:
-tasks:
+Predefined variables:
+  ansible_os_family  - Contains distro name like 'Ubuntu' or 'CentOS'
+Declare variable in playbook:
+  foo: bar
+
+Declare variable in inventory file(hosts):
+  foo=bar
+
+Declare in file for exact hostname or group from inventory:
+ NOTE: location is depends on Inventory file location
+       because files are not found if use not default inventory location
+ Note: or place it in same host\group_vars directories next to playbook
+  Example:
+ if hosts file in default location '/etc/ansible/hosts'
+ /etc/ansible/host_vars/192.168.88.8 - declare vars for exact hostname
+ /etc/ansible/group_vars/app - declare vars for particular group
+
+Declare variables in modules for that modules:
+ variables are addressed by {{ item }} structure, where 'item' is predefined
+ name, dot . is used to access exact item from items list
+ item list is supplied in 'with_items' dict, with array as a value
+  Example:
+ tasks:
   - copy:
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
@@ -657,11 +698,12 @@ tasks:
         dest: /etc/httpd/conf/httpd.conf
       - src: htpd-vhosts.conf
         dest: /etc/httpd/conf/httpd-vhosts.conf
-where 'copy' module is in the same dictionary as 'with_items' - single task
-copy addresses 'item' which is stored in 'with_items', using . takes value
-with_items key have value of array of 2 dicts having 2 key-val pairs
-value of each key from with_items is accesed with item.<key_name>
-and expanded in 'copy' task
+ where 'copy' module is in the same dictionary as 'with_items' - single task
+ copy addresses 'item' which is stored in 'with_items', using . takes value
+ with_items key have value of array of 2 dicts having 2 key-val pairs
+ value of each key from with_items is accesed with item.<key_name>
+ and expanded in 'copy' task
+
 
 #####ENV VARiables:
 By default Ansible uses new SSH connection for every task, so ENV_VARS need

@@ -159,9 +159,14 @@ change case:
   :set syntax=sh - if 'syntax on' doesnt work, sh is for shell
 :set hlsearch - highlight search (all entries at once)
 :set tabstop=4 - qty of spaces in tab (default is 8), usually devs use 4
+  Example:
+ spaces instead of tabs:
+ from here https://stackoverflow.com/questions/1878974/redefine-tab-as-4-spaces
+  set tabstop=8 softtabstop=0 expandtab shiftwidth=2 smarttab
 :set autoindent - continue indention on next line (like keep tab)
 	CTRL+D to cansel autoindent
 :set number - number lines
+:set nonumber - disable numbered lines
 :scriptnames - displays all the file locations of all the configs loaded for
   vim instance running
 :e $MYVIMRC  - open & edit the current .vimrc that you are using, then use 
@@ -182,11 +187,16 @@ to change color scheme for current session use:
   :color <shceme_name>
    :color desert
 
-to have it loaded automatically add it into vimrc file like:
-/etc/vimrc => :color desert
+to change particular color in existing scheme, go to colors dir
+and pick specific schema color, edit and:
+ ctermfg - Color TERMinal ForeGround with color name
+ ctermbg - .. BackGround and color name again
+ Detailed:
+ https://alvinalexander.com/linux/vi-vim-editor-color-scheme-syntax
 
-somewhy it does not work when adding ~/.vimrc file, probably it is no tloaded
-for some reason, may be need to adjust some configs
+to have it loaded automatically add it into vimrc file like:
+/etc/vimrc => color desert
+
 
 Insert space in multilines:
  https://stackoverflow.com/questions/253380/how-do-i-insert-text-at-beginning-of-a-multi-line-selection-in-vi-vim

@@ -1357,6 +1357,14 @@ ssh-keygen:
    Example:
   ssh-keygen -t rsa -b 4096 -C "email"  - will create new keypair
 	in the path ~/.ssh/id_rsa and its id_rsa.pub part
+  -l - list, not create anything.
+  -E - Specifies the hash algorithm used when displaying key fingerprints.  
+       Valid options are: “md5” and “sha256”.
+    Example:
+ Get fingerprint:
+  ssh-keygen -lf ~/.ssh/keyname[.pub]
+ Get fingerprint in hashed\hex format:
+  ssh-keygen -E md5 -lf ~/.ssh/git_key[.pub]
 
 ssh-copy-id:
   copies public keys securely to remote machine for paswordless login
@@ -2098,6 +2106,7 @@ nice: renice:
 
 sysvinit, systemd, upstart
 /usr/lib/systemd - systemd service manager working dir (new Rhel\Debian-like)
+  https://unix.stackexchange.com/questions/5877/what-are-the-pros-cons-of-upstart-and-systemd  - GOOOOOOOD TO READ. Systemd compared to Upstart
 /usr/share/upstart - upstart service manageer working dir(old Debian\Ubuntu)
 /etc/init.d - sysvitin service manager working dir (old Centos\Debian\Ubuntu)
 Note: Ubuntu could has all three installed currently, unlike centos that has

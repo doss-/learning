@@ -1,0 +1,13 @@
+SELinux preventing access to files on read for installed apps
+   Elastic can't write to logs
+Directory and file wrong ownerships prevent accessing to files
+   Jar(exe) with wrong ownership can not write into dirs with diff. owners
+   Manually copied user home with wrong ownership prevents auth_hosts update
+Permissions(rwx) set wrongly to file or dir fails whole chain
+   SSH key with wrong(not r/o) permissions - cant access via ssh paswordless
+  .ssh dir with wrong cmod - cant access via ssh passwordless
+  ~ dir with wrong chmod - cant access via ssh passwordless
+Firewall blocks ports for installed app(via Ansible, which already weird)
+Symlinks disabled as broken pointing into another home dir for non-root
+ Wheel group user, creates sudo ln -s from /opt into another user ~/dir/link
+

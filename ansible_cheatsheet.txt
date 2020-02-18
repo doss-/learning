@@ -514,6 +514,14 @@ hosts:
  some mixture of hosts, probably delimited similar to groups
  wildcards - *.example.com
 
+gather_facts: no
+ Do not gather facts from host, couls save some time if there are bunch 
+ of hosts to run playbook on
+  Note:
+ if 'facter' or 'ohai' is installed there will be additional facts from them
+ prefixed by 'facter_' or 'ohai_' respectively
+
+
 
 remote_user:
   User to log in under, defined alongside with 'hosts:' in playbook
@@ -668,7 +676,19 @@ this will instruct yum module to address 2 packages given in simple list
 
 #####Variables:
 Predefined variables:
-  ansible_os_family  - Contains distro name like 'Ubuntu' or 'CentOS'
+  ansible_os_family: Contains distro name like 'Ubuntu' or 'CentOS'
+  Magic vars detailed:
+  https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#magic-variables-and-how-to-access-information-about-other-hosts
+  hostvars: contains all defined host variables(from inventory and other
+             discovered yaml vils inside host_vars directories
+   Example:
+    {{ hostvars['hostname']['specific_variable_for_the_host'] }}
+  groups: list of all group names in the inventory
+  group_names: list of all groups of which the Current host is a part
+  inventory_hostname: current host's hostname from the Inventory file
+  inventory_hostname_short: first part of inventory_hostname up to first .
+  play_hosts: all hosts on which current Play will be run
+
 Declare variable in playbook:
   foo: bar
 
@@ -774,3 +794,28 @@ environment:
   to be the Environment variables(same it could be added into .bash_profile
   If 'proxy_state' is 'absent' this will ensure there are no such lines in
   /etc/environment, thus disabling proxy if it was enabled
+
+#####Accessing variables:
+"{{ variable_name }}" - should be in quotes, upon execution ansible will
+substitute this for a value
+ Example:
+ given following structure of some existing fact
+ansible_eth0:
+  ipv4:
+    address: 10.0.2.15
+ To get it:
+ {{ ansible_eth0.ipv4.address }}        - will return 10.0.2.15
+ {{ ansible_eth0['ipv4']['address'] }}  - same
+
+Lists:
+ foo_list:
+ - one
+ - two
+ - three
+
+ accesing:
+  foo[0]        - standard Python accessing array
+  foo|first -   - jinja2 accessing method
+  foo.one       - should work too
+
+

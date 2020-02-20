@@ -1307,6 +1307,13 @@ mkfs:
    Example:
   mkfs -t ext3 /dev/sdb1
 
+lvm:
+ Logical Volume Manager
+  How to extend Logical volume:
+ https://www.youtube.com/watch?v=hugEkh50Ynk
+  How to extend logical volume in text 
+ https://www.howtogeek.com/howto/40702/how-to-manage-and-use-lvm-logical-volume-management-in-ubuntu/
+
 fsck:
   filesystem check and repair (lost+found dir will have repaired files)
    Example:

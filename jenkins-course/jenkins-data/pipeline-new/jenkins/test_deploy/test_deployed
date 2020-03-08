@@ -1,0 +1,10 @@
+#!/bin/bash
+
+lines=$(docker logs maven-app | grep -i 'hello world' | wc -l)
+
+if (( lines>0 )); then
+  echo 'Deployed successfully';
+else 
+  echo 'Failing build'
+  exit 1;
+fi

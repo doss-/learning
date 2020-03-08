@@ -57,6 +57,13 @@ check linux distro:
   lsb_release - command that returns info about distro
   cat /proc/version - file with linux version info
 
+facter:
+  tool to get info about the system, hardware, network, user, distro..
+  121 property in total
+  Useful for Ansible, to get different facts like os name.
+   Ubuntu: sudo apt-get install facter
+   CentOS: yum install facter # enable EPEL repo
+
 directories structure:
  / - root
  /bin - binaries for system boot, goes with distro
@@ -226,8 +233,12 @@ grep:
    '[b]ash' will also do the trick, dunno why
     why it works: 
      https://askubuntu.com/questions/153419/how-does-this-tricky-bracket-expression-in-grep-work
-    TL;DR - basically string 'grep [f]irefox'(returned by ps aux) will not be 
-	matched by regular expression '[f]irefox' (executed by grep)
+ TL;DR - ps returns process of grep with a parameter '[f]irefox', and
+ grep it its turn searches for 'firefox' this pattert will not match string
+ from ps output with displayed grep params that includes braces
+ So basically string 'grep [f]irefox'(returned by ps aux) will not be 
+ matched by regular expression '[f]irefox' (executed by grep)
+ Params:
   -i  - case INsensitive
   <filepath> - is not required if used in pipe
   -c - Count matched lines, return number of lines matched
@@ -480,12 +491,24 @@ update-alternatives:
   See here: 
    http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
 
+shuf:
+ shuffles the deck lol
+ generages random output for range
+ -i num-num - input range
+ -n num - number of items from the list to display
+  Example:
+ shuf -i 20-25
+  will output 5 numbers in range in random order
+ shuf -i 20-25 -n 1
+  will output 1 number from the range
+
 sort:
   sorts by alphabet by default
    Synopsis:
   Sort [option] file
    Params:
   -r - reverse
+  -R - random sort
   -n - sort by numbers
   -b - ignore leading blanks i.e. '   a'
   -f - ignore case
@@ -560,7 +583,7 @@ split:
   split -l 2 <file name> -  will split the file by 2 Lines into new files named
 			    xaa, xab, xac, etc.
 
-ln:
+nl: 
   number lines, 
   number lines by pages(number from 1 on second page)
   number only regex matched lines (-b regex)
@@ -732,6 +755,8 @@ https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-s
     sed -n 'p' file - will print every line of file
     sed 'p' file - will print every line of file TWICE
   '1p' - print first line (address range)
+    Example:
+    sed -n '1p' /path/to/file    - will show only first line
   '1,5p' - print from first to fifth line (address range) 
   '1,+4p' - print 4 lines from first(inclusively) (address range)
   '1~3d' - print every other line: first then skip until 3rd line and again
@@ -854,6 +879,10 @@ ln:
   create hard link by default
   ln <param> <path> <link name>
   -s - create soft link
+   Example:
+  ln -s /src/file /dest/symlink
+	first param is where the file is 
+	second param where to put symlink
   
   Hard link: every file has 1 , create another one in different place
    it will has size of its name, and will point to place on HDD for original file
@@ -890,7 +919,8 @@ wget:
   wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb - will download .deb file in current directory w/o any output
 
 curl:
-  tool for view-download web pages and content
+  web requests issuer - HTTP[S] requests.
+  Or could download web pages and files and stuff
    -o - output, redirects output to a file, usefull when downloading files
     sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest
      will download ecs-cli binary file from amazon storage into /usr/... path
@@ -900,6 +930,15 @@ curl:
       will display path to local ecs-cli, which will go into pipe to md5 sum
       which will compare given md5 and md5 from file under given path, and will
       return OK if everything if fine
+  Example: Generate crumb(token) and use it as a header to POST request
+ to the server restfull call
+    crumb=$(curl -u "builder:1234" -s 'http://jenkins.local:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)')
+    curl -u "builder:1234" -H "$crumb" -X POST http://jenkins.local:8080/job/ENV/build?delay=0sec
+  -H - header of a request(contains Token)
+  -u - "user:password"
+  -X - Request type (GET or POST, PUT, DELETE etc) 
+   default: GET
+  
 
 du:
   disk usage
@@ -1003,6 +1042,9 @@ zip:
 Encryption 
 public private keys ssl , stuff
 https://www.devco.net/archives/2006/02/13/public_-_private_key_encryption_using_openssl.php
+Sign with private key
+ Example:
+https://raymii.org/s/tutorials/Sign_and_verify_text_files_to_public_keys_via_the_OpenSSL_Command_Line.html
 
 Create CRS - certificate signing request (csr)
 https://www.sslshopper.com/what-is-a-csr-certificate-signing-request.html
@@ -1265,6 +1307,13 @@ mkfs:
    Example:
   mkfs -t ext3 /dev/sdb1
 
+lvm:
+ Logical Volume Manager
+  How to extend Logical volume:
+ https://www.youtube.com/watch?v=hugEkh50Ynk
+  How to extend logical volume in text 
+ https://www.howtogeek.com/howto/40702/how-to-manage-and-use-lvm-logical-volume-management-in-ubuntu/
+
 fsck:
   filesystem check and repair (lost+found dir will have repaired files)
    Example:
@@ -1301,9 +1350,42 @@ sshd(openssh)
   ==
   RSA keys for ssh authentication generation process:
   https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7
-  ssh-keygen [-b 4096] - generates key pair into given path
-  ssh-copy-id user@34.250.25.207 - copy pub rsa from local machine to remote
-   for the user given further access will be w/o password(could ask passphrese)
+  Passwordless:
+  to add security ssh login with Password could be disabled, to login
+  only with keypair:
+  https://linuxize.com/post/how-to-setup-passwordless-ssh-login/#disabling-ssh-password-authentication
+  https://help.ubuntu.com/community/SSH/OpenSSH/Keys
+
+ssh-keygen:
+  generates keypair private\public
+  -t rsa - key type
+  -b 4096 - generates key pair into given path
+  -C "text" - comment for key
+   Example:
+  ssh-keygen -t rsa -b 4096 -C "email"  - will create new keypair
+	in the path ~/.ssh/id_rsa and its id_rsa.pub part
+  -l - list, not create anything.
+  -E - Specifies the hash algorithm used when displaying key fingerprints.  
+       Valid options are: “md5” and “sha256”.
+    Example:
+ Get fingerprint:
+  ssh-keygen -lf ~/.ssh/keyname[.pub]
+ Get fingerprint in hashed\hex format:
+  ssh-keygen -E md5 -lf ~/.ssh/git_key[.pub]
+
+ssh-copy-id:
+  copies public keys securely to remote machine for paswordless login
+  keys are concatenated into ~/.ssh/authorized_keys file
+  it will copy all public keys available in ~/.ssh/
+   Example:
+  ssh-copy-id dmitry2@192.168.42.74
+   if there issues with a default 22 port , another port could be changed:
+  ssh-copy-id "<username>@<host> -p <port_nr>"
+  
+  
+  if ssh-copy-id is not available here is analoug:
+   cat ~/.ssh/id_rsa.pub | ssh remote_username@server_ip_address "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+   
 
 ssh-keygen:
   Known hosts are stored in a file /home/<username>/.ssh/knonwn_hosts.
@@ -1581,7 +1663,47 @@ dot (.):
   and kills it after everything is done - basic behaviour of everything
 
 
+===Login process
+Read More:
+http://mywiki.wooledge.org/DotFiles
 
+No GUI login into text console. Local login shell:
+1. getty(8) starts and produces 'login:' prompt
+2. getty reads login and passes it to login(1)
+3. login reads password db and decides whether to ask for password
+4. after password provided PAM could be loaded - /etc/pam.d/login
+   this could load additional settings for environment or session etc.
+5. login 'execs' login shell(probably from /etc/passwd) with -
+   -/bin/bash - means "this is login shell, not a regular shell"
+6. since it's login shell it reads /etc/profile and /etc/profile.d
+   /etc/profile should have code to read profile.d
+   then ~/.bash_profile, 
+   then if no - .bash_login, 
+   then if no - .profile
+     .profile is standard Bourne/POSIX/Korn shell config file
+7. bash stops look for config files and displays prompt
+
+ Example of login process:
+Let's take a moment to review. A system administrator has set up a Debian system (which is Linux-based and uses PAM) and has a locale setting of LANG=en_US in /etc/environment. A local user named pierre prefers to use the fr_CA locale instead, so he puts export LANG=fr_CA in his .bash_profile. He also puts source ~/.bashrc in that same file, and then puts set +o histexpand in his .bashrc. Now he logs in to the Debian system by sitting at the console. login(1) (via PAM) reads /etc/environment and puts LANG=en_US in the environment. Then login "execs" bash, which reads /etc/profile and .bash_profile. The export command in .bash_profile causes the environment variable LANG to be changed from en_US to fr_CA. Finally, the source command causes bash to read .bashrc, so that the set +o histexpand command is executed for this shell. After all this, pierre gets his prompt and is ready to type commands interactively. 
+
+.bashrc is not read for login shells, it could to be read manually in .profile
+In case this is .profile, before read it, need to ensure that Bash is used:
+  if  [ -n $BASH ] && [ -r ~/.bashrc ]; then
+    . ~/.bashrc
+  fi
+
+Remote Login Shell:
+alsmost same as previous, but except 'getty' and 'login' - 'sshd' handles
+greetings(login prompt by 'getty') and password auth('login').
+PAM also linked with 'sshd', but will read /etc/pam.d/ssh (not .../login).
+ Once sshd has run through the PAM steps (if applicable to your system), it 
+"execs" bash as a login shell, which causes it to read /etc/profile and then 
+one of .bash_profile or .bash_login or .profile.
+
+NOTE:
+during ssh login, some of local Env Vars could be sent to remote sshd
+like LANG and LC_* variables want to be preserved by the remote login.
+Unfortunately, the configuration files on the server may override them.
 
 
 ===User\Groups Management
@@ -1713,7 +1835,7 @@ getent:
 
 usermod:
   modify existing users
-  usermod [<params>] <user>
+  usermod [<params>] [groups] <user>
    -l - change LOGIN of the user. i.e.:
       usermod -l johnny john - change username john to johnny
    -d - DIRECTORY path for New home directory of the user
@@ -1724,8 +1846,9 @@ usermod:
    -G - add to other GROUPs delimited , and no spaces adds, more groups for user
 	will overwrite other supplementary groups except primary
    -a - APPEND groups, used with -G, to append existing supplementary groups:
+   Example:
       usermod -a -G newgroup1,newgroup2 johnny - will add two groups to the
-	end of the list of a groups user have
+	end of the list of a groups user johnny have
    -L - LOCK user
 	after lock there will be exclamation mark in /etc/shadow file before
 	user passwod:
@@ -1887,6 +2010,22 @@ general processes:
   so there is a PID which is Process ID
   and PPID which is Parent Process ID, so every process has parent, except PID 1  it seems
 
+strace:
+  shows trace of used files byt the given command - magic eh?
+   Example:
+  strace -s 2000 hostnamectl |& grep ^open | tail -5
+   will return files directly opened by 'hostnamectl' tool
+   still it could iteract with other services which could read from files, and this is not 
+   seen here, alas.
+
+watch:
+  cool debug tool again:
+  execute a program periodically, showing output fullscreen
+   Example:
+  watch "ps -eaf|grep [h]ostname"
+  #execute 'hostnamectl' and new entry will be added 
+  > root     11003     1  0 02:51 ?        00:00:00 /lib/systemd/systemd-hostnamed
+
 ps:
   by default returns processes run by my current user and current terminal 
   session
@@ -1974,6 +2113,7 @@ nice: renice:
 
 sysvinit, systemd, upstart
 /usr/lib/systemd - systemd service manager working dir (new Rhel\Debian-like)
+  https://unix.stackexchange.com/questions/5877/what-are-the-pros-cons-of-upstart-and-systemd  - GOOOOOOOD TO READ. Systemd compared to Upstart
 /usr/share/upstart - upstart service manageer working dir(old Debian\Ubuntu)
 /etc/init.d - sysvitin service manager working dir (old Centos\Debian\Ubuntu)
 Note: Ubuntu could has all three installed currently, unlike centos that has
@@ -1981,11 +2121,18 @@ initd but it wrapped in systemd
 
 
 service: daemon:
+service vs systemctl vs upstart
+service is an "high-level" command used for starting and stopping services in different unixes and linuxes. Depending on the "lower-level" service manager, service redirects on different binaries.
+For example, on CentOS 7 it redirects to systemctl, while on CentOS 6 it directly calls the relative /etc/init.d script. On the other hand, in older Ubuntu releases it redirects to upstart
+service is adequate for basic service management, while directly calling systemctl give greater control options.
+https://serverfault.com/questions/867322/what-is-the-difference-between-service-and-systemctl
+
   RHEL-like - systemd (moved from SysVinit)
 	https://fedoraproject.org/wiki/SysVinit_to_Systemd_Cheatsheet
   Debian-like - upstart service (also adopted systemd)
   for Debian-like and RHEL-like systems its two different ways
    for Ubuntu since 15.xx it seems it is even more different..
+   okay its systemd again(which uses systemctl as cli)
   Debian-like:
   status <service> 
   start <service>
@@ -2023,6 +2170,26 @@ service: daemon:
   it exactly called now
   it seems it also supports systemctl and disable\enable with same commands,
    but creating .override file in the Debian way
+
+systemctl:
+  cli for systemd service controller
+  it is called by 'service' command for backwards and cross compatibility reasons
+
+hostnamectl:
+  cli of systemd service controller related to hostname changes and management
+  unified way to deal with hostname, list /etc/*-release, uname and stuff
+   read more here, like really detailed - good stuff:
+  https://unix.stackexchange.com/questions/459610/whats-the-point-of-the-hostnamectl-command
+   Example:
+  hostnamectl set-hostname 'gfs-server-03'
+  
+change hostname:
+  read more:  https://www.cyberciti.biz/faq/linux-change-hostname/
+   with systemd adopted:
+  hostnamectl set-hostname 'gfs-server-03'
+   before
+  /etc/hostname
+   + edit everything with old hostname in /etc/hosts, and add hostname to localhost addr
 
 supervisor:
   lightweight services controller, available for both RHEL and Debian like
@@ -2326,6 +2493,14 @@ yum:
   yum search <pkg> - searches for package, search in name and description
   yum install <pkg> - install package, and its dependencies
 	-y - answer Yes for prompts automatically
+  ..  install https://...../package.rmp 
+        will install package from remote location
+        or this installs repolist.. from which that packages could be 
+        installed..
+        --enablerepo=<reponame>  - enables repo
+    Example:
+   yum install -y https://centos7.iuscommunity.org/ius-release.rpm && \
+    yum install -y php71u-fpm
   yum localinstall <pkg> - installs .rpm package downloaded to local machine
 	will ALSO install needed dependencies, unlike 'rpm' tool
   yum info <pkg> - info about a package: descr, url, size, arch, etc
@@ -2345,6 +2520,8 @@ yum:
   	file-glob-syntax wild‐cards to list the packages available or installed
 	that provide that feature or file.
   yum clean all - clears cache similar to apt-get autoclean
+    Example of usage:
+     use it after some bunch of packages has been installed to clean space
   yum history - history of yum - install\remove\upd package and stuff, sudo
 
 =======Manage repositories
@@ -2877,6 +3054,7 @@ test:
   -s <file> - exists and has size greater than 0
   -u <file> - exists and set-user-ID bit is set
   -k <file> - exists and its sticky bit set 
+  -n <string> - length is not zero
   -r <file> - file exists and with read permission
   -w <file> - file exists and with write permission 
   -x <file> - file exists and with execute permission
@@ -3074,6 +3252,12 @@ netstat:
    - p - show related PID and Program Name
   Example:
    netstat -vat - display used porta and established connections
+   sudo netstat -tulw - will display all ports for local machine
+
+ss:
+  netstat could be outdated on some systems, use it instead
+   Example:
+  sudo ss -tulwn - display all opened ports on local machine
 
 lsof:
   also checks ports, could display processes that are using
@@ -3094,6 +3278,9 @@ nmap:
    -O - OS detection
    -T - TCP
    -U - UDP
+    Example:
+   sudo nmap -sT -O 192.168.42.74  - scan remote machine for opened ports
+   sudo nmap -sT -O localhost - scan local machine
 
   NOTE: 
    Read MAN - it has examples and lots of stuff:

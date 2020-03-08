@@ -3,6 +3,8 @@
 /**/.terraform
 /**/*.tfstate
 /**/*.tfstate.*
+**/keys/iot_device.key
+**/*.bak
 
 #except those Dockerfiles i need
 #!/Dockerfiles/docker-compose/env_var
@@ -10,3 +12,27 @@
 
 #also ignore python directory for now
 /python/*
+
+#mkdocs related stuff
+/cheatsheets/docs/img/devops_conf_2019
+
+#ignore jenkins and mysql working stuff in jenkins-course
+/jenkins-course/jenkins-data/credentials.csv
+
+#to uninclude subdirectories see this
+#https://stackoverflow.com/questions/5533050/gitignore-exclude-folder-but-include-specific-subfolder
+#The pattern dir/ excludes a directory named dir and (implicitly) everything under it. With dir/, Git will never look at anything under dir, and thus will never apply any of the “un-exclude” patterns to anything under dir.
+#The pattern dir/* says nothing about dir itself; it just excludes everything under dir. With dir/*, Git will process the direct contents of dir, giving other patterns a chance to “un-exclude” some bit of the content (!dir/sub/). 
+/jenkins-course/jenkins-data/jenkins_home/*
+!/jenkins-course/jenkins-data/jenkins_home/ansible/
+remote-key
+/jenkins-course/jenkins-data/db_data/
+
+#ignore .vagrant inner stuff created for the ansible book
+#this would be created during vagrant up anyways
+#all required files are next to Vagrantfile
+#do not need /* for now as per i'm not planning uninclude anything
+/ansible-book/vagrant/.vagrant/
+
+#ignore all .swp files as they are from opened VIM, and this annoys me
+/**/*.swp

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+export IMAGE=$(sed -n '1p' /tmp/.auth)
+export TAG=$(sed -n '2p' /tmp/.auth)
+export PASS=$(sed -n '3p' /tmp/.auth)
+
+docker login -u doss -p $PASS
+docker rm maven-app
+if [ ! -d ~/maven ];  then
+  mkdir ~/maven
+  mv -u /tmp/docker-compose.yml ~/maven/
+else
+  mv -u /tmp/docker-compose.yml ~/maven/
+fi
+cd ~/maven && docker-compose up -d
+docker logs maven-app

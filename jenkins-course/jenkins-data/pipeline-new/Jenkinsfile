@@ -1,0 +1,55 @@
+pipeline {
+  agent any
+
+  environment {
+    // this is password in fact, and that is a typo
+    PASS = credentials('registry-path')
+  }
+  
+  stages {
+
+    stage('Build') {
+      steps {
+        sh '''
+          ./jenkins/build/mvn.sh mvn -B -DskipTests clean package
+          ./jenkins/build/build.sh
+
+        '''
+      }
+      post {
+        success {
+          archiveArtifacts artifacts: 'java-app/target/*.jar', fingerprint: true
+        }     
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh './jenkins/test/mvn.sh mvn test'
+      }
+      post {
+        always {
+          junit 'java-app/target/surefire-reports/*.xml'
+        }     
+      }
+    }
+
+    stage('Push') {
+      steps {
+        sh './jenkins/push/push.sh'
+      }
+    }
+
+    stage('Deploy') {
+      steps {
+        sh './jenkins/deploy/deploy.sh'
+      }
+    }
+
+    stage('Test_Deploy') {
+      steps {
+        sh './jenkins/test_deploy/test_deploy.sh'
+      }
+    }
+  }
+}

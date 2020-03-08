@@ -1,0 +1,47 @@
+Vagrant uses cli of hypervisors(VBoxManage for virtual box) to manage VMs
+Vagrantfile uses Ruby syntax
+
+vagrant box add
+  ... username/boxname
+  downloads a 'box', places it somewhere..
+   Example:
+  vagrant box add geerlingguy/centos7
+
+vagrant box list
+  list all local boxes and their versions
+  globally
+
+vagrant init
+  downloads Vagrantfile in current directory
+
+vagrant up
+  starts or creates new vm, then provisions it if first time
+  creates VM, creates ./.vagrant directory, creates network interface
+  creates new keypair with public key in the VM
+  private key in .vagrant/default/machintes/virtualbox/private_key
+  forwards 22 port to 2222 on host
+  mounts current dir(with Vagrantfile) into VM's /vagrant 
+
+vagrant halt 
+  shuts down VM
+
+vagrant destroy
+  deletes VM
+
+vagrant status
+  shows status of current VMs(current dir Vagrantfile related)
+
+vagrant global-status
+  shows all VMs on the machine status related to vagrant
+
+vagrant ssh
+  connects into the VM via ssh
+  should be done from dir where Vagrantfile is located
+
+vagrant ssh-config
+  displays detials of ssh connection
+  like ip, port, private key for login etc
+
+vagrant provision
+  provisioner is configured in Vagrantfile (shell, Docker, Ansible etc)
+  provision a VM, could be run after VM has been provisioned to re-provision

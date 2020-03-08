@@ -209,6 +209,15 @@ this seems to be <current dir>/scriptname (so basically full path, which is also
     $/home/dos/scripts/some_script.sh
     in script >> echo basename $0
     will return 'some_script.sh'
+
+##dirname:
+  returns directory name (everything except latest nodein the path)  
+  antipod of `basename`
+   Example:
+
+    cd /home/dos/directory/filename
+    dirname $PWD
+    > /home/dos/directory
   
 
 ##variables:
@@ -1238,6 +1247,17 @@ functions:
   creates new subshell, executes what goes after pipe there, then returns
   back to parent shell. subshell can not change parent shell - so 'read' command
   will not work in pipe
+
+breaking line; new line:
+ use \ at the end of the line.
+  NO SPACES OR ANYTHING AFTER THE BACK SLASH.
+ Guideline: split the long(80 chars) line into two lines.
+ Also break the line everytime there is an &&, | or || characters.
+ Example:
+command1 \
+ && command2 \
+ || command3 \
+ | command4
 
 read:
   reads line from keyboard input, accepts here-strings, does not work with |

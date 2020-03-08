@@ -1,0 +1,39 @@
+---
+# hosts to all, but --limit 192.168.88.8 will call only 1 machine
+- hosts: all
+  # array of files with variables to read, all will be read
+  vars_files:
+    - vars.yml
+    # only one (first found) would be read from this [ array ]
+    # this will be concat with previous vars.yml
+    - [ "apache_{{ ansible_os_family }}.yml", "apache_default.yml" ]
+  vars:
+    foo: bar
+  tasks:
+    # 'baz' and 'baaz' added with
+    #  --extra-vars "baz=baz_v baaz=baaz_v"
+    - debug:
+        # check out sick one line split in multiple for readability
+        msg: "Variable 'foo' is set to {{ foo }}
+ and baz to {{ baz }} 
+              and baaz to {{ baaz }}
+and foo_from_file is {{ foo_from_file}} "
+    # There is no need of 'facter' to get ansible facts..
+    # so_it_was_a_lie.jpg
+    #- name: install 'facter'
+    #  apt: name=facter state=present update_cache=yes cache_valid_time=36000
+    #  become: yes
+    - debug:
+        msg: "apache service name is {{ apache }}"
+    # variables here are used from inventory_example, call it like this:
+    # ansible-playbook --limit 192.168.88.8 playbook.yml --extra-vars "baz=baz_v baaz=baaz_v" --inventory=inventory_example
+    - debug:
+        msg: "inline variable from inventory is {{ inventory_var_inline }};
+              variable for entire group is {{ ansible_ssh_user }}"
+    # default location is /etc/ansible/[host|group]_vars/[host|grop]
+    # BUT above wont work if custom inventory location
+    # <playbook.yml_dir>/[host|group]_vars/hostname|groupname - works fine
+    # also probably it works in relative way to custom hosts location
+    - debug:
+        msg: "variable from ./host_vars/192.168.88.8: {{ qux }};
+              variable from ./group_vars/app: {{ qux_group }}"

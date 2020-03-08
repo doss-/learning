@@ -1,15 +1,36 @@
+#General
 Runs w/o any daemons, but still needs a server installed on the main machine
 Manages nodes which are not required to have ansible installed
 Uses SSH for access the nodes, so OpenSSH-Server need to be installed
 Playbooks are the thing that define and install software
 
+##SSH Connection:
+ New SSH session for EVERY TASK is Default.
+  SSH Multiplexing is used to significantly reduce time to establish conn.
+ 'Pipelining' feature enables reuse SSH connection.
+   But sometimes ANsible still will spawn new connection!
+  To Enable pipelining, update 'ansible.cfg':
+  [ssh_connection]
+  pipelining = True
+
 When running Ansible commands, they are run against nodes
  nodes are identified by Names
 List of nodes is stored in 'inventory' option of config , which points to
  a file which describes Nodes - /etc/ansible/hosts , by default
+All the configuration are stored in /etc/ansible/ansible.cfg
+ also could stored in ~/ansible.cfg or ./ansible.cfg, or in playbook
+ or in ANSIBLE_CONFIG env var , which override all above
+ Ansible.cfg also has default path for Inventory(hosts)
 
 things to install to get ansible environment up and running:
  sudo yum install python python-devel python-pip openssl ansible
+
+Since Ansible uses YAML/YML this is handy to have tool for yaml validation
+yamllint
+ it is available for RHEL\Debian and through 'pip' packages
+ Example:
+yamlling playbook.yml
+ it will return errors, trailing spaces, variable name dups and stuff
 
 
 specific package dependencies for Ansible:
@@ -19,8 +40,9 @@ python-markupsafe
 python2-crypto
 python2-paramiko
 
-===Documentation
+##Documentation
 available at ansible.com
+ also see: man ansible; ansible-doc; etc
 it has two documentations for
 Ansible - opensource\free 
 Ansible Tower - proprietary\paid
@@ -28,25 +50,44 @@ Documentations split into sections, check out
 Module Indes section which will describe Ansible modules with examples
  and stuff
 
-===Configuration
+#
+
+##Configuration
 Config files:
 /etc/ansible/ansible.cfg - has a configuration settings all of which are 
    commented out by default
  'sudo_user' option should be uncommented to be sure, but it is by default
    behaviour
+ could be placed in home dir or current dir or passed via env var
  inventory - path to file where all the Nodes are stored
 
-=====Hosts
+##Inventory \ Hosts
 located in
 /etc/ansible/hosts
 back it up
+
+
+###Roles
+preset of software to be installed 
+so node could done some Role job, like DB or WebServer
+
+
+
+[all:vars]  - It could have variables that instruct ansible
+ansible_connection = ssh - this instructs ansible how to connect to 
+the machines from the groups
 
 groups are started with [<group_name>]
 and could has domain names or addresses or other aliases of the kind. i.e.:
 [local]
 localhost
 
-=====User
+This is line which inscructs ansible how to connect to particular machine
+inside the group - connections string+secret key:
+ Example:
+<alias> ansible_host=<hostnameOrIP> ansible_user=<user to use> ansible_private_key_file=<path to private ssh key>
+
+###User
 create new user for ansible(lets call it ansible), add it to sudoers, because playbooks will fail
 in case of password request promt
 sudo visudo
@@ -56,7 +97,7 @@ ansible ALL=(ALL)	NOPASSWD: ALL
 !! This user account need to be created on EACH of the nodes
 !! and also need to be added to sudoers file
 
-=====SSH Keys
+###SSH Keys
 it is probably good practice to have key files generated and used for shh 
 connection:
 from under ansible user on Control Node generate keys:
@@ -69,14 +110,83 @@ then copy public keys to other nodes:
   SSH Key also need to be copied to local machine, because Ansible will use SSH
    and SSH will try to connect to local machine via SSH and will ask for 
    password too
+Known hosts:
+  accept_hostkey=yes - this will prevent 'unknown hostkey' error, when
+	hostname is not added to known_hosts, and ansible can't ssh into
+ansible_ssh_port - inventory option for port ssh port if differs from 22
+pipelining=True - ansible.cfg under [ssh_connection] enables OpenSSH with
+	pipelining, where not files but commands sent over ssh to server
+	to be executed, and no file deletion happens after execution
+	Additionally:
+	make sure 'Defaults requiretty' option in /etc/sudoers is commented
+OpenSSH, which is used for ssh , should be 5.6+ version, to enable 
+	ControlPersist option, which persists connection and do not
+	make handshake again after ControlPersist timeout set in server's
+	SSH config is reached
 
+
+##Parallelism
+  By default Ansible executeds commands in parallel on multiple servers;
+  So for all servers in the group command will be executed in different 
+  process(fork). This behaviour could be disabled(config) or altered by -f param
+  of ansible cli (see -f below)
+
+###Background
+  tasks could run in background and in parallel at the same time
+  this is usefull for long running tasks
+   Params to enable:
+  -B <seconds> - maximum time for task to run
+  -P <seconds> - poll, ask server for progress with <seconds> interval
+   Example:
+  ansible multi -b -B 3600 -P 0 -a "yum -y update"
+   will update all servers in multi group, time to run is 1 hour, poll every second
+  This command will retunr ansible_job_id (jid) like 
+   status of which could be checked:
+  ansible multi -b -m async_status -a "jid=507645957735.4189" --limit "192.168.60.4"
+   will return errors for servers where jid is different, and all the info
+   for server where jid is found(jid is uniq for every server)
+    so consider using --limit
+
+ansible:
+https://docs.ansible.com/ansible/latest/cli/ansible.html
+--tree / -t <path> - save output into this path(file for every host
+--one-line / -o - output in one line
+--verbose / -v - verbose output
+ -vvv - more verbose
+ -vvvv - more verbose and connection debugging
+--check - verifies the configuration matches what's defined in the playbook
+	w/o actually running the tasks on the server
+   Example:
+	ansible-playbook --check playbook.yml
+	 imagine it installs 'httpd' on 'app' group
+    Ensure nothing is installed after check:
+	ansible app -b -m yum -a "list=httpd"
+	 'yumstate:' should be 'available' in all yum repos and not 'installed'
 --version - returns version name and configuration info like config file 
   locations, paths, modules locations etc.
 --list-hosts - list all hosts from Inventory
+  requires pattern to look for either group name or hostname
+   Example:
+  ansible my_group --list-hosts - will list hosts from the group
+  ansible 192.* --list-hosts - will list all hosts starting from 192.
 
  all - executed from command line for all items in 
 	Inventory (/etc/ansible/hosts)
   Or use name of the section from Inventory file instead of 'all'
+ --limit "<ip/hostname>" - limit operation to only given ip\hostname from
+  the group selected from inventory file
+   Example:
+  ansible app -b -a "service ntpd restart" --limit "192.168.60.4"
+  could use regex when prefixed with ~
+   Example:
+  ansible app -b -a "service ntpd restart" --limit ~".*\.4"
+  or wildcards
+   Example:
+  ansible app -b -a "service ntpd restart" --limit "*.4"
+  This also works with --list-hosts to test the pattern:
+   Example:
+  ansible app --list-hosts -limit ~".*\.4"  
+    will return only matched hosts from the group
  -m - Module to use
    ansible all -m ping - will ping-pong all items, green output is good
 	red - bad, it could be if user is prompted for password enter
@@ -96,34 +206,112 @@ then copy public keys to other nodes:
 	rc=0 - return code
 	and command line output of executed command
  -s - SUDO, use elevated privileges, or something like that DEPRECATED
+ -f - default:5; forks number, Ansible executes in parallel, but amount of forked 
+      processes could be set manually
+       Example:
+      ansible multi -a "hostname" -f 1 - execute hostname on all servers in
+		group 'multi' with only 1 fork, so sequentally
  -b --become - use to Become a SUDO
 	this could also want a password for Root or user with root privileges:
 	    "module_stderr": "Shared connection to localhost closed.\r\n",
 	    "module_stdout": "sudo: a password is required\r\n",
 	https://stackoverflow.com/questions/21870083/specify-sudo-password-for-ansible
-	use this line:
+     Example use this line:
    ansible local -b --extra-vars "ansible_become_pass=LAvmCenAns" -a "cat /var/log/messages"
 	 --extra-vars proides extra parameters sent into execution 
 		key value pairs, like name=value
 		ansible_become_pass - special Ansible variable to store pass
-===Modules
+  -K --ask-become-pass - prompts for sudo password manual entry
+
+##Env Vars  
+ANSIBLE_HOST_KEY_CHECKING=False  - this will not do first-time key check during 
+first time login, supressing message 'The authenticity of host '192.168.60.5 
+(192.168.60.5)' can't be established.'; followed by manual input of yes/no
+
+##Modules
 ping - checks nodes, like pings and pongs back
 copy - copies files, requires attributes (-a)
+       seems like it works recursively by default(similar to scp or rsync recurse)
+       COPY is good for small groups of files or not so nested dirs
+       For many files use: synchronize; rsync; unarchive(copy arch and unarch on 
+       the server, like ADD in Dockerfile)
 	src=<relative\absolute path> - source path
 	dest=<path> - destination path, where to copy a source 
-	Example:
+	 Example:
 	ansible centos -m copy -a "src=./ansible/test.txt dest=/tmp/test.txt"
+	 Example(playbook), copy directory app into variable stored path:
+	vars: apps_location: /usr/local/opt/node
+	copy: "src=app dest={{ apps_location }}"
 apt - installs packages (UBUNTU only), attributes:
 	name=<package_name> - package to do something with
 	state=<state> - state of package to be after command executed:
 	  present - installs package if abscent, does nothing otherwise
 	  latest - installs latests version of package, even if older exists
 	  absent - makes sure package is absent
+	update_cache=yes - updates cache like 'apt update'
+	cache_valid_time=3600 - updates cache if it's older than 3600 seconds
+apt_repository - module to manage apt repositories
+	requires python-apt and python-pycurl packages on OS to work
+	repo='ppa:ondrej/php' - repository to add
+	update_cache=yes - probably updates cache from the repo inplace
+npm - node.js package manager
+	name=<package name to install>
+	global=yes - whether it is globak(-g cli param of npm) or something else
+	state=present
+	path=<path to dir with package.json>
 yum - installs packages for CentOS7
+   Example:
+  ansible multi -b -m yum -a "name=ntp state=present"
+   List installed packages:
+  https://stackoverflow.com/questions/41551620/how-to-get-the-installed-yum-packages-with-ansible
+   Example:
+  ansible app -b -m yum -a "list=httpd"
+   'yumstate:' of every yum repo will have state.
+   'installed' in any state means package is installed
+   'available' in all repos means package is not installed
+ disable_gpg_check: yes
+  turns off gpg check for repo, like '--nogpgcheck' for yum cli
+easy_install - module for python libraries installation, analog for pip
+  see differences between easy_install and pip here:
+  https://packaging.python.org/discussions/pip-vs-easy-install/
+   Example:
+  ansible app -b -m easy_install -a "name=django<2 state=present"
+   install django
+  ansible app -a "python -c 'import django; print django.get_version()'"
+   checks that django installed correctly
+
+service - wrapper around systemd and other services managers
+   Example:
+  ansible multi -b -m service -a "name=ntpd state=started enabled=yes"
 user - adds users, parameters:
 	name=<username> - username for user to be created
 	state=<state>
 	  absent - remove the user
+command - default module, which is do not need to be set, so -a is its arguments
+  for idempotency of commands and piping use 'shell' module.
+	Playbook:
+	 command: >
+	 will wrap all lines after it into one quoted single line.
+   The command(s) will not be processed through the shell, so variables like $HOME 
+   and operations like "<", ">", "|", ";" and "&" will not work. Use the shell 
+   module if you need these features.
+	 Example:
+	ansible multi -b -m command -a "tail /var/log/messages"
+	 is the same as
+	ansible multi -b -a "tail /var/log/messages"
+	 Params:
+	chdir=/path/to/dir - change into dir before executing command
+	creates=/path/to/file* - if exists, command won't be executed
+
+shell - run command in the shell utilizing Ansible abstraction and idempotency 
+  powers
+   Example:
+  ansible multi -m shell -a "date"
+   Also it is able to use pipes:
+   Example:
+  ansible multi -b -m shell -a "tail /vag/log/messages | grep ansible-command | wc -l"
+   this will return wc result of grep, which wont work w/o module usage
+	in fact 'command' is standard module
 setup - gather facts checked by default and display it
 	ansible all -m setup - will return facts about all groups in Inventory
 	Parameters:
@@ -139,8 +327,495 @@ setup - gather facts checked by default and display it
 	facts gathered for that particular machine. And will be named after the
 	hostname from Inventory for that machine
 	Tree could be used the check all the available facts, forfurther filtering
+group - manages groups
+	name=[groupname]
+	state=absent - to delete
+	state=present - to add
+	gid=[gid] - to manually set group id
+	system=yes - indicate that group is system
+user - manages users
+	name=[username] - username
+	group=[groupname] - add to existing group
+	createhome=yes - create home folderin /home/username
+	generate_ssh_key=yes - add ssh key for user logon
+	uid=[uid] - manually sed user id
+	shell=[shell] - specify different shell(/bin/bash is default)
+	password=[encrypted-password] - set user password, not sure with 'encrypted'
+	remove=yes - delete user
+	state=absent
+stat - just regular stat command but as a module. Returns JSON
+ 	path=/path/to/file - sets path to get stats about
+copy - copies files between hosts. Good for single files or small dirs
+	src=</path/to/file/or/dir[/]> - with trailing slash copies directory with
+	 its contents, w/o slash - copies only directory contents w/o dir itself
+	dest=/path/where/to/put
+	 Example:
+	ansible multi -m copy -a "src=/etc/hosts dest=/tmp/hosts"
+synchronize - copy, good for lots of files, nested dirs etc
+rsync - copy, good for lots of files, nested dirs etc
+ If need to copy lots of files in many dirs use archive and unpack with:
+unarchive - Unpacks an archive after (optionally) copying it 
+        from the local machine
+        src: "/file/name.tgz" # if URL will download and unpack
+                              # but won't leave the archive in place
+        dest: /dir/with/archive
+	remote_src=yes - unpack archive which already on host
+win_unzip - same as unarchive but for windows
+fetch - same as copy but vice versa to get files from remote machines onto server
+	 for multiple servers create directory with ip/hostname in 'dest' and
+ 	 puts fetched stuff there keeping dir structure
+	src=/path/to/source
+	dest=/path/to/dir
+	 Example:
+	ansible multi -b -m fetch -a "src=/etc/hosts dest=/tmp"
+	 Result:
+	$ tree /tmp/192.*
+        /tmp/192.168.60.4
+        └── [4.2K]  etc
+            └── [ 191]  hosts
+        /tmp/192.168.60.5
+        └── [4.2K]  etc
+            └── [ 191]  hosts
+        /tmp/192.168.60.6
+        └── [4.2K]  etc
+            └── [ 187]  hosts
+	flat=yes - with dest=/path/ with trailing slash - will fetch files directly
+	 in the 'dest' dir, but names need to be Uniq
+get_url - download fils over HTTP[S] or FTP, supports various authes
+        and checksum checks. 
+        URL is checked(header) if '--check' param is used aka dry run.
+        Also supports some SELinux checks(i still dunno wtf this for sure)
+        url: <url to download from.tgz> # no redirects allowed
+        dest: "/path/to/download/file.tgz # if dir provided file will be 
+                                          # placed there.
+                                          # BUT re-downloaded every time
+        checksum: <sha512:asdfasdfasdf>
+file - create files and directoreis(like touch), manage permissions and ownership
+	 on files and directories, modife SELinux properties and create symlinks
+	dest=/path/to/file
+	path=/path/to/file/to/create
+	mode=644 - octal ownership
+	state=directory - entity of a file(in this case it is directory)
+	     =link - creates symlink
+	     =absent - deletes stuff
+	force=yes - force creation of dirs in the middle of path for dest(?)
+	 Example:
+	ansible multi -m file -a "dest=/tmp/test mode=644 state=directory"
+	 Example symlink:
+	ansible multi -m file -a "src=/src/file dest=/dest/symlink state=link"
+       The src is the symlink’s target file, and the dest is the path where 
+	the symlink itself should be.
+	 Example deletion:
+	ansible multi -m file -a "dest=/tmp/test state=absent"
+	 Example creation dir(playbook):
+	file: "path=/path/to/copy" state=directory"
+lineinfile - changes one line in single file, looks for regex
+	dest: "/path/on/server/to/look/in/file"
+	regex: "line need match this regex(python style)"
+	line: "matched line should look exactly like this"
+	state: present  #absent to delete line or ensure its not there
+replace - changes multiple or similar lines
+blockinfile - insert/update/remove block of lines in a file
+template - changes placeholders with something, based on Jinja2 templating lang
+	src="relative/path/to/template.j2" to be copied on server
+	dest: "/path/to/file_from_template" location on server
+	owner: root
+	group: root
+	mode: 0644
+ini_file - manages ini files
+xml - manages xml files 
+async_status - checks status of asynchronously running jobs
+	requires jid (ansible_job_id) passed as Attribute(-a)
+	reutrns start, end, length(delta) time of task
+	stderr ans stdout , both parsed in lines array and unparsed
+	aswell as command itself, parsed as array
+	 Example:
+	ansible multi -b -m async_status -a "jid=507645957735.4189" --limit "host_ip"
+cron - manages cron jobs on servers
+	name='job-name'
+	job='/path/to/job.sh'
+	day=num
+	hour=num
+	minute=num
+	month=num
+	weekday=num?
+	special_time=[reboot\yearly\monthly]
+	user=[user] - user under which job will run
+	backup=yes - backup current crontab
+	cron_file=file_name - for custom crontab files, /etc/cron.d/file_name
+	ansible assumes * for every unspecified field
+	 Example:
+	ansible multi -b -m cron -a "name='daily-cron-all-servers' \
+	hour=4 job='/path/to/daily-script.sh'"
+	state=absent - delete job
+	 Example:
+	ansible multi -b -m cron -a "name='daily-cron-all-servers' state=absent"
+mysql_db - manages databases in MySQL
+	Ansible supports out of the box following databases:
+	Mongo, MySQL\Mariadb, Postgres, Redis, Riak
+	db=dbname - name of db to be created/deleted
+	state=present - db need to be created if does not exist
+mysql_user - module to manage MySQL users
+	Example:
+	name: "{{ domain }}"
+	password: "1234
+	priv: "{{ domain }}.*.:ALL"
+	host: localhost  - this probably limits user to a host..
+	state: present
 
-===Playbooks
+
+##Playbooks
 ansible-playbook:
  to execute playbooks
  ansible-playbook <playbook.yaml>
+
+ --inventory=PATH\-i PATH - change default hosts location
+  Example:
+ ansible-playbook -i /path/to/hosts playbookd.yml
+ --verbose\-v - verbose
+ -vvvv - very verbose
+ --extra-vars=VARS\-e VARS - variables to use "key=value key=value" format
+   Example:
+  --extra-vars "foo=bar"
+  --extra-vars "@even_more_vars.json" - pass json file
+  --extra-vars "@even_more_vars.yml" - pass yaml file
+ --forks=NUM\-f NUM - integer of forks(num of servers to run concurrently)
+  default is 5
+ --connection=TYPE\-c TYPE - type of connection to use
+  default is ssh; also could be - local
+ --check - dry run, nothing actually run and no changes are made
+ --force-handlers - call handlers even if task and playbook fails 
+ --limit <group_name\hostname>
+ Also could be limited by ansible-playbook cli flag:
+ This option overrides what defined in playbook
+  Example:
+ ansible-playbook playbook.yml --limit webservers
+ ansible-playbook playbook.yml --limit xyz.example.com
+ --list-hosts  To see what hosts would be affected by playbook run
+  Example:
+ ansible-playbook playbook.yml --list-hosts
+
+####Playbooks structure:
+
+#####Root elements:
+
+comments starts from #
+hosts: <hosts to be executed upon>
+tasks: 
+  - shell: <command to be executed in 'shell' task>
+  <-another task, like 'yum'>
+
+hosts:
+ limits playbook to where run on, groups defined in inventory file
+ values could be:
+ every host - all
+ groups - webservers,dbservers
+ individual hosts - atl.example.com
+ some mixture of hosts, probably delimited similar to groups
+ wildcards - *.example.com
+
+gather_facts: no
+ Do not gather facts from host, couls save some time if there are bunch 
+ of hosts to run playbook on
+  Note:
+ if 'facter' or 'ohai' is installed there will be additional facts from them
+ prefixed by 'facter_' or 'ohai_' respectively
+
+
+
+remote_user:
+  User to log in under, defined alongside with 'hosts:' in playbook
+  If none Ansible assumes you connect as user from Inventory file for particular 
+  host(ansible_ssh_user)
+  Afterwards, if no user in Inventory, it will use current user on Ansible host
+  --remote-user/-u - explicitly defines user for login
+   Example:
+  ansible-playbook playbook.yml --remote-user=johndoe
+  --ask-become-pass/-K - when need pass password on the server
+  --become/-b - force all the tasks in playbook to use 'sudo'
+  --become-user/-U - define user which would use 'sudo'. default is 'root'
+   Example:
+  ansible-playbook playbook.yml --become --become-user=janedoe --ask-become-pass
+   will run all tasks with 'sudo' from under user 'janedoe' and will ask for pass
+  --ask-pass - will ask regular(?) pass, but BETTER to use key auth
+
+vars:
+ variables declared inside the playbook, like hardcoded values
+ value could be overriden either in Inventory file or by --extra-vars cli option
+  Example:
+ vars:
+   node_apps_location: /usr/local/opt/node
+
+vars_files:
+  Load variables from file or files if array passed
+  contains a list of filenames of yml format which would contain list of 
+  variables and their values
+  !NOTE: all listed files MUST EXIST
+  !NOTE: all files are read
+   Example:
+  vars_files:
+    - vars.yml                  # Note: file must exist
+    - another_vars.yml          # Note: file must exist
+
+  Could be used with default file with values, and other files
+  that are Optionally exist - some could be absent and first file is read
+  !NOTE: Only ONE file is read - the one found first
+  !NOTE: Files listed AFTER firstly found file are ignored
+   Example:
+  vars_files:
+   - [ "file1_{{ some_var }}.yml", "file2_{{ some_var }}.yml", file3.yml ]
+    # as some_var 'ansible_os_family' could be used to load configs for
+    # different distros like Debian and CentOS
+    # file3.yml will be read ONLY IF file1 and file2 absent
+
+  Where:
+   if file1_value.yml exists it will be read, others ignored
+   if file1_value.yml missing, file2_value.yml will be read, file3 ignored
+   if both file1 and file2 are missing, then file3.yml will be read
+
+pre_tasks:
+  run before main set of tasks tasks
+   Example:
+  pre_tasks:
+    - name: Update apt cache if needed
+      apt: update_cache=yes cache_valid_time=3600
+   this wil update cache if it older than 1 hour before running other taks
+   in the playbook
+
+post_tasks:
+  run after main set of tasks
+
+handlers:
+  Taks that will be run if 'notified' by standard task(s), after all 
+  standard tasks that could 'notify' are done.
+  Handlers run ONLY ONCE.
+  Handlers run AT THE END of the play. 'meta' module could override this
+   - meta: flush_handlers
+  Handlers won't run on hosts that become 'unreachable' during playbook run.
+  As variables the handlers could be placed in separate yml file
+  By default handlers are not called if task fails as per ansible stops
+  playbook execution.
+  Handler is not run if notifier did not run due to 'when' condition.
+  --force-handlers could fix it and still call notified handlers
+  To notify standard task should:
+   1. complete with 'changed' result and not fail
+   2. have 'notify: <value in handler name: field>' as its parameter
+  Taks could notify multiple handlers
+  Handlers could notify another handlers
+   Example:
+  tasks:
+   - name: shold call 'restart apache' handler if succeeds with 'changed'
+     yum: 
+       name: some_package 
+       state: present
+       notify: 
+       - restart apache
+       - another handler
+  handlers:
+   - name: restart apache
+     service: name=apache2 state=restarted
+     notify: another handler
+   So handler will be called by yum module from regular task, and handler
+   will call 'service' module to restart apache, if yum module will make
+   a change on the server and will not fail 
+      
+
+#####Params:
+
+register:
+  https://docs.ansible.com/ansible/latest/user_guide/playbooks_conditionals.html
+  Registers command or shell modules output(stderr\stdout) into a variable given
+  Registered variables can be used in templates\action lines or when statements
+  NOTE: variable registered even when task is skipped due to condition 
+   use 'is skipped' to check 
+   Example regular use:
+  - command: ls /home
+    register: home_dirs_variable
+   Example with 'is skipped':
+  when: home_dirs_variable is skipped
+
+changed_when:
+  true or false
+  Directive for module, which explicitly tells ansible 
+  whether this action performed by the module will ever change server or 
+  not(probably to ansible know whether it is idempotent or how to handle 
+  it during dry run..)
+  Could probably work only with shell\command modules i believe, ones that could
+  execute something unexpected(unlike standard modules which should handle such
+  stuff by themselves, may be in the same way on the inside)
+   Example:
+  - command: forever list
+    register: forever_list
+    changed_when: false
+   Module 'command' calls forever(node.js package) with 'list' param
+    then registers variable 'forever_list' with contents of 'list' stdout\err 
+    then tells ansible that 'forever list' will never change server 
+    where executed
+
+#####Conditions:
+when:
+  https://docs.ansible.com/ansible/latest/user_guide/playbooks_conditionals.html
+  decides whether to perform task or not
+   Example:
+  when: home_dirs_variable is failed
+
+ignore_errors:
+  true or false
+  similar to other error skippging directives probably
+
+
+#####Iteration:
+Ansible support iteration of lists supplied into modules
+ Example:
+tasks:
+  - yum:
+      name:
+       - httpd
+       - httpd-devel
+this will instruct yum module to address 2 packages given in simple list
+
+#####Variables:
+Predefined variables:
+  ansible_os_family: Contains distro name like 'Ubuntu' or 'CentOS'
+  Magic vars detailed:
+  https://docs.ansible.com/ansible/latest/user_guide/playbooks_variables.html#magic-variables-and-how-to-access-information-about-other-hosts
+  hostvars: contains all defined host variables(from inventory and other
+             discovered yaml vils inside host_vars directories
+   Example:
+    {{ hostvars['hostname']['specific_variable_for_the_host'] }}
+  groups: list of all group names in the inventory
+  group_names: list of all groups of which the Current host is a part
+  inventory_hostname: current host's hostname from the Inventory file
+  inventory_hostname_short: first part of inventory_hostname up to first .
+  play_hosts: all hosts on which current Play will be run
+
+Declare variable in playbook:
+  foo: bar
+
+Declare variable in inventory file(hosts):
+  foo=bar
+
+Declare in file for exact hostname or group from inventory:
+ NOTE: location is depends on Inventory file location
+       because files are not found if use not default inventory location
+ Note: or place it in same host\group_vars directories next to playbook
+  Example:
+ if hosts file in default location '/etc/ansible/hosts'
+ /etc/ansible/host_vars/192.168.88.8 - declare vars for exact hostname
+ /etc/ansible/group_vars/app - declare vars for particular group
+
+Declare variables in modules for that modules:
+ variables are addressed by {{ item }} structure, where 'item' is predefined
+ name, dot . is used to access exact item from items list
+ item list is supplied in 'with_items' dict, with array as a value
+  Example:
+ tasks:
+  - copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+    with_items:
+      - src: httpd.conf
+        dest: /etc/httpd/conf/httpd.conf
+      - src: htpd-vhosts.conf
+        dest: /etc/httpd/conf/httpd-vhosts.conf
+ where 'copy' module is in the same dictionary as 'with_items' - single task
+ copy addresses 'item' which is stored in 'with_items', using . takes value
+ with_items key have value of array of 2 dicts having 2 key-val pairs
+ value of each key from with_items is accesed with item.<key_name>
+ and expanded in 'copy' task
+
+
+#####ENV VARiables:
+By default Ansible uses new SSH connection for every task, so ENV_VARS need
+to be added into .bash_profile(or .profile in ubuntu).
+.bash_profile is loaded on login shells(which ssh is), so every new task which also a new ssh session will have those.
+   Example:
+  - name: Add an environment variable to the remote user's shell.
+   lineinfile: "dest=~/.bash_profile regex=^ENV_VAR= line=ENV_VAR=value"
+NOTE: to use env vars 'shell' module need to be used as per 'shell' can see
+env vars on remote machine, and 'command' can not.
+
+Also to read the newly added env var to use later in playbook, save it
+into variable, Register in Ansible words.
+To be used later by Ansible.
+   Example:
+  - name: Add an env variable to the remote user's shell.
+    lineinfile: "dest=/.bash_profile regex=^ENV_VAR= line=ENV_VAR=value"
+  - name: Get value of env var we just added.
+    shell: 'source ~/.bash_profile && echo $ENV_VAR'
+    register: foo
+  - name: Print the value of the env var.
+    debug: msg="The variable is {{ foo.stdout }}"
+If there are lots of env variables(like some Java app) it is better to use
+'copy' or 'template' modules instead of 'lineinfile' module with long list
+of items
+
+Env vars for some tasks:
+environment:
+  this param creates env var for one play (1 task or handler)
+   Example:
+  tasks:
+  - name: Task that will have some env var available for it
+    some_module: something=something
+    environment:
+      my_env_var: my_env_var_value
+
+ If 1+ task, but not all, require same env vars:
+  vars:
+   proxy_vars:
+     http_proxy: http://example-proxy:80/
+     https_proxy: https://example-proxy:443/
+     [etc....]
+  tasks:
+  - name: This task will use whole list of proxy_vars(custom name)
+    get_url: url=http://www.example.com/file.tar.gz dest=~/Downloads/
+    environment: proxy_vars
+
+ Or iterate throuth variables with some common flag:
+  vars:
+    proxy_state: present    #change to 'absent' to disable proxy
+  tasks:
+    - name: Configura proxy
+      lineinfile:
+        dest: /etc/environment
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: "{{ proxy_state }}"
+      with_items:
+        - regexp: "^http_proxy="
+          line: "http_proxy=http://example-proxy:80/"
+        - regexp: "^https_proxy="
+          line: "https_proxy=https://example-proxy:443/"
+        - regexp: "^ftp_proxy="
+          line: "ftp_proxy=http://example-proxy:80/"
+  This will run 'lineinfile' 3 times, which will update values in 
+  /etc/environment file, which will be read upon login shell for every
+  other task, if 'proxy_state' is 'present', making all those values
+  to be the Environment variables(same it could be added into .bash_profile
+  If 'proxy_state' is 'absent' this will ensure there are no such lines in
+  /etc/environment, thus disabling proxy if it was enabled
+
+#####Accessing variables:
+"{{ variable_name }}" - should be in quotes, upon execution ansible will
+substitute this for a value
+ Example:
+ given following structure of some existing fact
+ansible_eth0:
+  ipv4:
+    address: 10.0.2.15
+ To get it:
+ {{ ansible_eth0.ipv4.address }}        - will return 10.0.2.15
+ {{ ansible_eth0['ipv4']['address'] }}  - same
+
+Lists:
+ foo_list:
+ - one
+ - two
+ - three
+
+ accesing:
+  foo[0]        - standard Python accessing array
+  foo|first -   - jinja2 accessing method
+  foo.one       - should work too
+
+

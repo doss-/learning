@@ -1,0 +1,19 @@
+#Applications servers
+[app]
+192.168.88.8 inventory_var_inline="from inventory"
+# To add variable for exact host
+# 192.168.88.8 variable=value
+
+#Database server
+[db]
+192.168.60.6
+
+#Group 'multi' with all servers
+[multi:children]
+app
+db
+
+#Variables taht will be applied to all servers
+[multi:vars]
+ansible_ssh_user=vagrant
+ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key

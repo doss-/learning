@@ -18,13 +18,59 @@ config:
   user.name - name of the user 
   user.email - users email, these two fields are used to identify user
    in github
+  core.editor - default editor to use
+   Example:
+  git config core.editor vim
+   will add vim for current repo as a 'vim' (full path from PATH prob)
 
 clone:
   clones repository locally , later parent repo could be reached as origin
- clone locally:
-  this will allow have repo and working local branch on the same machine
+   Process under-the-hood:
+  creates dir; initializes '.git' dir; pulls all data for repo; checks out
+  a working copy of latest version.
+ Common protocols:
+  https: https://git.address.com/project/repository[.git]
+  git: git://git.address.com/project/repo.git
+  ssh: user@server:path/to/repo.git
+       git@github.com:path/to/repo.git
+        Note: sometimes username(git) is only one available\acceptable
+  Example: clone locally:
+ this will allow have repo and working local branch on the same machine
+ git clone <username>@localhost:/path/to/repository <local dir name>
+  Example:
+ git clone https://github.com/libgit2/libgit2 my_libgit2
+  clone 'libgit2' repo in 'my_libgit2' directory in pwd
 
-  git clone <username>@localhost:/path/to/repository <local dir name>
+add:
+  "add precisely this content to the next commit"
+ uses:
+  - begin tracking of new files
+  - stage changes in tracked files
+  - mark merge-conflicted files as resolved
+
+ Example:
+  git add .
+   add everything untracked and changed
+
+status:
+  Shows status of current repository:
+   - on which branch
+   - are there any differences in commits with upstream
+     - number of commits ahead\behind
+   - staged files (to be committed)
+     - both tracked and untracked
+   - changed tracked files
+   - untracked files
+
+  Params:
+   -s/--short  - short form:
+    left Column  (Green)  - status of Staging area
+    right Column (Red)    - status of Working Tree[Directory]
+    ?  -- untracked files
+    A  -- new files added to staging
+    M  -- Modified AND Staged
+     M -- Modified NOT Staged
+
 
 git reset:
   moves HEAD and Branch(e.g. Master) pointers to previous commit
@@ -91,11 +137,63 @@ git rm - removes files, adds to staging area
 git mv - rename/move files , adds to staging area
 
 
-gitignore:
+.gitignore:
  Seems like it applies right after file save, why did i
 think i need to commit it first? weird
+   Examples:
+    github.com/doss-/learning/.gitignore
+    github.com/github/gitignore
+  Rules:
+ - applies to children dirs (and current dir)
+ - blank lines ignored
+ - line starts from # ignored - comment
+ - globs are applied recursively throughtout entire working tree
+    globs are simplified regex (like in shell):
+     * - zero or more chars
+     [abc] - any char in braces i.e. a or b or c
+     ? - single char
+     [0-9] - range from 0 to 9
+     ** - match nested directories (any number)
+       Example:
+      a/**/z - a/z; a/b/z; a/b/c/z
+ - line starts from / disables Recurse
+ - line ends with / marks a directory
+ - line starts from ! is exclusion (un-exclusion)
+   exclusion rules:
+    to uninclude subdirectories see this https://stackoverflow.com/questions/5533050/gitignore-exclude-folder-but-include-specific-subfolder
+    The pattern dir/ excludes a directory named dir and (implicitly) everything under it. With dir/, Git will never look at anything under dir, and thus will never apply any of the “un-exclude” patterns to anything under dir.
+    The pattern dir/* says nothing about dir itself; it just excludes everything under dir. With dir/*, Git will process the direct contents of dir, giving other patterns a chance to “un-exclude” some bit of the content (!dir/sub/)
+  - Multiple .gitignore files are possible  
+    nested .gitignore applies only for their children dirs
+
 /**/.terraform - will ignore all .terraform folders anywhere
  or 
 .terraform/ - should do the same
 
 /**/*.tfstate - will ignore all .tfstate files anywhere
+
+diff:
+  compares changed files with latest snapshot(commit)  
+  By default compares Working Tree with Staging area
+  --staged - compares staged area to latest commit(snapshot)
+  --cached - same as --staged
+
+   Example:  
+  git diff  
+   diffs between ALL files in Workig Directory(tree) with staging area  
+  git diff --staged  
+   diffs between ALL files in Staging area to Last Commit  
+  git diff --staged file_name  
+   diffs Staging\Last Commit for 'file_name'  
+
+difftool:
+  same as 'git diff' but executes External diff program
+   --tool-help  - shows all available on the system tools for diff
+
+commit:
+  creates snapshot(commit) of Staging area, adds it to local repo  
+  by default Launches default editor(core.editor) for commit message
+   -m/--message=''  - add message w/o core.editor use
+   -v/--verbose - verbose display in default editor of diffs committed
+   -a/--all - adds all changed or deleted files to staging and commits them
+              ignored untracked files though

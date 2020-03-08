@@ -935,4 +935,6 @@ ecs-cli:
    configure ecs cli, cluster, region, launch type
   https://docs.aws.amazon.com/AmazonECS/latest/developerguide/cmd-ecs-cli-configure.html
 
-  
+ 
+aws developer associate exam notes:
+https://github.com/mostafa-abdo/certified-aws-developer-associate-notes 

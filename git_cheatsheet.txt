@@ -5,6 +5,10 @@ Links:
 
 config:
   configure git account - addresses, user name, email etc.
+  NOTE:
+   Git does NOT validate fied names, so CHECK NAMES for PROPERTIES
+   misprints in names would not be validated.
+   misprinted 'core.eXitor' would be saved instead of core.exitor.
    Synopsys:
   git config [config file] [action] [key value]
    Params:

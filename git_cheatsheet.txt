@@ -2,6 +2,52 @@ Links:
  https://coolaj86.com/articles/vanilla-devops-git-credentials-cheatsheet/
   clone git w/o credentials
 
+Git Data Storage:
+  https://www.youtube.com/watch?v=ZKrtHjf5yPQ
+  Git has 5 types or objects:
+  1. Commit - points to a tree
+  2. Tree - is a directory, and points to a blobs
+  3. Blob - is a file
+  4. Annotated Tag - tag points to particular commit SHA-1
+      so it's easier to remember tag than commit HASH
+   Objects are stored in .git/objects. Objects dir contains
+    hash-named and compressed text files. Name formed as follows:
+    2chars/otherChars
+    where SHA-1 hash first 2 chars is the Directory and other chars is filename
+cat-file:
+   Views the contents of Hashnamed object-file:
+    Params:
+   -t  - returns type
+   -p  - pretty prints contents
+    Example:
+   .git/objects/aa/a524cf75aa4b8baf1be939b39f32a6644a8f2a - is a git object
+    To get its type concat dir-name and file-name as a param:
+   git cat-file -t aaa524cf75aa4b8baf1be939b39f32a6644a8f2a
+    To get contents:
+   git cat-file -p aaa524cf75aa4b8baf1be939b39f32a6644a8f2a
+Commit Object structure:
+  1. Pointer to Parent commits (0 for initial 2+ for Merge commit)
+  2. Pointer to Root Tree - Root directory
+      it contains pointers and names of root level files(blobs)
+         and other directories(trees again)
+  3. Author name, email, date
+  4. Committer name, email, date
+  5. Comment message of the commit
+Branch:
+  Branch is a pointer to a commit.
+  It points to the latest commit, so moves forward with each commit
+   into the given branch.
+  'master' is the same branch as others, just a default name after 'git init' 
+HEAD:
+  points to where i'm currently in.
+  Usually sticks to a branch, then moves forward with commit
+   as well as 'branch' pointer also moves forward
+  If 'tag' is checked out, HEAD points to Tagged commit BUT tag does not moves
+   with the head, so commit doesn't belong to any branch and reachable only
+   by its SHA-1 hash (search 'git log --all' will not help)
+
+   
+
 
 config:
   configure git account - addresses, user name, email etc.
@@ -261,7 +307,7 @@ mv:
 
 log:  
   shows history, in reverse chroinological order - new first
-   git log [params] [[-- ]file_path]
+   git log [branch|tag] [params] [[-- ]file_path]
     file_path is always the LAST option
     good practice is precede with '--' to separate for other params
    Params:
@@ -273,6 +319,7 @@ log:
    git log -S 'rm:' --patch
      only commits where 'rm:' were changed and every commit patch
    git log -p -2  - will show last 2 commits with patch added
+  --all - history from all BRANCHES (no detached-head commits shown)
   --no-merges  - do not show merge-commits 
   --stat  - show stats of each commit, including files changed
          list of files changed, amount of added\removed lines, sum of 
@@ -407,3 +454,10 @@ alias:
      Example:
     git config alias.testt '!echo "test line"'
      now 'git testt' will output 'test line'
+
+checkout:
+  switch branches or restore working tree files
+   Synopsys:
+  git checkout [params] [[--] filename]
+   Params:
+  -b - switch to the newly created branch

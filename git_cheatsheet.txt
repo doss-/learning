@@ -30,8 +30,11 @@ config:
 clone:
   clones repository locally , later parent repo could be reached as origin
    Process under-the-hood:
-  creates dir; initializes '.git' dir; pulls all data for repo; checks out
-  a working copy of latest version.
+    creates dir;
+    initializes '.git' dir;
+    sets 'origin' as remote repo with URL;
+    sets 'master' as default remote branch;
+    fetches a working copy of latest version;
  Common protocols:
   https: https://git.address.com/project/repository[.git]
   git: git://git.address.com/project/repo.git
@@ -44,6 +47,34 @@ clone:
   Example:
  git clone https://github.com/libgit2/libgit2 my_libgit2
   clone 'libgit2' repo in 'my_libgit2' directory in pwd
+
+fetch:
+  gets the data from remote repository (by default 'origin' if cloned)
+   data includes all files in all branches
+  does not try to merge anything
+
+pull:
+  fetches and merges from remote repo the given branch
+  if there is Remote Repo(origin by default) and Remote Branch(origin/master
+  by default) 
+   Example:
+  git pull origin master
+   If 'origin' and 'master' are defaults, those could be omitted into
+  git pull
+
+push:
+  pushes local commits into Upstream('origin'), or branches, or tags
+   git push [remote] [branch|tagname]
+  if Cloned, default remote is 'origin', default branch is 'master'
+   To Push New branch, created locally:
+  git push origin My-New-Branch
+   Doesn't push Tags automatically. To push tag do it explicitly:
+    Example:
+  git push origin v1.0
+   will push v1.0 tag to origin remote
+  --tags  - pushes all tags to remote , annotated and lightweight together
+   Example:
+  git push origin --tags
 
 add:
   "add precisely this content to the next commit"
@@ -201,3 +232,178 @@ commit:
    -v/--verbose - verbose display in default editor of diffs committed
    -a/--all - adds all changed or deleted files to staging and commits them
               ignored untracked files though
+   --amend  - changes latest commit taking anew stating area and comment
+              no new commit is added, but older one updated entirely
+              AuthoerDate remains the same
+              CommitDate is updated 
+         To add new file to 'amended' commit add it before amend:
+           Example:
+          git add forgitten_file
+          git commit --amend
+
+rm: 
+  deletes file from git repo (and removes it from Working Tree)
+   Params:
+  -f - force, when file is staged for deletion and staged w/ new changes after
+       then git will ask for -f during git rm execution
+  --cached - removes file only from Staging area, leaves it on Working Tree
+
+  Globs:
+   git rm log/\*.log    - remove all log files in log dir
+    * is escaped so SHELL wont expand it, git will expand it
+
+mv:
+  moves (renames) file in git repo
+   simple mv old_file new_file; git rm old_file; git add new_file
+   would do the same, except in 3 commands
+  Example:
+   git mv first.txt new_first.txt
+
+log:  
+  shows history, in reverse chroinological order - new first
+   git log [params] [[-- ]file_path]
+    file_path is always the LAST option
+    good practice is precede with '--' to separate for other params
+   Params:
+  -p/--patch - shows patch of each commit
+  -N  - N - number of commits to show
+   Example:
+  -S <string>  - show commits only where <string> were changed
+    Example:
+   git log -S 'rm:' --patch
+     only commits where 'rm:' were changed and every commit patch
+   git log -p -2  - will show last 2 commits with patch added
+  --no-merges  - do not show merge-commits 
+  --stat  - show stats of each commit, including files changed
+         list of files changed, amount of added\removed lines, sum of 
+         all files and added\removed lines 
+  --pretty=[oneline]  - shows formatted output with different options:
+     oneline - show commits as a single lines of hash and comment
+     short - multilined: hash, name\email, comment
+     full - as it is
+     fuller - name\email, dates, comment 
+     format:"%h %s"   - formats the log output, with following options:
+      %h - short hash
+      %s - commit comment
+      %a - author (there are commiter and author different fields) 
+       google other formats
+      %cd - committer date
+  --oneline - shorthand for --pretty=oneline --abbrev-commit
+  --abbrev-commit - shorter commit hashes
+  --name-only - shows file names for each commit\date\message\auth\email
+  --graph  - builds graph of commits, shows branches and merges
+          compatible with '--pretty'
+    Example:
+   git log --pretty=format:"%cd %s" --graph
+      will output date of commit, message, and show it as a graph
+  --relative-date  - shows '2 weeks ago' instead of real dates
+  --since=N.range  - commits since i.e. 2.weeks ago (from 2 weeks till now)
+      .week[s]; .year[s]; .day[s]; .minute[s] - w/o 's' works the same
+  --after=N.range  - same as 'since' but vice versa
+  --author <user.name> - show only commits of an author name
+  --comitter <user.name> - filter by committer name
+  --grep  - grep from commit messages
+   Example:
+  git log --oneline --author doss- --grep shotts
+    show oneline output of commits authored 'doss-' or having 'shotts' in
+    the commit message (-m) 
+  --all-match - by default --author and --grep will match on OR basis
+     and this option will made it AND criteria, so both --author and
+     --grep options should match 
+   Example:
+  git log --author doss- --grep shotts
+    will return only commits by 'doss-' AND having 'shotts' in message
+
+remote:
+  lists remote handles of the current repo
+   Params:
+  -v  - verbose, shows URLs for every remote
+  add <remote_name> <remote_url>
+  rename <remote_old_name> <remote_new_name>
+    also changes all remote-tracked branches
+     Example:
+    git remote rename pb paul
+     will change all remote branches from 'pb/master' to 'paul/master'
+  remove/rm <remote_name>  - removes remote
+  show <remote_name> 
+     shows info about remote:
+     - branches, tracked or not
+     - pull policies - which branch merges with which remote branch
+     - push policies - which branch pushes in which remote branch, and current
+                       status (up to date, fast forwardable, etc) 
+
+show:
+  shows detailed info about Commit or Tag
+   Example:
+  git show b34fh83  - will show info about commit
+  git show v0.1  - will show info abotu tag(and commit)
+
+tag:
+  creates tag or lists existing tags.
+  tags are not Pushed automatically
+  -l/--list  - lists existing tags - reqiored when passing wildcarded mask
+  git show <tag_name> - will show detailed info about tag and commit
+   Example:
+  git tag -l "1.1.0?"
+    will show only tags matched by the wildcard
+  Types:
+   - lightweight - pointer to a specific commit(file with commit's checksum)
+     To create do NOT pass -a; -s; -m; options
+     git show <tagname> - will show only commit info and tagname
+      Example:
+    git tag <tagname>
+      create lighweight commit
+    git tag <tagname> <commit_hash>
+      will create lightweight tag for some older commit
+   - annotated - recommended. have metadata and security checks:
+       - tagger name\email
+       - tagged date and message
+       - checksum
+       - could be signed and verificed by GPG GNU Privacy Guard
+     Params:
+   -a/--annotate  - create annotated tag
+   -m/--message <message> - creates message for the tag
+    Example:
+     git tag -a <tagname>
+      creates new annotated tag for latest commit
+     git tag -a <tagname> <commit_hash>
+      creates new annotated tag for an older commit
+   -n[N]  - prints N lines of tag message
+   --contains <commit> - list tags that contains the commit (hash)
+    Example:
+   git tag -n10 --contains b3584b0
+    will list all tags created after this b3584b0 commit
+    will print 10 lines of tag's message next to tag name
+  Delete tag:
+   -d  - delete local tag (no matter on which branch it was created)
+   --delete:
+   push <remote> --delete - delete remote tag
+    Example:
+   git tag -d v1.0
+     removes local tag
+  delete tag #2 - delete remote tag:
+   git push remote :refs/tags/v1.0
+    this pushes Null instead of tag - null is on the left of ':'
+  Checkout && Detached Head:
+   Checkout tag:
+  git checkout v1.0
+   will checkout code up to tag but in DETACHED HEAD
+   commit if done would be reachable only by hash
+  Recommended checkout tag:
+   checkout into new branch:
+    git checkout -b Branch-Name v0.1
+   creates new branch from the tag, commits done would go into the branch
+
+alias:
+  creates alias for git command and params
+   git config [--global] alias.<name> 'command'
+    Example:
+   git config --global alias.unstage 'reset HEAD --'
+    now 'git unstage File.txt' instead of 'git reset HEAD -- File.txt'
+   git config alias.last 'log -1 HEAD'
+    alias 'last' to show last commit
+  !Extrnal aliases
+    to alias external command prefix it with !
+     Example:
+    git config alias.testt '!echo "test line"'
+     now 'git testt' will output 'test line'

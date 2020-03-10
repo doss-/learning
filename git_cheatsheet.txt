@@ -2,6 +2,16 @@ Links:
  https://coolaj86.com/articles/vanilla-devops-git-credentials-cheatsheet/
   clone git w/o credentials
 
+Authentication:
+  'remote' url need to be 
+    git@github.com:<username>/<repo>
+     or
+    ssh://git@github.com/path/to/repo
+   CHECK:
+    ssh -T git@github.com
+     this will check connection, and great <username> in case of success
+     And correct protocol should be used, otherwise will ask for login/pass
+
 Git Data Storage:
   https://www.youtube.com/watch?v=ZKrtHjf5yPQ
   Git has 5 types or objects:

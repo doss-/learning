@@ -45,16 +45,22 @@ Commit Object structure:
   5. Comment message of the commit
 Branch:
   Branch is a pointer to a commit.
+  Text file in .git/refs/heads directory, contains only commit hash
+  to which it points.
   It points to the latest commit, so moves forward with each commit
    into the given branch.
   'master' is the same branch as others, just a default name after 'git init' 
 HEAD:
-  points to where i'm currently in.
-  Usually sticks to a branch, then moves forward with commit
-   as well as 'branch' pointer also moves forward
+  points to current branch
+  Text file .git/HEAD, has relative path to current branch
+  Usually sticks to a branch, then moves forward with commit as 
+  well as 'branch' pointer also moves forward.
   If 'tag' is checked out, HEAD points to Tagged commit BUT tag does not moves
    with the head, so commit doesn't belong to any branch and reachable only
    by its SHA-1 hash (search 'git log --all' will not help)
+three way merge :
+  WHAT IS MERGE BASE 
+   this is one of Parent commits, better suited for merge?
 
    
 
@@ -471,3 +477,24 @@ checkout:
   git checkout [params] [[--] filename]
    Params:
   -b - switch to the newly created branch
+
+branch:
+  shows branches, creates branches
+   Create branch:
+  git branch new-branch
+   Params:
+  -d/--delete - deletes branch locally
+      will fail to delete unmerged branches (those from --no-merged)
+  -f/--force - force, i.e. to delete not merged in current branch
+  -D - force deletion (--delete + --force)
+  -v - shows latest commits of all known branches
+  --merged [branch] - shows branches merged in current branch
+        basically other than * branches could be deleted
+        with [branch] will show info as if HEAD is in that branch
+  --no-merged [branchname] - shows branches NOT merged in current branch
+        with [branchname] will show info as if HEAD is in that branch
+
+merge vs rebase:
+ https://www.youtube.com/watch?v=CRlGDDprdOQ
+ rebase searches for latest commit in 2 branches with same anscestor
+ .....and does something afterwards......

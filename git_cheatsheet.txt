@@ -80,7 +80,7 @@ config:
    git config --global --add user.name doss-
    will add to Global config key 'user.name', with value 'doss-'
   --global / system / local - use different config file, locacl for repo
-  Config fields:
+   Config fields:
   user.name - name of the user 
   user.email - users email, these two fields are used to identify user
    in github
@@ -88,9 +88,19 @@ config:
    Example:
   git config core.editor vim
    will add vim for current repo as a 'vim' (full path from PATH prob)
+  credential.helper - use credential manager, useful for HTTPS with login\pwd
+   Example:
+  git config --global credential.helper cache
+   will use login\pass cached for few minutes, to not ask user everytime
 
 clone:
   clones repository locally , later parent repo could be reached as origin
+   Params:
+  -o/--origin <remote_name> - change 'origin' to custom remote name
+   Example:
+  git clone -o booyah
+   now default remote('origin') would be 'booyah'; booyah/master instead
+   of origin/master
    Process under-the-hood:
     creates dir;
     initializes '.git' dir;
@@ -113,7 +123,20 @@ clone:
 fetch:
   gets the data from remote repository (by default 'origin' if cloned)
    data includes all files in all branches
+  sets remote pointers up to date:
+   if origin/master has changed it will now be updated locally to up to date
   does not try to merge anything
+  When new remote tracking branch fetched, it is not editable locally
+   there is only origin/newbranch pointer, readonly(does not move on commits)
+   There is 2 options available:
+   - Merge into writable local branch:
+     git merge origin/newbranch
+   - Create new local branch out of remote branch:
+     git checkout -b newbranch origin/newbranch
+     git checkout -b custom_newbranch origin/newbranch
+      local name could be custom, if need to push back to origin/newbranch:
+      git push origin custom_newbranch:newbranch
+   
 
 pull:
   fetches and merges from remote repo the given branch
@@ -126,11 +149,19 @@ pull:
 
 push:
   pushes local commits into Upstream('origin'), or branches, or tags
+  if HTTPS is used, git will ask for credentials, see credential.helper 
    git push [remote] [branch|tagname]
   if Cloned, default remote is 'origin', default branch is 'master'
-   To Push New branch, created locally:
+   Example: 
   git push origin My-New-Branch
-   Doesn't push Tags automatically. To push tag do it explicitly:
+   pushes local Ny-New-Branch to the remote with write access
+    Under the hood:
+   git push origin refs/heads/My-New-Branch:refs/heads/My-New-Branch
+    <source_ref_branch\tag>:<target_remote_ref_branch\tag>
+   git push origin My-New-Branch:My-New-Branch - will do the same
+    or
+   git push origin My-New-Branch:My-Renamed-Branch-On-Remote - push and rename
+  'push' Doesn't push Tags automatically. To push tag do it explicitly:
     Example:
   git push origin v1.0
    will push v1.0 tag to origin remote
@@ -381,19 +412,48 @@ remote:
   lists remote handles of the current repo
    Params:
   -v  - verbose, shows URLs for every remote
-  add <remote_name> <remote_url>
-  rename <remote_old_name> <remote_new_name>
-    also changes all remote-tracked branches
-     Example:
-    git remote rename pb paul
-     will change all remote branches from 'pb/master' to 'paul/master'
-  remove/rm <remote_name>  - removes remote
-  show <remote_name> 
+ add:
+  adds a new remote
+   Sinopsys:
+  <git remote> add <remote_name> <remote_url>
+   Example:
+  git remote add teamone git://git.team1.ourcompany.com
+  git fetch teamone
+   this will download all objects & pointers from 'teamone' to be seen locally
+ rename:
+   Sinopsys:
+  <git remote> rename <remote_old_name> <remote_new_name>
+   also changes all remote-tracked branches
+    Example:
+   git remote rename pb paul
+    will change all remote branches from 'pb/master' to 'paul/master'
+ remove: rm:
+  deletes remote from config
+   Sinopsys:
+  <git remote> remove <remote_name>
+ show:
+  showes info about remote
+   Sinopsys:
+  <git remote> show <remote_name> 
      shows info about remote:
      - branches, tracked or not
+       - tracked - good
+       - stale - removed on origin, bad. PRUNE THE HERETIC (git remote prune)
      - pull policies - which branch merges with which remote branch
      - push policies - which branch pushes in which remote branch, and current
                        status (up to date, fast forwardable, etc) 
+  similar command:
+  git ls-remote <remote> - will show different info about remote, with hashes..
+ prune:
+  removes stale references(branches etc)
+  stale - branch deleted on remote but local repo has this ref from remote
+   Synopsis:
+  <git remote> prune [params] <remote>
+   Params:
+  --dry-run  - shows what it would do w/o doing it
+   Example:
+  git remote prune --dry-run origin
+   tests what to locally prune for origin remote
 
 show:
   shows detailed info about Commit or Tag
@@ -488,11 +548,13 @@ branch:
   -f/--force - force, i.e. to delete not merged in current branch
   -D - force deletion (--delete + --force)
   -v - shows latest commits of all known branches
-  --merged [branch] - shows branches merged in current branch
+  --merged [branch|commit] - shows branches merged in current branch
         basically other than * branches could be deleted
         with [branch] will show info as if HEAD is in that branch
-  --no-merged [branchname] - shows branches NOT merged in current branch
-        with [branchname] will show info as if HEAD is in that branch
+        if [commit] given - shows branches that DO have this commit
+  --no-merged [branch|commit] - shows branches NOT merged in current branch
+        with [branch] will show info as if HEAD is in that branch
+        if [commit] given - shows branches that DO NOT have this commit
 
 merge vs rebase:
  https://www.youtube.com/watch?v=CRlGDDprdOQ

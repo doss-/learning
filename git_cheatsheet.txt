@@ -75,6 +75,7 @@ config:
   git config [config file] [action] [key value]
    Params:
   -l - list all params
+  -e - open editor to edit config file (.git/config)
   --add - add key value pair: key value
    Example:
    git config --global --add user.name doss-

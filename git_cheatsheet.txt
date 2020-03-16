@@ -137,6 +137,7 @@ fetch:
      git checkout -b custom_newbranch origin/newbranch
       local name could be custom, if need to push back to origin/newbranch:
       git push origin custom_newbranch:newbranch
+  --all - fetches all the remotes known
    
 
 pull:
@@ -169,6 +170,9 @@ push:
   --tags  - pushes all tags to remote , annotated and lightweight together
    Example:
   git push origin --tags
+  --delete <branch> - deletes branch from the remote 
+   it will hung out some time until garbage collection, so could be
+   recovered somehow...
 
 add:
   "add precisely this content to the next commit"
@@ -538,6 +542,24 @@ checkout:
   git checkout [params] [[--] filename]
    Params:
   -b - switch to the newly created branch
+   Remote branch tracking
+   By default git does not track remote branches except Master
+   To manually start tracking branches do:
+  --track
+    Example:
+   git checkout --track origin/another-branch
+    Under the hood it creates local branch pointed to remote one:
+   git checkout -b another-branch origin\another-branch
+   git checkout -b my-local-branch origin\branch-i-want-to-track
+    Untracked remote branches, that are DELETED on remote are STALE
+    to delete those:
+    git remote prune [--dry-run] origin
+   git checkout another-branch
+    will also create a tracking, shorthand for --track, if:
+    - branch for checkout does not exist locally
+    - exactly matches the name on only one remote
+   Vice-versa (when need to point local branch to track some remote one):
+   git branch -u origin/another-branch
 
 branch:
   shows branches, creates branches
@@ -549,13 +571,19 @@ branch:
   -f/--force - force, i.e. to delete not merged in current branch
   -D - force deletion (--delete + --force)
   -v - shows latest commits of all known branches
+  -vv - shows all remotely tracked branches (and latest commits)
   --merged [branch|commit] - shows branches merged in current branch
         basically other than * branches could be deleted
         with [branch] will show info as if HEAD is in that branch
         if [commit] given - shows branches that DO have this commit
+     PRUNE remote merged branches, which are NOT tracked and STALE
   --no-merged [branch|commit] - shows branches NOT merged in current branch
         with [branch] will show info as if HEAD is in that branch
         if [commit] given - shows branches that DO NOT have this commit
+  -u/--set-upstream-to <upstream> - points local branch to track remote one
+    Example:
+   git branch -u origin/serverfix
+    will point current(?) branch to remote branch called 'serverfix'
 
 merge vs rebase:
  https://www.youtube.com/watch?v=CRlGDDprdOQ

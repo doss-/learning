@@ -9,6 +9,7 @@ vagrant box add
 
 vagrant box list
   list all local boxes and their versions
+  globally
 
 vagrant init
   downloads Vagrantfile in current directory
@@ -26,6 +27,12 @@ vagrant halt
 
 vagrant destroy
   deletes VM
+
+vagrant status
+  shows status of current VMs(current dir Vagrantfile related)
+
+vagrant global-status
+  shows all VMs on the machine status related to vagrant
 
 vagrant ssh
   connects into the VM via ssh

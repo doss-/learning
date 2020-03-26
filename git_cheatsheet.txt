@@ -2,29 +2,208 @@ Links:
  https://coolaj86.com/articles/vanilla-devops-git-credentials-cheatsheet/
   clone git w/o credentials
 
+Authentication:
+  'remote' url need to be 
+    git@github.com:<username>/<repo>
+     or
+    ssh://git@github.com/path/to/repo
+   CHECK:
+    ssh -T git@github.com
+     this will check connection, and great <username> in case of success
+     And correct protocol should be used, otherwise will ask for login/pass
+
+Git Data Storage:
+  https://www.youtube.com/watch?v=ZKrtHjf5yPQ
+  Git has 5 types or objects:
+  1. Commit - points to a tree
+  2. Tree - is a directory, and points to a blobs
+  3. Blob - is a file
+  4. Annotated Tag - tag points to particular commit SHA-1
+      so it's easier to remember tag than commit HASH
+   Objects are stored in .git/objects. Objects dir contains
+    hash-named and compressed text files. Name formed as follows:
+    2chars/otherChars
+    where SHA-1 hash first 2 chars is the Directory and other chars is filename
+cat-file:
+   Views the contents of Hashnamed object-file:
+    Params:
+   -t  - returns type
+   -p  - pretty prints contents
+    Example:
+   .git/objects/aa/a524cf75aa4b8baf1be939b39f32a6644a8f2a - is a git object
+    To get its type concat dir-name and file-name as a param:
+   git cat-file -t aaa524cf75aa4b8baf1be939b39f32a6644a8f2a
+    To get contents:
+   git cat-file -p aaa524cf75aa4b8baf1be939b39f32a6644a8f2a
+Commit Object structure:
+  1. Pointer to Parent commits (0 for initial 2+ for Merge commit)
+  2. Pointer to Root Tree - Root directory
+      it contains pointers and names of root level files(blobs)
+         and other directories(trees again)
+  3. Author name, email, date
+  4. Committer name, email, date
+  5. Comment message of the commit
+Branch:
+  Branch is a pointer to a commit.
+  Text file in .git/refs/heads directory, contains only commit hash
+  to which it points.
+  It points to the latest commit, so moves forward with each commit
+   into the given branch.
+  'master' is the same branch as others, just a default name after 'git init' 
+HEAD:
+  points to current branch
+  Text file .git/HEAD, has relative path to current branch
+  Usually sticks to a branch, then moves forward with commit as 
+  well as 'branch' pointer also moves forward.
+  If 'tag' is checked out, HEAD points to Tagged commit BUT tag does not moves
+   with the head, so commit doesn't belong to any branch and reachable only
+   by its SHA-1 hash (search 'git log --all' will not help)
+three way merge :
+  WHAT IS MERGE BASE 
+   this is one of Parent commits, better suited for merge?
+
+   
+
 
 config:
   configure git account - addresses, user name, email etc.
+  NOTE:
+   Git does NOT validate fied names, so CHECK NAMES for PROPERTIES
+   misprints in names would not be validated.
+   misprinted 'core.eXitor' would be saved instead of core.exitor.
    Synopsys:
   git config [config file] [action] [key value]
    Params:
   -l - list all params
+  -e - open editor to edit config file (.git/config)
   --add - add key value pair: key value
    Example:
    git config --global --add user.name doss-
    will add to Global config key 'user.name', with value 'doss-'
   --global / system / local - use different config file, locacl for repo
-  Config fields:
+   Config fields:
   user.name - name of the user 
   user.email - users email, these two fields are used to identify user
    in github
+  core.editor - default editor to use
+   Example:
+  git config core.editor vim
+   will add vim for current repo as a 'vim' (full path from PATH prob)
+  credential.helper - use credential manager, useful for HTTPS with login\pwd
+   Example:
+  git config --global credential.helper cache
+   will use login\pass cached for few minutes, to not ask user everytime
 
 clone:
   clones repository locally , later parent repo could be reached as origin
- clone locally:
-  this will allow have repo and working local branch on the same machine
+   Params:
+  -o/--origin <remote_name> - change 'origin' to custom remote name
+   Example:
+  git clone -o booyah
+   now default remote('origin') would be 'booyah'; booyah/master instead
+   of origin/master
+   Process under-the-hood:
+    creates dir;
+    initializes '.git' dir;
+    sets 'origin' as remote repo with URL;
+    sets 'master' as default remote branch;
+    fetches a working copy of latest version;
+ Common protocols:
+  https: https://git.address.com/project/repository[.git]
+  git: git://git.address.com/project/repo.git
+  ssh: user@server:path/to/repo.git
+       git@github.com:path/to/repo.git
+        Note: sometimes username(git) is only one available\acceptable
+  Example: clone locally:
+ this will allow have repo and working local branch on the same machine
+ git clone <username>@localhost:/path/to/repository <local dir name>
+  Example:
+ git clone https://github.com/libgit2/libgit2 my_libgit2
+  clone 'libgit2' repo in 'my_libgit2' directory in pwd
 
-  git clone <username>@localhost:/path/to/repository <local dir name>
+fetch:
+  gets the data from remote repository (by default 'origin' if cloned)
+   data includes all files in all branches
+  sets remote pointers up to date:
+   if origin/master has changed it will now be updated locally to up to date
+  does not try to merge anything
+  When new remote tracking branch fetched, it is not editable locally
+   there is only origin/newbranch pointer, readonly(does not move on commits)
+   There is 2 options available:
+   - Merge into writable local branch:
+     git merge origin/newbranch
+   - Create new local branch out of remote branch:
+     git checkout -b newbranch origin/newbranch
+     git checkout -b custom_newbranch origin/newbranch
+      local name could be custom, if need to push back to origin/newbranch:
+      git push origin custom_newbranch:newbranch
+  --all - fetches all the remotes known
+   
+
+pull:
+  fetches and merges from remote repo the given branch
+  if there is Remote Repo(origin by default) and Remote Branch(origin/master
+  by default) 
+   Example:
+  git pull origin master
+   If 'origin' and 'master' are defaults, those could be omitted into
+  git pull
+
+push:
+  pushes local commits into Upstream('origin'), or branches, or tags
+  if HTTPS is used, git will ask for credentials, see credential.helper 
+   git push [remote] [branch|tagname]
+  if Cloned, default remote is 'origin', default branch is 'master'
+   Example: 
+  git push origin My-New-Branch
+   pushes local Ny-New-Branch to the remote with write access
+    Under the hood:
+   git push origin refs/heads/My-New-Branch:refs/heads/My-New-Branch
+    <source_ref_branch\tag>:<target_remote_ref_branch\tag>
+   git push origin My-New-Branch:My-New-Branch - will do the same
+    or
+   git push origin My-New-Branch:My-Renamed-Branch-On-Remote - push and rename
+  'push' Doesn't push Tags automatically. To push tag do it explicitly:
+    Example:
+  git push origin v1.0
+   will push v1.0 tag to origin remote
+  --tags  - pushes all tags to remote , annotated and lightweight together
+   Example:
+  git push origin --tags
+  --delete <branch> - deletes branch from the remote 
+   it will hung out some time until garbage collection, so could be
+   recovered somehow...
+
+add:
+  "add precisely this content to the next commit"
+ uses:
+  - begin tracking of new files
+  - stage changes in tracked files
+  - mark merge-conflicted files as resolved
+
+ Example:
+  git add .
+   add everything untracked and changed
+
+status:
+  Shows status of current repository:
+   - on which branch
+   - are there any differences in commits with upstream
+     - number of commits ahead\behind
+   - staged files (to be committed)
+     - both tracked and untracked
+   - changed tracked files
+   - untracked files
+
+  Params:
+   -s/--short  - short form:
+    left Column  (Green)  - status of Staging area
+    right Column (Red)    - status of Working Tree[Directory]
+    ?  -- untracked files
+    A  -- new files added to staging
+    M  -- Modified AND Staged
+     M -- Modified NOT Staged
+
 
 git reset:
   moves HEAD and Branch(e.g. Master) pointers to previous commit
@@ -102,11 +281,322 @@ git rm - removes files, adds to staging area
 git mv - rename/move files , adds to staging area
 
 
-gitignore:
+.gitignore:
  Seems like it applies right after file save, why did i
 think i need to commit it first? weird
+   Examples:
+    github.com/doss-/learning/.gitignore
+    github.com/github/gitignore
+  Rules:
+ - applies to children dirs (and current dir)
+ - blank lines ignored
+ - line starts from # ignored - comment
+ - globs are applied recursively throughtout entire working tree
+    globs are simplified regex (like in shell):
+     * - zero or more chars
+     [abc] - any char in braces i.e. a or b or c
+     ? - single char
+     [0-9] - range from 0 to 9
+     ** - match nested directories (any number)
+       Example:
+      a/**/z - a/z; a/b/z; a/b/c/z
+ - line starts from / disables Recurse
+ - line ends with / marks a directory
+ - line starts from ! is exclusion (un-exclusion)
+   exclusion rules:
+    to uninclude subdirectories see this https://stackoverflow.com/questions/5533050/gitignore-exclude-folder-but-include-specific-subfolder
+    The pattern dir/ excludes a directory named dir and (implicitly) everything under it. With dir/, Git will never look at anything under dir, and thus will never apply any of the “un-exclude” patterns to anything under dir.
+    The pattern dir/* says nothing about dir itself; it just excludes everything under dir. With dir/*, Git will process the direct contents of dir, giving other patterns a chance to “un-exclude” some bit of the content (!dir/sub/)
+  - Multiple .gitignore files are possible  
+    nested .gitignore applies only for their children dirs
+
 /**/.terraform - will ignore all .terraform folders anywhere
  or 
 .terraform/ - should do the same
 
 /**/*.tfstate - will ignore all .tfstate files anywhere
+
+diff:
+  compares changed files with latest snapshot(commit)  
+  By default compares Working Tree with Staging area
+  --staged - compares staged area to latest commit(snapshot)
+  --cached - same as --staged
+
+   Example:  
+  git diff  
+   diffs between ALL files in Workig Directory(tree) with staging area  
+  git diff --staged  
+   diffs between ALL files in Staging area to Last Commit  
+  git diff --staged file_name  
+   diffs Staging\Last Commit for 'file_name'  
+
+difftool:
+  same as 'git diff' but executes External diff program
+   --tool-help  - shows all available on the system tools for diff
+
+commit:
+  creates snapshot(commit) of Staging area, adds it to local repo  
+  by default Launches default editor(core.editor) for commit message
+   -m/--message=''  - add message w/o core.editor use
+   -v/--verbose - verbose display in default editor of diffs committed
+   -a/--all - adds all changed or deleted files to staging and commits them
+              ignored untracked files though
+   --amend  - changes latest commit taking anew stating area and comment
+              no new commit is added, but older one updated entirely
+              AuthoerDate remains the same
+              CommitDate is updated 
+         To add new file to 'amended' commit add it before amend:
+           Example:
+          git add forgitten_file
+          git commit --amend
+
+rm: 
+  deletes file from git repo (and removes it from Working Tree)
+   Params:
+  -f - force, when file is staged for deletion and staged w/ new changes after
+       then git will ask for -f during git rm execution
+  --cached - removes file only from Staging area, leaves it on Working Tree
+
+  Globs:
+   git rm log/\*.log    - remove all log files in log dir
+    * is escaped so SHELL wont expand it, git will expand it
+
+mv:
+  moves (renames) file in git repo
+   simple mv old_file new_file; git rm old_file; git add new_file
+   would do the same, except in 3 commands
+  Example:
+   git mv first.txt new_first.txt
+
+log:  
+  shows history, in reverse chroinological order - new first
+   git log [branch|tag] [params] [[-- ]file_path]
+    file_path is always the LAST option
+    good practice is precede with '--' to separate for other params
+   Params:
+  -p/--patch - shows patch of each commit
+  -N  - N - number of commits to show
+   Example:
+  -S <string>  - show commits only where <string> were changed
+    Example:
+   git log -S 'rm:' --patch
+     only commits where 'rm:' were changed and every commit patch
+   git log -p -2  - will show last 2 commits with patch added
+  --all - history from all BRANCHES (no detached-head commits shown)
+  --no-merges  - do not show merge-commits 
+  --stat  - show stats of each commit, including files changed
+         list of files changed, amount of added\removed lines, sum of 
+         all files and added\removed lines 
+  --pretty=[oneline]  - shows formatted output with different options:
+     oneline - show commits as a single lines of hash and comment
+     short - multilined: hash, name\email, comment
+     full - as it is
+     fuller - name\email, dates, comment 
+     format:"%h %s"   - formats the log output, with following options:
+      %h - short hash
+      %s - commit comment
+      %a - author (there are commiter and author different fields) 
+       google other formats
+      %cd - committer date
+  --oneline - shorthand for --pretty=oneline --abbrev-commit
+  --abbrev-commit - shorter commit hashes
+  --name-only - shows file names for each commit\date\message\auth\email
+  --graph  - builds graph of commits, shows branches and merges
+          compatible with '--pretty'
+    Example:
+   git log --pretty=format:"%cd %s" --graph
+      will output date of commit, message, and show it as a graph
+  --relative-date  - shows '2 weeks ago' instead of real dates
+  --since=N.range  - commits since i.e. 2.weeks ago (from 2 weeks till now)
+      .week[s]; .year[s]; .day[s]; .minute[s] - w/o 's' works the same
+  --after=N.range  - same as 'since' but vice versa
+  --author <user.name> - show only commits of an author name
+  --comitter <user.name> - filter by committer name
+  --grep  - grep from commit messages
+   Example:
+  git log --oneline --author doss- --grep shotts
+    show oneline output of commits authored 'doss-' or having 'shotts' in
+    the commit message (-m) 
+  --all-match - by default --author and --grep will match on OR basis
+     and this option will made it AND criteria, so both --author and
+     --grep options should match 
+   Example:
+  git log --author doss- --grep shotts
+    will return only commits by 'doss-' AND having 'shotts' in message
+
+remote:
+  lists remote handles of the current repo
+   Params:
+  -v  - verbose, shows URLs for every remote
+ add:
+  adds a new remote
+   Sinopsys:
+  <git remote> add <remote_name> <remote_url>
+   Example:
+  git remote add teamone git://git.team1.ourcompany.com
+  git fetch teamone
+   this will download all objects & pointers from 'teamone' to be seen locally
+ rename:
+   Sinopsys:
+  <git remote> rename <remote_old_name> <remote_new_name>
+   also changes all remote-tracked branches
+    Example:
+   git remote rename pb paul
+    will change all remote branches from 'pb/master' to 'paul/master'
+ remove: rm:
+  deletes remote from config
+   Sinopsys:
+  <git remote> remove <remote_name>
+ show:
+  showes info about remote
+   Sinopsys:
+  <git remote> show <remote_name> 
+     shows info about remote:
+     - branches, tracked or not
+       - tracked - good
+       - stale - removed on origin, bad. PRUNE THE HERETIC (git remote prune)
+     - pull policies - which branch merges with which remote branch
+     - push policies - which branch pushes in which remote branch, and current
+                       status (up to date, fast forwardable, etc) 
+  similar command:
+  git ls-remote <remote> - will show different info about remote, with hashes..
+ prune:
+  removes stale references(branches etc)
+  stale - branch deleted on remote but local repo has this ref from remote
+   Synopsis:
+  <git remote> prune [params] <remote>
+   Params:
+  --dry-run  - shows what it would do w/o doing it
+   Example:
+  git remote prune --dry-run origin
+   tests what to locally prune for origin remote
+
+show:
+  shows detailed info about Commit or Tag
+   Example:
+  git show b34fh83  - will show info about commit
+  git show v0.1  - will show info abotu tag(and commit)
+
+tag:
+  creates tag or lists existing tags.
+  tags are not Pushed automatically
+  -l/--list  - lists existing tags - reqiored when passing wildcarded mask
+  git show <tag_name> - will show detailed info about tag and commit
+   Example:
+  git tag -l "1.1.0?"
+    will show only tags matched by the wildcard
+  Types:
+   - lightweight - pointer to a specific commit(file with commit's checksum)
+     To create do NOT pass -a; -s; -m; options
+     git show <tagname> - will show only commit info and tagname
+      Example:
+    git tag <tagname>
+      create lighweight commit
+    git tag <tagname> <commit_hash>
+      will create lightweight tag for some older commit
+   - annotated - recommended. have metadata and security checks:
+       - tagger name\email
+       - tagged date and message
+       - checksum
+       - could be signed and verificed by GPG GNU Privacy Guard
+     Params:
+   -a/--annotate  - create annotated tag
+   -m/--message <message> - creates message for the tag
+    Example:
+     git tag -a <tagname>
+      creates new annotated tag for latest commit
+     git tag -a <tagname> <commit_hash>
+      creates new annotated tag for an older commit
+   -n[N]  - prints N lines of tag message
+   --contains <commit> - list tags that contains the commit (hash)
+    Example:
+   git tag -n10 --contains b3584b0
+    will list all tags created after this b3584b0 commit
+    will print 10 lines of tag's message next to tag name
+  Delete tag:
+   -d  - delete local tag (no matter on which branch it was created)
+   --delete:
+   push <remote> --delete - delete remote tag
+    Example:
+   git tag -d v1.0
+     removes local tag
+  delete tag #2 - delete remote tag:
+   git push remote :refs/tags/v1.0
+    this pushes Null instead of tag - null is on the left of ':'
+  Checkout && Detached Head:
+   Checkout tag:
+  git checkout v1.0
+   will checkout code up to tag but in DETACHED HEAD
+   commit if done would be reachable only by hash
+  Recommended checkout tag:
+   checkout into new branch:
+    git checkout -b Branch-Name v0.1
+   creates new branch from the tag, commits done would go into the branch
+
+alias:
+  creates alias for git command and params
+   git config [--global] alias.<name> 'command'
+    Example:
+   git config --global alias.unstage 'reset HEAD --'
+    now 'git unstage File.txt' instead of 'git reset HEAD -- File.txt'
+   git config alias.last 'log -1 HEAD'
+    alias 'last' to show last commit
+  !Extrnal aliases
+    to alias external command prefix it with !
+     Example:
+    git config alias.testt '!echo "test line"'
+     now 'git testt' will output 'test line'
+
+checkout:
+  switch branches or restore working tree files
+   Synopsys:
+  git checkout [params] [[--] filename]
+   Params:
+  -b - switch to the newly created branch
+   Remote branch tracking
+   By default git does not track remote branches except Master
+   To manually start tracking branches do:
+  --track
+    Example:
+   git checkout --track origin/another-branch
+    Under the hood it creates local branch pointed to remote one:
+   git checkout -b another-branch origin\another-branch
+   git checkout -b my-local-branch origin\branch-i-want-to-track
+    Untracked remote branches, that are DELETED on remote are STALE
+    to delete those:
+    git remote prune [--dry-run] origin
+   git checkout another-branch
+    will also create a tracking, shorthand for --track, if:
+    - branch for checkout does not exist locally
+    - exactly matches the name on only one remote
+   Vice-versa (when need to point local branch to track some remote one):
+   git branch -u origin/another-branch
+
+branch:
+  shows branches, creates branches
+   Create branch:
+  git branch new-branch
+   Params:
+  -d/--delete - deletes branch locally
+      will fail to delete unmerged branches (those from --no-merged)
+  -f/--force - force, i.e. to delete not merged in current branch
+  -D - force deletion (--delete + --force)
+  -v - shows latest commits of all known branches
+  -vv - shows all remotely tracked branches (and latest commits)
+  --merged [branch|commit] - shows branches merged in current branch
+        basically other than * branches could be deleted
+        with [branch] will show info as if HEAD is in that branch
+        if [commit] given - shows branches that DO have this commit
+     PRUNE remote merged branches, which are NOT tracked and STALE
+  --no-merged [branch|commit] - shows branches NOT merged in current branch
+        with [branch] will show info as if HEAD is in that branch
+        if [commit] given - shows branches that DO NOT have this commit
+  -u/--set-upstream-to <upstream> - points local branch to track remote one
+    Example:
+   git branch -u origin/serverfix
+    will point current(?) branch to remote branch called 'serverfix'
+
+merge vs rebase:
+ https://www.youtube.com/watch?v=CRlGDDprdOQ
+ rebase searches for latest commit in 2 branches with same anscestor
+ .....and does something afterwards......

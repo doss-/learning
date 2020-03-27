@@ -248,18 +248,7 @@ https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
      reset HEAD~2 - moves HEAD back for 2 commits, using --mixed
 	flag as default
 
-git branch:
-  manage branches;
-  Shows branches, and the current one.
-  All local(?) branches:
-   git branch -a 
-  Create new branch:
-   git checkout -b New-Branch-Name-Here
-  Delete local branch:
-   git branch -d Branch-To-Delete-Name
-  Delete remote branch:
-   git push origin --delete Remote-Branch-To-Delete-Name
-  
+
 
 git revert:
   creates new commit which will be added to the history
@@ -582,6 +571,7 @@ branch:
    Create branch:
   git branch new-branch
    Params:
+  -a/--all - shows all local branches and * next to current
   -d/--delete - deletes branch locally
       will fail to delete unmerged branches (those from --no-merged)
   -f/--force - force, i.e. to delete not merged in current branch
@@ -603,14 +593,30 @@ branch:
 
 merge vs rebase:
  https://www.youtube.com/watch?v=CRlGDDprdOQ
- rebase searches for latest commit in 2 branches with same anscestor
- .....and does something afterwards......
+  Rebase overides commits. But rebase local topic branch on latest commit
+ of master, makes master merge then topic branch by fast forward.
+  Rebase have cleaner history w/o merge commits(fast-forward == no conflicts
+ == no merge commits) thus easier to read, and logical.
+ REBASE LOCAL BRANCH BEFORE MERGE.
+ NEVER REBASE WHAT IS PUBLIC. If did - others need git merge --rebase.
+ But still suck.
 
 merge:
+   merges branches
+   if can Fast Forward (where there is just consequental commits w/o divergent)
+   will NOT create merge commit
+  If automerged then it will merge and create mergecommit with resulting work
+  When conflicts, manual merge required, resulting in merge commit
   does 3 way merge of two branches:
    two latest commits of each branch
    creates new commit based on merge of those commits
    new commit goes into main branch(where other branch was merging)
+  <branch_to_merge_into_current> - merges given branch into current
+    will be executed after fetch in pull, when it will merge fetched
+    branch origin/<current_tracked> into current branch
+   Example:
+   git merge topic   - will merge topic into current branch
+  --abort - aborts started merge that ended with conflicts
 
 merge-base:
   finds the original? base of branch, returns hash of the base commit

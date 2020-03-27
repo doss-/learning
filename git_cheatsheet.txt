@@ -148,6 +148,11 @@ pull:
   git pull origin master
    If 'origin' and 'master' are defaults, those could be omitted into
   git pull
+   --rebase  - if someone pushed rebased history in remote
+       does rebase of remote branch:
+    git fetch
+    gir rebase <origin>/<tracking_branch>
+     
 
 push:
   pushes local commits into Upstream('origin'), or branches, or tags
@@ -589,3 +594,51 @@ merge vs rebase:
  https://www.youtube.com/watch?v=CRlGDDprdOQ
  rebase searches for latest commit in 2 branches with same anscestor
  .....and does something afterwards......
+
+merge:
+  does 3 way merge of two branches:
+   two latest commits of each branch
+   creates new commit based on merge of those commits
+   new commit goes into main branch(where other branch was merging)
+
+merge-base:
+  finds the original? base of branch, returns hash of the base commit
+
+rebase:
+  changes base of current(or given) branch to another branch or commit
+  !! Rewrites commits - creates new commit(new hash) with the same contents
+  like date, commetter, comment etc.
+   Does checkout on <branch> first (if given) , if not uses HEAD
+   then compares to <upstream> branch
+    if --onto given - compares between <newbase> and <branch>(HEAD)
+   Params:
+  --onto <newbase> - starting point at which to create new commits
+         if not set, starting point would be <upstream>
+         When there is Another branch between source and target
+     Example:
+            o---o---o---o---o  master
+                    \
+                     o---o---o---o---o  next
+                                      \
+                                       o---o---o  topic
+      git rebase --onto master next topic
+        Outcome:
+            o---o---o---o---o  master
+                   |            \
+                   |             o'--o'--o'  topic
+                    \
+                     o---o---o---o---o  next
+  <upstream> - branch to compare against
+  <branch>  - working branch, default is HEAD
+   Example:
+  E---F---G---H---I---J  topicA
+  git rebase --onto topicA~5 topicA~3 topicA
+  E---H'---I'---J'  topicA
+   Where:
+   --onto: start new commits from topicA~5 - commit 'J'
+   compare with 'H'
+   on given branch 'topicA'
+    For some reason it:
+     leaves E in place - first commit?
+     ignores F and G - related to all be in same branch?
+   

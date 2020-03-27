@@ -248,7 +248,18 @@ https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
      reset HEAD~2 - moves HEAD back for 2 commits, using --mixed
 	flag as default
 
-
+git branch:
+  manage branches;
+  Shows branches, and the current one.
+  All local(?) branches:
+   git branch -a 
+  Create new branch:
+   git checkout -b New-Branch-Name-Here
+  Delete local branch:
+   git branch -d Branch-To-Delete-Name
+  Delete remote branch:
+   git push origin --delete Remote-Branch-To-Delete-Name
+  
 
 git revert:
   creates new commit which will be added to the history

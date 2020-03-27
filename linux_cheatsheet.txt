@@ -142,6 +142,20 @@ info:
 pwd:
   print working directory 
   returns string with current path location
+   Example:
+  pwd  - will return path where you are now
+   Example inside linked path:
+    https://unix.stackexchange.com/questions/63580/resolving-symbolic-links-pwd
+   $ type -a pwd
+   pwd is a shell builtin
+   pwd is /bin/pwd
+   $ mkdir a
+   $ ln -s a b
+   $ cd b
+   $ pwd           <<< this will display path as if there is no link
+   /home/michas/b
+   $ /bin/pwd
+   /home/michas/a  <<< this will display real path including link redirection
 
 cd:
   change directory
@@ -292,6 +306,17 @@ find:
 	filenames with spaces, when need to use another delimiter. 
 	Together with 'xargs' with --null, will go fine:
 	 find -name '*.jpg' -print0 | xargs --null ls -l
+    Example:
+    Effective:
+   find /u01/app/oracle/product/db11g/rdbms/audit/ -type f -print0 | xargs -0 rm
+    Ineffective:
+   find /u01/app/oracle/product/db11g/rdbms/audit/ -type f -name '*' -mtime +1 -exec rm {} \; &
+     Note: -name "*" is also redundant - default behavior
+    xargs will take a number of items up max command length and then run it. 
+     So in the previous example rm would run once for each file. With xargs it 
+    would run a couple of time with many files on the rm command at onces.
+     The find -print0 and xargs -0 option uses the nul character instead of 
+    the default newline character to terminate items. This means it will work with file names with spaces or other white space.
   -quit - quits after first match
   -regex - will search with regex, whole path need to be matched in order
 	to find it:
@@ -310,16 +335,29 @@ find:
 	 Also instead of + 'xargs' command could be used
  	 This could be helpful as command line has limit on arguments (xargs
 	restarts when arguments limit is reached until everything done)
-     Example:
+    Example:
    find . -name "test*" -exec stat '{}' \;
     will find files and folders and display results of hashed 'stat' for 
     every matched item
-     Example:
+    Example:
    find . -name "test*" -exec stat '{}' +
     will do the same as above, but 'stat' will be executed only once with list
     of found files - stat testmatch1 testmatch2 testmatch3
      Example:
    find . -name "test*" | xargs stat
+     Example:
+    Effective remove:
+    instead of this:
+   find /u01/app/oracle/product/db11g/rdbms/audit/ -type f -name '*' -mtime +1 -exec rm {} \;
+    use this:
+   find /u01/app/oracle/product/db11g/rdbms/audit/ -type f -print0 | xargs -0 rm
+     Details:
+    xargs will take a number of items up max command length and then run it. 
+     So in the previous example rm would run once for each file. With xargs it 
+    would run a couple of time with many files on the rm command at onces.
+     The find -print0 and xargs -0 option uses the nul character instead of 
+    the default newline character to terminate items. This means it will work 
+    with file names with spaces or other white space.
 
    Checks:
   -type f:
@@ -654,6 +692,17 @@ tail:
     WHich is usefull for automation
     Same goes with 'ps'
 
+Troubleshooting:
+ /var/log/syslog too large
+ some single event spammed and keep spamming syslog, and it grows in size
+ DO NOT DELETE /var/log/syslog
+ Find the cause:
+   watch tail -f /var/log/syslog
+    or
+   tail -100 /var/log/syslog
+ instead clean the file:
+   sudo cat /dev/null > /var/log/syslog
+
 Network troubleshooting:
   nmcli device 		# display all devices 
    or: nmcli device show eth0 - will show info about the interface(eth0) including dns, gateway, address, mac etc.
@@ -883,6 +932,12 @@ ln:
   ln -s /src/file /dest/symlink
 	first param is where the file is 
 	second param where to put symlink
+   Example, symlink from dir to dir:
+  ln -s /full/path/to/dir /full/path/to/symlink
+  ln -s ~/ansible/buoy ~/opt/tideworks
+   this will create 'tideworks -> /home/dos/ansible/buoy/'
+   where 'tideworks' is a link which points to another directory ansible/buoy
+  https://www.shellhacks.com/symlink-create-symbolic-link-linux/
   
   Hard link: every file has 1 , create another one in different place
    it will has size of its name, and will point to place on HDD for original file
@@ -956,6 +1011,8 @@ du:
        du -sh */ | sort -hr  - du also accepts wildcards, so no need
 				to use ls for supplying list to du
    -s - summary for every directory w/o listings its contents
+   hidden directories:
+  du -hs .[^.]*
 
 diff:
   checks differences two files or whole directories
@@ -1100,6 +1157,10 @@ tar:
           if 'czvf' - creates .gz archive, compress same as 'gzip'
           if 'tzvf' - lists zip contents
           if 'zxvf' - extracts zip contents
+     Example archive+compress:
+    tar -zcvf tmp.tar.gz tmp
+     Example unarchive+uncompress:
+    tar -zxvf tmp.tar.gz
    -j - zup but with bzip2 instead of gzip
    -p - preserve permissions
    another params:
@@ -1361,8 +1422,10 @@ ssh-keygen:
   -t rsa - key type
   -b 4096 - generates key pair into given path
   -C "text" - comment for key
+  -f filename of the key, instead of default 'id_rsa'
    Example:
-  ssh-keygen -t rsa -b 4096 -C "email"  - will create new keypair
+  ssh-keygen -t rsa -b 4096 -C "email" -f my_key
+      - will create new keypair, w/o -f it will generate
 	in the path ~/.ssh/id_rsa and its id_rsa.pub part
   -l - list, not create anything.
   -E - Specifies the hash algorithm used when displaying key fingerprints.  
@@ -1439,6 +1502,12 @@ at:
   Example: 
  at -t 201403142134.12 < script.sh
  
+crontab:
+  list cron schedules
+ Exacmple:
+  crontab -u <username> -l
+    will list all rules for a user
+    need sudo
 
 cron:
  task scheduler
@@ -2004,6 +2073,11 @@ top: htop:
   PID number 1 is always 'init' command or 'systemd' in my case on ubuntu 16 and
   centos 7
 
+glances:
+https://opensource.com/article/19/11/monitoring-linux-glances?sc_cid=70160000001273HAAQ
+if you are a fan of top / htop / atop / iotop....  you might like this..
+looks like glances can also setup a "web interface" to view.. as well as monitor things like docker etc
+
 general processes:
   all processes are spawned from process with ID 1, 'init' in manual or systemd
   in my case, for some reason
@@ -2170,6 +2244,13 @@ https://serverfault.com/questions/867322/what-is-the-difference-between-service-
   it exactly called now
   it seems it also supports systemctl and disable\enable with same commands,
    but creating .override file in the Debian way
+
+Systemd:
+configure units(services)
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/sect-managing_services_with_systemd-unit_files
+ Example:
+ https://www.jetbrains.com/help/teamcity/setting-up-and-running-additional-build-agents.html#Automatic-Agent-Start-under-Linux
+
 
 systemctl:
   cli for systemd service controller
@@ -2519,6 +2600,8 @@ yum:
   yum provides <feature or file> - Just use a specific name or a 
   	file-glob-syntax wild‐cards to list the packages available or installed
 	that provide that feature or file.
+         Note:
+        this could not work for regular user, use 'sudo'
   yum clean all - clears cache similar to apt-get autoclean
     Example of usage:
      use it after some bunch of packages has been installed to clean space
@@ -2771,6 +2854,31 @@ IP address ranges:
 CIDR blocks
 https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation
 https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks
+
+firewalld:
+firewall-cmd:
+  https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-using-firewalld-on-centos-7
+ firewall-cmd --get-default-zone
+  get default zone
+ firewall-cmd --get-active-zones
+  get all active zones
+ sudo firewall-cmd --list-all
+  list all rules for zones
+
+ Open ports:
+  1. Open port for a service.
+   add service to /etc/services
+   add service to FirewallD
+   https://linuxhint.com/open-port-80-centos7/
+  2. Open prot directly:
+
+ OPEN PORT:
+  sudo firewall-cmd --zone=public --add-port=5000/tcp --permanent
+ CHECK OPENED:
+  sudo firewall-cmd --zone=public --list-ports
+ RELOAD AFTERWARDS:
+  sudo firewall-cmd --reload
+
 
 ===ip tables / firewall
 
@@ -3205,6 +3313,10 @@ networking relies on configuration files:
 see this for details on resolving Networking issue on VMWare:
 https://superuser.com/questions/901672/centos-7-ping-8-8-8-8-connect-network-is-unreachable/901677
 
+tcptraceroute:
+  traceroute to port 
+   Example:
+  sudo tcptraceroute teamcity.tideworks.com 443
 
 ip: 
   link - creates network interface with name and type:
@@ -3241,6 +3353,7 @@ https://www.maketecheasier.com/check-open-ports-linux/
 
 netstat:
   find open ports
+  Find port on machine:  https://www.tecmint.com/find-open-ports-in-linux/
    Params:
   -l / --listen - displays ports that are in LISTEN state (lots of)
   -vatn - opened ports and established TCP connections
@@ -3253,6 +3366,8 @@ netstat:
   Example:
    netstat -vat - display used porta and established connections
    sudo netstat -tulw - will display all ports for local machine
+  Check ports 9211, 8685 opened on local machine for tcp\udp for IPv4 and IPv6:
+   netstat -lntu | egrep "9211|8685"
 
 ss:
   netstat could be outdated on some systems, use it instead
@@ -3268,6 +3383,12 @@ lsof:
  	with friendly names
    - 4 - ipv4
    - tcp - display tcp (cant use 4 and tcp in the same time, it seems)
+
+telnet:
+  check ports open
+  telnet <hostname/ip> <port>
+   Example:
+  telnet lwpeartifabld.tideworks.com 5000
   
 nmap:
   Network Mapped, detects open ports on my system
@@ -3281,6 +3402,9 @@ nmap:
     Example:
    sudo nmap -sT -O 192.168.42.74  - scan remote machine for opened ports
    sudo nmap -sT -O localhost - scan local machine
+    Example:
+   nmap artifactory-dev.tideworks.com -p 5000
+     check port 5000 opened on 'artifactory-dev.tideworks.com' machine
 
   NOTE: 
    Read MAN - it has examples and lots of stuff:
@@ -3290,4 +3414,101 @@ nmap:
   Example:
    nmap -sT -O localhost    - [s]cans [T]CP on localhost
  	
+nslookup:
+  looks for domain names by given IP
+  uses /etc/resolv.conf  - where all the DNS servers are
+   resolv.conf:
+  domain twlab.int
+  search customer.int usa.int tideworks.com
+  nameserver 172.19.65.2
+  nameserver 172.19.65.1
+  nameserver 10.253.1.1
+  nameserver 10.253.1.3
+
+
+==Security
+SELinux:
+
+Statuses:
+1. Enforced : Actions contrary to the policy are blocked and a corresponding event is logged in the audit log.
+2. Permissive : Permissive mode loads the SELinux software, but doesn’t enforce the rules, only logging is performed.
+3. Disabled : The SELinux is disabled entirely.
+
+Read about status change and check:
+https://www.thegeekdiary.com/how-to-check-whether-selinux-is-enabled-or-disabled/
+
+getenforce:
+  check status of selinux
+   Example:
+  # getenforce
+  Permissive
+
+setenforce:
+  change enforce
+   Example:
+  # setenforce 0
+  # getenforce
+  Permissive
+
+setstatus:
+  more detailed current status output
+
+change to permissive and configuration info:
+https://www.thegeekdiary.com/how-to-disable-or-set-selinux-to-permissive-mode/
+
+cat /etc/selinux/config
+SELINUX=disabled  # to disable
+
+dot in permisisons:
+drwxr-xr-x.    < this dot(.) means file has Access Control List(ACL) with SELinux.
+this will not appear if SELinux is disabled
+
+setfacl:
+ will or unset ACL for files\directories etc.  (the dot at the end of permisisons)
+https://stackoverflow.com/questions/30594871/what-does-the-dot-at-the-end-of-the-permissions-in-the-output-of-ls-lah-mean
+
+
+
+==Virtualization general
+Virtual box has several different network interfaces
+
+NAT and NATNet networks would not be accessible from outside(and HOST)
+so to SSH into virtual machine, gotta use Port Forwarding 
+  and connecto to localhost:<forwarded_port>
+table:
++-----------+-------------+-------------+----------------+----------------+
+|           | VM <-> Host | VM1 <-> VM2 | VM -> Internet | VM <- Internet |
++-----------+-------------+-------------+----------------+----------------+
+| HostOnly  |     Yes     |     Yes     |      No        |       No       |
+| Internal  |     No      |     Yes     |      No        |       No       |
+| Bridged   |     Yes     |     Yes     |      Yes       |       Yes      |
+| NAT       |     No      |     No      |      Yes       |  Port forward  |
+| NATNet    |     No      |     Yes     |      Yes       |  Port forward  |
++-----------+-------------+-------------+----------------+----------------+
+Bridged will allow your guest to appear as just another PC on your host's network. The host, all the other network PCs, the internet and the guest can all communicate. The guest would default to getting an IP address from your host network's router. The host needs to be connected to an active network to allow guests to use Bridged. And Bridged is not always compatible with Wi-Fi.
+
+Internal makes a private network just for your guests. There is no host communication or internet. There is no DCHP server on an internal network by default, though you can put one on in Virtualbox. Otherwise configure static IP address for the guests within the guest OS's. Or you can make a router guest using a router OS like pfSense. You can make more than one internal network by naming the new networks differently.
+
+Host-Only is a special form of internal network that also includes the host, via a virtual Host-Only network adapter made on your host, defaulting to IP address 192.168.56.1, and there is a default DHCP server handing out IP addresses to the guests starting at 192.168.56.101. You can change the IP address range or make multiple host-only networks in Virtualbox's Network settings in the main GUI. There is no internet in Host-Only.
+
+Virtualbox has two kinds of NAT: regular NAT and a NAT network service. Regular NAT ("NAT" in the dropdown) connects each guest to the host's network connection and internet via an independent channel. The host and any other guests cannot connect to the NAT-connected guest, although ports can be opened, just like NAT in a router. (The NAT guest can, however, see any services and shared folders on the host's network.)
+
+The NAT network service ("NAT network" in the dropdown) is like a home router, NAT to the outside world and multiple "LAN" guest connections. All the guests connected to this "NAT network" can see and communicate with each other. Internet is accessible. Ports can be opened just like a real router. You need to make a new NAT network in the main Virtualbox window, File Menu, Preferences, Network. Then attach the guests using the name of the NAT network you made in Preferences.
+
+
+===GUI
+GUI on Centos7
+https://unix.stackexchange.com/questions/181503/how-to-install-desktop-environments-on-centos-7
+
+GNOME install on Centos7
+yum group list
+  check groups available
+ "Server with GUI" - this for RHEL
+ "GNOME Desktop" this is GNOME for Centos
+ "KDE Plasma Workspaces"  - this is KDE
+ "Graphical Administration Tools" - extra admin tools for GUI
+yum groupinstall "GNOME Desktop" "Graphical Administration Tools"
+  this will install two groups for Gnomw and admin tools
+  Read more:
+  https://www.itzgeek.com/how-tos/linux/centos-how-tos/install-gnome-gui-on-centos-7-rhel-7.html
 

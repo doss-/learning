@@ -265,10 +265,17 @@ grep:
   -n - line number for matches
   -h - no file names in output 
   -r - recurse search in a directory
-      i.e.: grep -lr cron /etc - will return all file names which content has
-			'cron' pattern in whole /etc directory
+      Example:
+    grep -lr cron /etc 
+       will return all file names which content has
+       'cron' pattern in whole /etc directory
   -E - extended regular expressions, same as 'egrep'
   -F - Fixed grep, same as 'fgrep'
+   Search in file:
+   Example:
+  grep pattern filename.txt
+   Recurse Example:
+  grep -R pattern *
 
 fgrep:
   interprets regex special symbols as usual ones, and searches text with it
@@ -866,9 +873,11 @@ tee:
   tee <params> file1 file2
   -a - append file
     Example:
-  ls dir1 | tee file1 - will display ls on dir1 and write output to file1
-  ls dir2 | tee -a file1 | less - display dir2 and append ls output to file1
-	then moe along a pipe and 'less' with the same result as in file1
+  ls dir1 | tee file1 
+       will display ls on dir1 and write output to file1
+  ls dir2 | tee -a file1 | less 
+       display dir2 and append ls output to file1
+       then moe along a pipe and 'less' with the same result as in file1
    
    
 nl:
@@ -1140,6 +1149,8 @@ rsync:
     files absent in source dirs and present in remote:/backup, copy different 
     from source dirs files via ssh tunnel to remotesys network location under
     path /backup
+   Example:
+  rsync -aAHvh bitbucket-home.tar.gz root@o-pe-bitbucket.twlab.int:/opt/atlassian/bitbucket/
 
 tar:
   tape archive - collects all files in archive, with savin all permissions
@@ -1409,6 +1420,10 @@ sshd(openssh)
    /etc/ssh/ssh_config
   some another config
   ==
+   Options important:
+  PermitRootLogin:
+    “yes”, “prohibit-password”, “without-password”, “forced-commands-only”, or “no”
+  ==
   RSA keys for ssh authentication generation process:
   https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7
   Passwordless:
@@ -1416,6 +1431,38 @@ sshd(openssh)
   only with keypair:
   https://linuxize.com/post/how-to-setup-passwordless-ssh-login/#disabling-ssh-password-authentication
   https://help.ubuntu.com/community/SSH/OpenSSH/Keys
+   Log files of sshd:
+  RHEL:
+   /var/log/secure
+    Example:
+   tail -f -n 500 /var/log/secure | grep 'sshd'
+    If getting errors like:
+   'ROOT LOGIN REFUSED FROM 10.253.0.28 port 34318'
+    the Root login is disabled
+   PermitRootLogin yes
+  Other:
+    /var/log/auth.log
+   tail -f -n 500 /var/log/auth.log | grep 'sshd'
+
+ssh:
+  remote connect via ssh protocol
+   
+  -v - display debug info level1
+  -vv  - debug level2
+  -vvv - degut level3
+  Troubleshooting:
+   if -vvv  shows everything ok:
+     debug1: Server accepts key: pkalg ssh-rsa blen 535
+     debug2: input_userauth_pk_ok: SHA1 fp 28:bc:1b:64:94:3a:6b:ec:b4:13:45:ca:79:80:be:7c:75:cc:82:48
+     debug3: sign_and_send_pubkey: RSA 28:bc:1b:64:94:3a:6b:ec:b4:13:45:ca:79:80:be:7c:75:cc:82:48
+     debug1: read PEM private key done: type RSA
+     debug3: Wrote 1156 bytes for a total of 3101
+   Open Log files of sshd:
+    tail -f -n 500 /var/log/secure | grep 'sshd'
+   if errors like this appear:
+    ROOT LOGIN REFUSED FROM 10.253.0.28 port 34318
+   open  /etc/ssh/ssh_config and set
+  PermitRootLogin yes
 
 ssh-keygen:
   generates keypair private\public
@@ -1455,6 +1502,8 @@ ssh-keygen:
    There are only 1 RSA key is allowed for the IP, in case RSA key is changed, then 
   old one need to be removed, otherwise it will not allow ssh acces:
    ssh-keygen -f "/home/dos/.ssh/known_hosts" -R 172.17.0.2
+    Generate public key from private key:
+  ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
   
   
 
@@ -2609,6 +2658,11 @@ yum:
   ..  .. all - lists all the repos disregard of their staus
   .. --enablerepo=<repoid from repolist> install <pkg> - enable a repo and
 		install the package from that repo
+    Example:
+   yum repolist enabled
+    show enabled repos
+   yum repolist all
+    show all repos (including disabled)
   yum provides <feature or file> - Just use a specific name or a 
   	file-glob-syntax wild‐cards to list the packages available or installed
 	that provide that feature or file.

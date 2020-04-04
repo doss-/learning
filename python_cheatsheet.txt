@@ -33,6 +33,26 @@ could be stored in separate directory, i.e. in root of project directory
    shell will be prefixed with env:
   (my_project_venv) user@host:~/my_new_project$
 
+ Venv for native python3:
+  mkdir -p /path/to/venv/ansible
+  pip3 install virtualenv --user
+  python3 -mvenv /path/to/venv/ansible
+  source /path/to/venv/ansible/bin/activate
+  pip3 install -U pip setuptools
+  pip3 install -r /path/to/repo/requirements.txt
+
+ Venv for native python2:
+  mkdir -p /path/to/venv/ansible
+  pip2 install virtualenv --user
+  virtualenv --py python2 /path/to/venv/ansible
+   If getting errors upgrade pip for user:
+    pip2 install -U pip --user
+    ~/.local/bin/pip2 install virtualenv --user
+    virtualenv --py python2 /path/to/venv/ansible
+  source /path/to/venv/ansible/bin/activate
+  pip2 install -U pip setuptools
+  pip2 install -r /path/to/repo/requirements.txt
+
 
 
 
@@ -59,11 +79,79 @@ print:
    print("this is string and this is",variable)
    print("test value: {}".format(value))
 
+type:
+  get type of object
+   Example:
+  d = dict()
+  type(d)
+  >>>  <class 'dict'>
+
+del:
+  rermove variable
+   Example:
+  a = list("a")
+  del(a)
+
+len:
+  get length of array
+   Example:
+  d = dict()
+  len(d)
+  >>> 0
+
+dict:
+  d = dict()
+  dictionary
+
+list:
+  l = list()
+   Example:
+  >>> a = list(["aaa"])
+  >>> a
+  ['aaa']
+  >>> a = list("aaaa")
+  >>> a
+  ['a', 'a', 'a', 'a']
+   Methods:
+  list
+  .append(item)
+   add item in the end of the list
+  .pop
+   extract latest item (will remove from list)
+  Concat lists:
+  
+
+
 if:
   if 1>2:
-    print "this will never print"
+    print("this will never print")
+  elif 1>0:
+    print("other")
+  else:
+    print("last")
+  Could check lists and dictionaries:
+    approved_versions_dict = dict()
+    product = "string"
+    version = "string"
+    if product in approved_versions_dict and version in approved_versions_dict[product]:
+      print("Found 'product' in dict, then found version in dict['product'])
+   Type if:
+  if type(option) is bool:
+    print("option is of 'bool' type")
 
-whiel:
+for:
+  iterates list
+   Example:
+    for item in list:
+        print(item)
+  Could iterate 2+ lists:
+    artifacts = list()
+    artifacts_dead = list()
+    for artifacts_collection in artifacts_dead, artifacts:
+      print("iterating concatenated both lists")
+
+
+while:
   wile True:
     print "this will print forever"
 
@@ -83,12 +171,30 @@ stream.readlines() - all lines left after cursor, returns List[string]
 stream.close() - need to close unmanaged resources, can only read from 'r'
 stream.write() - writes only string w/o carriage return
 
+def:
+  def my_method(param1, param2):
+    {body}
+
+  def _my_little_private_method(param1, param2):
+
+  def __my_very_private_method(param1, param2):
+
+  privacy is not envorced, just a convention!
 
 exception handling:
   try:
     {try code}
   except <lib.namespace.ExceptionClass> as <var_name>:
     {catch code}
+   Example:
+    try:
+        user = os.environ["ARTI_CLEAN_USER_ARTI"]
+        passwd = os.environ["ARTI_CLEAN_PASSWD_ARTI"]
+    except KeyError:
+        print("set ARTI_CLEAN_USER_ARTI and ARTI_CLEAN_PASSWD_ARTI environment \
+               variables before script execution!")
+        sys.exit(1)
+
 
 pip:
   python libraries manager
@@ -129,4 +235,28 @@ Web Frameworks:
      Flask greater tutorial, also has something with DB connection:
     https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database
 
+COde Style
 
+flake8:
+  Checks codde style
+   Install:
+  pip install flake8 --user
+   Use:
+  flake8 remove_artifacts.py --ignore=E501
+
+import:
+ env variable read:
+  import os
+  passwd=os.environ["ARTI_CLEAN_PASSWD_DB"]
+ regex:
+  import re
+  matcher = re.compile(r'.*')
+   #r'' to escape everything inside of quotes
+  matcher.match(text)
+   #return bool
+  matcher.pattern
+   #return string with pattern i.e. ".*"
+ exit:
+  import sys
+  sys.exit(0)
+   #0 is exit code

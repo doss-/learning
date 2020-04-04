@@ -710,6 +710,14 @@ Troubleshooting:
  instead clean the file:
    sudo cat /dev/null > /var/log/syslog
 
+wifi adapter search for errors:
+  uname -rv
+  lspci -knn | grep -EiA2 net
+  dmesg|grep -Ei 'wlan|firmw|dhc'
+  sudo cat /var/log/syslog | grep -Ei 'net|wpa|dhc'
+  sudo rfkill list
+  https://www.linuxquestions.org/questions/linux-newbie-8/asus-pce-ac51-wlan-adapter-driver-doesn%27t-install-properly-4175619526/
+
 Network troubleshooting:
   nmcli device 		# display all devices 
    or: nmcli device show eth0 - will show info about the interface(eth0) including dns, gateway, address, mac etc.
@@ -790,6 +798,92 @@ lshw:
 
 lspci:
   list pci devices - network , audio, usb controllers
+   Example:
+  lspci -knn | grep -EiA2 net
+   search for network controllers, and this is drivers used by them:
+    Kernel driver in use: rtl8821ae
+    Kernel modules: rtl8821ae
+
+uname:
+  system and kernel information
+   -r   - kernel info
+   -v   - Distro info
+   Example:
+  uname -rv
+
+Boot and Startup:
+  Boot when loads:
+  * BIOS\UEFI
+  * MBR
+  * GRUB
+  * kernel is loaded into initial ramdisk(initrd or initramfs)
+  * systemd started
+  Startup:
+  * syslogd or rsyslogd is not running yet
+  * all logs go into `ring buffer`
+  * to read `ring buffer` use `dmesg`
+
+
+dmesg:
+  https://www.howtogeek.com/449335/how-to-use-the-dmesg-command-on-linux/
+  reads logs from Kernel Ring buffer 
+   kernel ring - place where logs stored during boot and OS loading
+    BIOS\UEFI, MBR, GRUB
+   During system run also stores all events like new hardware etc.
+  Example:
+   dmesg | grep -Ei 'wlan|firmw|dhc'
+    check drivers loading for wifi adapter
+  sudo remove:
+   sudo sysctl -w kernel.dmesg_restrict=0
+    ANY USER will be able to use `dmesg` now
+  -L   - color output
+  --color=always  - always use color (pipe redirection mb?
+  -H   - human timestamps + `less` is used for output
+         seconds are labeled with date
+    Example:
+   dmesg -H
+    [Apr 5 00:41] [UFW BLOCK] IN=wlp2s0 OUT= MAC=01:00
+    [  +9.499881] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+    [  +2.499111] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+    [  +0.126267] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+    [  +1.818683] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+    [  +2.920082] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+  -T   - human readable timestamps:
+    Example:
+   dmesg -T
+    [Sun Apr  5 00:45:25 2020] [UFW BLOCK] IN=wlp2s0 OUT=
+    [Sun Apr  5 00:45:29 2020] [UFW BLOCK] IN=wlp2s0 OUT= 
+    [Sun Apr  5 00:47:30 2020] [UFW BLOCK] IN=wlp2s0 OUT= 
+  --follow  - like `tail -f`
+  -l <lvl>   -  Log levels
+    emerg: System is unusable.
+    alert: Action must be taken immediately.
+    crit: Critical conditions.
+    err: Error conditions.
+    warn: Warning conditions.
+    notice: Normal but significant condition.
+    info: Informational.
+    debug: Debug-level messages.
+
+    Example:
+   sudo dmesg -l debug,notice
+
+  -f <facility>  - Facility categories
+    kern: Kernel messages.
+    user: User-level messages.
+    mail: Mail system.
+    daemon: System daemons.
+    auth: Security/authorization messages.
+    syslog: Internal syslogd messages.
+    lpr: Line printer subsystem.
+    news: Network news subsystem.
+
+    Example:
+   dmesg -f syslog,daemon
+
+  -x  - decode. show the facility and level as human-readable prefixes 
+   to each line.
+
 
 sed:
   text stream editor, using RegEx for search\edit in stream(STDIN) line by line,

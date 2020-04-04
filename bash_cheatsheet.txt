@@ -10,6 +10,25 @@ i.e.:
 
     #!/bin/bash
 
+Shortcuts:
+  ctrl+a - move to start of line
+  ctrl+e - move to end of line
+  ctrl+b - move one char back
+  alt+b  - move one word back
+  ctrl+f - move one char forth
+  alt+b  - move one word forth
+  ctrl+d - delete one char under cursor
+  ctrl+u - delete from cursor to line start
+  ctrl+k - delete from cursor to line end
+  ctrl+w - delete from cursor to word start
+  alt+bcksp - delete previous word
+  ctrl+y - paste from clipboard(alt+bckspc deleted)
+  ctrl+l - clean screen
+  ctrl+r - reverse search in history
+  ctrl+j - edit found command in search
+  ctrl+p - previous command in history
+  ctrl+n - next command in history
+
 
 Bash Scripts accepts data from stdin and its direct redirection or pipe  
 Note: 'read' command need to be used.  

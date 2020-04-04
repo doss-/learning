@@ -1370,7 +1370,7 @@ ssh-keygen:
     Example:
  Get fingerprint:
   ssh-keygen -lf ~/.ssh/keyname[.pub]
- Get fingerprint in hashed\hex format:
+ GitHub: Get fingerprint in hashed\hex format:
   ssh-keygen -E md5 -lf ~/.ssh/git_key[.pub]
 
 ssh-copy-id:
@@ -2413,6 +2413,18 @@ https://askubuntu.com/questions/148638/how-do-i-enable-the-universe-repository
 	
    
 
+update-ca-certificates:
+  updates certificates from _somewhere_
+   Pamars:
+  --fresh - somethinh fresh?
+
+List certificates:
+  awk -v cmd='openssl x509 -noout -subject' '
+    /BEGIN/{close(cmd)};{print | cmd}' < /etc/ssl/certs/ca-certificates.crt
+   Search for existing root cert:
+  \ | grep -i '<root cert common name>'
+
+
 =======List all installed packages:
   dpkg -l - list of packages and their details
   apt list --installed - list of full names
@@ -3291,3 +3303,13 @@ nmap:
    nmap -sT -O localhost    - [s]cans [T]CP on localhost
  	
 
+utilities:
+clamav:
+clamscan:
+      ClamAV – A command line utility: It is a free, open source, and cross-platform antivirus toolkit for detecting many types of malicious software and viruses.
+    ClamTK – A Graphical utility: ClamTk is a graphical front-end for the Clam Antivirus. It is designed to be an easy-to-use, lightweight, on-demand antivirus scanner for Linux systems.
+   Install:
+  sudo apt-get install clamav clamav-daemon
+   Execute scan:
+   Example:
+  clamscan --invected --log=clamscan.log --recursive --copy=infected_files --detect-pua=yes /

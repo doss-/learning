@@ -3,6 +3,38 @@ https://stackoverflow.com/a/34066989
 how to change PYTHONPATH:
 http://ask.xmodulo.com/change-syspath-pythonpath-python.html
 
+Install:
+RHEL 6/7 :
+Centos7:
+https://linuxize.com/post/how-to-install-python-3-on-centos-7/
+
+Software collections library, allows multiple versions of same software.
+to enable its repos:
+  sudo yum install centos-release-scl
+to install python36
+  sudo yum install rh-python36
+
+to enable python36 for current sessioN:
+  scl enable rh-python36 bash
+
+to enable for current user:
+  vim  /home/<username>/.bashrc 
+   Add following:
+  # Add Python 3.6 from RHSCL to my login environment
+  source scl_source enable rh-python36
+Virtual env / venv:
+could be stored in separate directory, i.e. in root of project directory
+  mkdir ~/my_new_project
+  cd ~/my_new_project
+  scl enable rh-python36 bash
+  python -m venv my_project_venv
+   activate virtual env:
+  source my_project_venv/bin/activate
+   shell will be prefixed with env:
+  (my_project_venv) user@host:~/my_new_project$
+
+
+
 
 types:
   Bool:
@@ -96,3 +128,5 @@ Web Frameworks:
     https://www.tutorialspoint.com/flask/flask_wtf.htm
      Flask greater tutorial, also has something with DB connection:
     https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iv-database
+
+

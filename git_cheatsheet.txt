@@ -94,6 +94,34 @@ config:
   git config --global credential.helper cache
    will use login\pass cached for few minutes, to not ask user everytime
 
+   Email setup: for
+  format-patch:
+   [imap]
+      folder = "[Gmail]/Drafts"
+      host = imaps://imap.gmail.com
+      user = user@gmail.com
+      pass = YX]8g76G_2^sFbd
+      port = 993
+      sslverify = false
+   Example:
+  git format-patch -M origin/master
+  cat *.patch #or one by one to view anyway
+   #If you add text between the --- line and the beginning of the patch
+   #(the diff --git line), the developers can read it, but that content is 
+   #ignored by the patching process.
+  cat *.patch |git imap-send
+   At this point, you should be able to go to your Drafts folder, change 
+   the To field to the mailing list you’re sending the patch to, possibly 
+   CC the maintainer or person responsible for that section, and send it off.
+    SMTP:
+   [sendemail]
+      smtpencryption = tls
+      smtpserver = smtp.gmail.com
+      smtpuser = user@gmail.com
+      smtpserverport = 587
+  git format-patch -M origin/master
+  git send-email *.patch
+
 clone:
   clones repository locally , later parent repo could be reached as origin
    Params:
@@ -122,7 +150,7 @@ clone:
   clone 'libgit2' repo in 'my_libgit2' directory in pwd
 
 fetch:
-  gets the data from remote repository (by default 'origin' if cloned)
+  gets all the data from remote repository (by default 'origin' if cloned)
    data includes all files in all branches
   sets remote pointers up to date:
    if origin/master has changed it will now be updated locally to up to date
@@ -148,6 +176,22 @@ pull:
   git pull origin master
    If 'origin' and 'master' are defaults, those could be omitted into
   git pull
+   --rebase  - if someone pushed rebased history in remote
+       does rebase of remote branch:
+    git fetch
+    gir rebase <origin>/<tracking_branch>
+
+
+request-pull:
+  request pull between forks, pull request.
+    Example:
+   git request pull origin/master my_fork
+     Where:
+    my_fork - another remote along with origin
+     Takes current branch, produce summary between it and origin/master
+     Asks origin's maintainer to pull from my_fork/<current_branch>
+     into origin/master branch
+     
 
 push:
   pushes local commits into Upstream('origin'), or branches, or tags
@@ -159,11 +203,12 @@ push:
    pushes local Ny-New-Branch to the remote with write access
     Under the hood:
    git push origin refs/heads/My-New-Branch:refs/heads/My-New-Branch
-    <source_ref_branch\tag>:<target_remote_ref_branch\tag>
+     <source_ref_branch\tag>:<target_remote_ref_branch\tag>
+    Same as above:
    git push origin My-New-Branch:My-New-Branch - will do the same
     or
    git push origin My-New-Branch:My-Renamed-Branch-On-Remote - push and rename
-  'push' Doesn't push Tags automatically. To push tag do it explicitly:
+  Push doesn't push Tags automatically. To push tag do it explicitly:
     Example:
   git push origin v1.0
    will push v1.0 tag to origin remote
@@ -173,6 +218,11 @@ push:
   --delete <branch> - deletes branch from the remote 
    it will hung out some time until garbage collection, so could be
    recovered somehow...
+   OUTPUT Example:
+  1edee6b..fbff5bc master -> master
+  <oldref>..<newref> fromref -> toref
+   fromref - local reference being pushed
+   toref - remote reference being updated (origin/master)
 
 add:
   "add precisely this content to the next commit"
@@ -310,6 +360,7 @@ diff:
   By default compares Working Tree with Staging area
   --staged - compares staged area to latest commit(snapshot)
   --cached - same as --staged
+  --check - cheks whitespace issues
 
    Example:  
   git diff  
@@ -322,6 +373,25 @@ diff:
 difftool:
   same as 'git diff' but executes External diff program
    --tool-help  - shows all available on the system tools for diff
+
+commit message convention:
+  Capitalized, short (50 chars or less) summary
+
+  More detailed explanatory text, if necessary. Wrap it to about 72
+  characters or so. In some contexts, the first line is treated as the
+  subject of an email and the rest of the text as the body. The blank
+  line separating the summary from the body is critical (unless you omit
+  the body entirely); tools like rebase can get confused if you run the
+  two together.
+  
+  Write your commit message in the imperative: "Fix bug" and not "Fixed bug"
+  or "Fixes bug." This convention matches up with commit messages generated
+  by commands like git merge and git revert.
+  Further paragraphs come after blank lines.
+  - Bullet points are okay, too
+  - Typically a hyphen or asterisk is used for the bullet, followed by a
+  single space, with blank lines in between, but conventions vary here
+  - Use a hanging indent
 
 commit:
   creates snapshot(commit) of Staging area, adds it to local repo  
@@ -412,6 +482,13 @@ log:
    Example:
   git log --author doss- --grep shotts
     will return only commits by 'doss-' AND having 'shotts' in message
+   Diff in commits between barnches:
+   Example:
+  git log --no-merges issue54..origin/master
+   The issue54..origin/master syntax is a log filter that asks Git to 
+   display only those commits that are on the latter branch (in this case 
+   origin/master) that are not on the first branch (in this case issue54).
+    Shows difference from issue54 to origin/master
 
 remote:
   lists remote handles of the current repo
@@ -541,7 +618,12 @@ checkout:
    Synopsys:
   git checkout [params] [[--] filename]
    Params:
-  -b - switch to the newly created branch
+  -b <new-branch> - switch to the newly created branch
+    creates new branch based on current HEAD
+  -b <new-branch> <based-on-branch>
+    Example:
+  git checkout -b new-branch origin/master
+    creates new branch based on given branch (origin/master)
    Remote branch tracking
    By default git does not track remote branches except Master
    To manually start tracking branches do:
@@ -566,6 +648,7 @@ branch:
    Create branch:
   git branch new-branch
    Params:
+  -a/--all - shows all local branches and * next to current
   -d/--delete - deletes branch locally
       will fail to delete unmerged branches (those from --no-merged)
   -f/--force - force, i.e. to delete not merged in current branch
@@ -581,11 +664,79 @@ branch:
         with [branch] will show info as if HEAD is in that branch
         if [commit] given - shows branches that DO NOT have this commit
   -u/--set-upstream-to <upstream> - points local branch to track remote one
+                   'git pull' will work param-less then
     Example:
    git branch -u origin/serverfix
-    will point current(?) branch to remote branch called 'serverfix'
+    will set track between current and 'serverfix' branches for parameterless
+    pulls
 
 merge vs rebase:
  https://www.youtube.com/watch?v=CRlGDDprdOQ
- rebase searches for latest commit in 2 branches with same anscestor
- .....and does something afterwards......
+  Rebase overides commits. But rebase local topic branch on latest commit
+ of master, makes master merge then topic branch by fast forward.
+  Rebase have cleaner history w/o merge commits(fast-forward == no conflicts
+ == no merge commits; anything other has merge commit) thus easier to read,
+ and logical.
+ REBASE LOCAL BRANCH BEFORE MERGE.
+ NEVER REBASE WHAT IS PUBLIC. If did - others need git merge --rebase.
+ But still suck.
+
+merge:
+   merges branches
+   if can Fast Forward (where there is just consequental commits w/o divergent)
+   will NOT create merge commit
+  If automerged then it will merge and create mergecommit with resulting work
+  When conflicts, manual merge required, resulting in merge commit
+  does 3 way merge of two branches:
+   two latest commits of each branch
+   creates new commit based on merge of those commits
+   new commit goes into main branch(where other branch was merging)
+  <branch_to_merge_into_current> - merges given branch into current
+    will be executed after fetch in pull, when it will merge fetched
+    branch origin/<current_tracked> into current branch
+   Example:
+   git merge topic   - will merge topic into current branch
+  --abort - aborts started merge that ended with conflicts
+
+merge-base:
+  finds the original? base of branch, returns hash of the base commit
+
+rebase:
+  changes base of current(or given) branch to another branch or commit
+  !! Rewrites commits - creates new commit(new hash) with the same contents
+  like date, commetter, comment etc.
+   Does checkout on <branch> first (if given) , if not uses HEAD
+   then compares to <upstream> branch
+    if --onto given - compares between <newbase> and <branch>(HEAD)
+   Params:
+  --onto <newbase> - starting point at which to create new commits
+         if not set, starting point would be <upstream>
+         When there is Another branch between source and target
+     Example:
+            o---o---o---o---o  master
+                    \
+                     o---o---o---o---o  next
+                                      \
+                                       o---o---o  topic
+      git rebase --onto master next topic
+        Outcome:
+            o---o---o---o---o  master
+                   |            \
+                   |             o'--o'--o'  topic
+                    \
+                     o---o---o---o---o  next
+  <upstream> - branch to compare against
+  <branch>  - working branch, default is HEAD
+   Example:
+  E---F---G---H---I---J  topicA
+  git rebase --onto topicA~5 topicA~3 topicA
+  E---H'---I'---J'  topicA
+   Where:
+   --onto: start new commits from topicA~5 - commit 'J'
+   compare with 'H'
+   on given branch 'topicA'
+    For some reason it:
+     leaves E in place - first commit?
+     ignores F and G - related to all be in same branch?
+  --continue
+     go on with rebase, after conflicts resolved (edit and 'add' to staging) 

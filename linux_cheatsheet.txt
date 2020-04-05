@@ -1066,6 +1066,13 @@ type:
   >apt is /usr/bin/apt
 
 
+curl: vs wget:
+  If I wanted to download content from a website and have the tree-structure 
+  of the website searched recursively for that content, I’d use wget.
+
+  If I wanted to interact with a remote server or API, and possibly download 
+  some files or web pages, I’d use curl. Especially if the protocol was one 
+  of the many not supported by wget.
 
 
 wget:
@@ -1077,11 +1084,49 @@ wget:
   wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb - will download .deb file in current directory w/o any output
 
 curl:
-  web requests issuer - HTTP[S] requests.
+  web requests issuer - HTTP[S] requests( see --version protocol list).
+   CAREFUL: binary download to stdout in terminal could exploit injections
+   https://www.howtogeek.com/447033/how-to-use-curl-to-download-files-from-the-linux-command-line/
   Or could download web pages and files and stuff
    -o - output, redirects output to a file, usefull when downloading files
     sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest
      will download ecs-cli binary file from amazon storage into /usr/... path
+    > - will also workd:
+      Example:
+     curl https://www.bbc.com  > bbc.html
+     When redirected, `curl` detects it and display download bar, columns:
+     % Total: The total amount to be retrieved.
+     % Received: The percentage and actual values of the data retrieved so far.
+     % Xferd: The percent and actual sent, if data is being uploaded.
+     Average Speed Dload: The average download speed.
+     Average Speed Upload: The average upload speed.
+     Time Total: The estimated total duration of the transfer.
+     Time Spent: The elapsed time so far for this transfer.
+     Time Left: The estimated time left for the transfer to complete
+     Current Speed: The current transfer speed for this transfer.
+
+   -#  - display progress bar instead of full statistics
+
+   -C    - continue from offset
+      -  - continue from last downloaded offset: simply continue download
+     Example:
+     curl -C - --output file.name http://example.com/some_partially_dwnld.file
+      Note line:
+    `** Resuming transfer from byte position 168435712`
+
+   -I - Headers!
+     Example:
+    curl -I https://www.bbc.com
+
+    download list of files:
+    * save list urls into file; new line delimited
+    * use xargs to read a file; each line as an argument
+    * pass to curl:
+     xargs -n 1 curl -O < urls-to-download.txt
+      -n 1  - treat each line in file as a separate parameter
+
+  -O - save file with same name from remote server
+
    -s - silent, no progress or error output. BUT still displays url contents
     echo "$(curl -s https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest.md5) /usr/local/bin/ecs-cli" | md5sum -c -
      will curl display md5 from amazon storage, w/o any other output, then
@@ -1093,10 +1138,11 @@ curl:
     crumb=$(curl -u "builder:1234" -s 'http://jenkins.local:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)')
     curl -u "builder:1234" -H "$crumb" -X POST http://jenkins.local:8080/job/ENV/build?delay=0sec
   -H - header of a request(contains Token)
-  -u - "user:password"
+  -u - "user:password"; Works with FTP too
   -X - Request type (GET or POST, PUT, DELETE etc) 
    default: GET
   
+
 
 du:
   disk usage
@@ -1245,6 +1291,20 @@ rsync:
     path /backup
    Example:
   rsync -aAHvh bitbucket-home.tar.gz root@o-pe-bitbucket.twlab.int:/opt/atlassian/bitbucket/
+
+ar:
+  archive?
+   seems like can unarchive deb packages(other may be too?)
+  Example:
+  https://dev.to/jake/using-libcurl3-and-libcurl4-on-ubuntu-1804-bionic-184g
+   Download libcurl3 package, extract into tar, untar it, copy following
+   symlink in source(inside untarred dir) into usr/lib:
+  $ mkdir ~/libcurl3 && cd ~/libcurl3
+  $ apt-get download -o=dir::cache=~/libcurl3 libcurl3
+  $ ar x libcurl3* data.tar.xz
+  $ tar xf data.tar.xz
+  $ cp -L ~/libcurl3/usr/lib/x86_64-linux-gnu/libcurl.so.4 /usr/lib/libcurl.so.3
+  $ cd && rm -rf ~/libcurl3
 
 tar:
   tape archive - collects all files in archive, with savin all permissions

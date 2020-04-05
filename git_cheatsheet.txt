@@ -463,12 +463,13 @@ log:
   --graph  - builds graph of commits, shows branches and merges
           compatible with '--pretty'
     Example:
-   git log --pretty=format:"%cd %s" --graph
+   git log --pretty=format:"%cd %s" --graph --author-date-order
       will output date of commit, message, and show it as a graph
   --relative-date  - shows '2 weeks ago' instead of real dates
   --since=N.range  - commits since i.e. 2.weeks ago (from 2 weeks till now)
       .week[s]; .year[s]; .day[s]; .minute[s] - w/o 's' works the same
   --after=N.range  - same as 'since' but vice versa
+  --author-date-order - sort BY DATE
   --author <user.name> - show only commits of an author name
   --comitter <user.name> - filter by committer name
   --grep  - grep from commit messages

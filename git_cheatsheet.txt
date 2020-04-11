@@ -67,6 +67,10 @@ three way merge :
 
 config:
   configure git account - addresses, user name, email etc.
+   --system  - /etc/gitconfig  for all users
+   --global  - ~/.gitconfig    for current user
+   --local   - .git/config     for current project, default
+   --file <file>
   NOTE:
    Git does NOT validate fied names, so CHECK NAMES for PROPERTIES
    misprints in names would not be validated.
@@ -569,6 +573,8 @@ show:
 
 tag:
   creates tag or lists existing tags.
+   Example:
+   git tag -a <tag_name> -m 'comment_here' [hash, if not latest commit]
   tags are not Pushed automatically
   -l/--list  - lists existing tags - reqiored when passing wildcarded mask
   git show <tag_name> - will show detailed info about tag and commit
@@ -597,6 +603,10 @@ tag:
       creates new annotated tag for latest commit
      git tag -a <tagname> <commit_hash>
       creates new annotated tag for an older commit
+   -s  - sign tag with current user key
+     Example:
+     see 'gpg' here
+   -u <key id>  - sign tag with specific key
    -n[N]  - prints N lines of tag message
    --contains <commit> - list tags that contains the commit (hash)
     Example:
@@ -785,3 +795,72 @@ rebase:
      ignores F and G - related to all be in same branch?
   --continue
      go on with rebase, after conflicts resolved (edit and 'add' to staging) 
+
+rerere:
+  REuse REcorded REsolution
+  When rerere is enabled, Git will keep a set of pre- and post-images from 
+  successful merges, and if it notices that there’s a conflict that looks 
+  exactly like one you’ve already fixed, it’ll just use the fix from last time
+   Config:
+  rerere.enabled  - turn on in config
+    Example:
+   git config [--global] rerere.enabled true
+  
+  Creates database of all resolved conflicts. 
+   git rerere   - will go through the db of conflicts and resolve current
+                  if same resolve found in DB. Default if enabled in config
+   Could preview what would be resolved
+   Could remove specific conflict resolutions
+   Could clear whole db of resolutions
+
+hash-object:
+gpg:
+  tool for signing and encryption
+  It could store list of keys. 
+  Keys could sign Tags.
+  Public key could be saved as a Blob into repository.
+   Example:
+  $ gpg --list-keys
+  > pub 1024D/F721C45A 2009-02-09 [expires: 2010-02-09]
+  $ gpg -a --export F721C45A | git hash-object -w --stdin
+  > 659ef797d181633c87ec71ac3f9ba29fe5775b92
+    will show and pipe public key into git DB as a blob object returning hash
+  $ git tag -a maintainer-pgp-pub 659ef797d181633c87ec71ac3f9ba29fe5775b92
+  $ git push tags
+    the key is in public repo now
+   To get the key:
+  $ git show maintainer-pgp-pub | gpg --import
+    Include instructions in tag's message (tag -m '<here>') to provide readme
+
+describe:
+  generates human readable name for object
+  latest tag + number of commits since till given hash + g + hash
+  g - means git
+    Example:
+   $ git describe master
+   v1.6.2-rc1-20-g8c5b85c
+    Where:
+   v.1.6.2-rc1 - tag name
+   20 commits before master (hash is passed to describe under-the-hood)
+   g - git
+   8c5b85c  - hash of 'master' branch - the given commit
+  --tags  - to use NOT annotanet tags
+     uses Annotated tags only by default
+
+
+Release
+archive:
+  archives current tree(snapshot) into stream which could be saved into archive
+    tar.gz example:
+  git archive master --prefix='project/' | gzip > `git describe master`.tar.gz
+   sames directory 'project' with all git repo in it into tar.gz
+    zip Example:
+  git archive master --prefix='prjct/' --format=zip > `git describe master`.zip 
+
+
+shortlog:
+  generates short log of commit messages since given commit for given branch
+   Example:
+  git shortlog --no-merges master --not v1.0.1
+   will show list of commit messages (except merges) for 'master' branch
+   since 'v1.0.1' tag. Grouped by user.

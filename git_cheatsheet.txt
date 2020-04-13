@@ -375,6 +375,15 @@ diff:
    diffs between ALL files in Staging area to Last Commit  
   git diff --staged file_name  
    diffs Staging\Last Commit for 'file_name'  
+  
+  --word-diff - shows diff by words
+    I.e. when 1 char changed show only this char, and not whole line
+     Example:
+    {+--word-diff+}
+    Compare branches {+tt+} using [-three-]{+3+} dots ... :
+     Where:
+    {+<added word>+} with color enabled - green
+    [-<removed word-]  - red
 
   Compare branches using three dots ... :
    Example:

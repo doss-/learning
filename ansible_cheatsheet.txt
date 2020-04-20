@@ -819,3 +819,87 @@ Lists:
   foo.one       - should work too
 
 
+role:
+  Run only once(as MSBuild)
+   To make roles run more than once, there are two options:
+   * Pass different parameters in each role definition.(see 'vars:' below)
+   * Add allow_duplicates: true to the meta/main.yml file for the role.
+      Example:
+        # roles/foo/meta/main.yml
+        ---
+        allow_duplicates: true
+  Structure:
+   site.yml
+   webservers.yml
+   fooservers.yml
+   roles/
+       common/
+           tasks/
+           handlers/
+           files/
+           templates/
+           vars/
+           defaults/
+           meta/
+       webservers/
+           tasks/
+           defaults/
+           meta/
+  When in use, each directory must contain a main.yml file, which contains 
+  the relevant content:
+    tasks - contains the main list of tasks to be executed by the role.
+    handlers - contains handlers, which may be used by this role or even anywhere outside this role.
+    defaults - default variables for the role (see Using Variables for more information).
+    vars - other variables for the role (see Using Variables for more information).
+    files - contains files which can be deployed via this role.
+    templates - contains templates which can be deployed via this role.
+    meta - defines some meta data for this role. See below for more details.
+
+  Static 
+    Classic:
+     playbook.yml
+     - hosts: webservers
+       roles:
+         # standard classic syntax
+         - webserver_install
+         - common_install
+         # also syntax like this possible
+         - role: '/path/to/my/roles/common'
+           # NOTE: Pre\Post tasks should be tagged. Readthedocs
+           tags:
+             - bar
+             - baz
+         # and like this
+         - role: foo_app_instance
+           vars:
+             dir: '/opt/a'
+             app_port: 5000
+    Version 2.4+:
+     playbook.yml
+      - hosts: webservers
+        tasks:
+         - import_role:
+             name: example
+           tags:
+             - bar
+             - baz
+
+  Dynamic
+    Version 2.4+:
+     playbook.yml
+      - hosts: webservers
+        tasks:
+         - include_role:
+              name: example
+           when: "ansible_facts['os_family']|lower == 'redhat'"
+         # also another way
+         - include_role:
+             name: foo_app_instance
+           vars:
+             dir: '/opt/a'
+             app_port: 500
+           # USE TAGS WITH CARE
+           tags:
+             - foo
+
+      

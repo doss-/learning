@@ -97,6 +97,8 @@ config:
    Example:
   git config --global credential.helper cache
    will use login\pass cached for few minutes, to not ask user everytime
+  remote.pushDefault origin
+   default push repository, set as origin
 
    Email setup: for
   format-patch:
@@ -176,7 +178,7 @@ pull:
   fetches and merges from remote repo the given branch
   if there is Remote Repo(origin by default) and Remote Branch(origin/master
    Can pull from URL, as a one-time pull - not saved as a remote
-   git pull https://github.com/onetimeguy/project
+   git pull https://github.com/onetimeguy/project [branch]
   by default) 
    Example:
   git pull origin master
@@ -204,6 +206,7 @@ push:
   if HTTPS is used, git will ask for credentials, see credential.helper 
    git push [remote] [branch|tagname]
   if Cloned, default remote is 'origin', default branch is 'master'
+  git config remote.pushDefault origin - set default remote as origin
    Example: 
   git push origin My-New-Branch
    pushes local Ny-New-Branch to the remote with write access
@@ -538,7 +541,12 @@ remote:
    Example:
   git remote add teamone git://git.team1.ourcompany.com
   git fetch teamone
-   this will download all objects & pointers from 'teamone' to be seen locally
+    this will download all objects & pointers from 'teamone' to be seen locally
+   Example:
+    when pull from remote1 and push to remote2 (if fork)
+   $ git remote add progit https://github.com/progit/progit2.git
+   $ git branch --set-upstream-to=progit/master master
+   $ git config --local remote.pushDefault origin 
  rename:
    Sinopsys:
   <git remote> rename <remote_old_name> <remote_new_name>
@@ -573,6 +581,38 @@ remote:
    Example:
   git remote prune --dry-run origin
    tests what to locally prune for origin remote
+
+ls-remote:
+  shows all refspecs in remote, not only refs/heads, which are cloned\fetched
+  also shows refs/pull - where pointers to HEAD of REMOTE branch is stored
+
+To get Pull Request as a Branch:
+  git ls-remote origin
+   cbc221e7de88fa4c796ff11c760e0fb83e78f9bc	refs/pull/1/head
+   HEAD's commit hash 				path to HEAD file on REMOTE
+						1 is PullRequest #1
+  To fetch all refs required to construct WorkTree:
+   git fetch origin refs/pull/1/head
+    Will download everything required (all commits and other objects)
+     Commit Hash of latest commit in PR (its HEAD) will be in REFS_HEAD
+   git merge REFS_HEAD
+     will merge Pull Request in current branch
+  Add ALL pull requests from remote to be downloaded on 'git fetch'
+  in .git/config:
+  git config -e
+  [remote "origin"]
+        url = git@github.com:doss-/learning.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+   #add:
+        fetch = +refs/pull/*:refs/remotes/origin/pr/*
+                origin	      local location
+                location
+       Pull Request Refs are 
+       readonly
+       updated on every Fetch
+   Now possible to Checkout the Pull Request HEAD:
+   git checkout pr/1/head
+    
 
 show:
   shows detailed info about Commit or Tag

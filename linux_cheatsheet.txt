@@ -2637,8 +2637,9 @@ apt-file:
    line above:
     deb http... xenial ... multiverse
 
-add-apr-repository:
-  Newer versions of Ubuntu support 'add-apr-repository'
+add-apt-repository:
+apt-add-repository:
+  Newer versions of Ubuntu support 'add-apt-repository'
    standard repositories could be added w/o specifing address, just repo name: 
     Example:
    sudo apt-add-repository universe
@@ -2690,10 +2691,19 @@ https://askubuntu.com/questions/148638/how-do-i-enable-the-universe-repository
 	   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
 	   $(lsb_release -cs) \ - returns distro name
 	   stable" - list of repos, test, edge could be added for docker
-
+  PPA: launchpad.net:
+        Ubuntu in default repos has only stable versions of packages that was 
+        on moment of release. Later on only security updates.
+        launchad.net has lots of repos(Personal Package Archives - PPA)
+        add PPA repo to for latest versions:
+      Ansible:
+     $ sudo apt update
+     $ sudo apt install software-properties-common
+     $ sudo apt-add-repository --yes --update ppa:ansible/ansible
+     $ sudo apt install ansible
 	Another example:
-	sudo add-apt-repository ppa:jonathonf/python-3.7
-	sudo apt-get update
+     $ sudo add-apt-repository ppa:jonathonf/python-3.7
+     $ sudo apt-get update
 	
    
 
@@ -2885,6 +2895,7 @@ yum-utils:
 
 ! Linux treats everything - device\file\directory as if it is a FILE
 
+Discertionary Access Control (DAC)(used after Mandatory Access Control MAC from LSM):
 drwxrwxrwx:
 d - type of file(file\device\dir\link)
  r - read
@@ -3647,7 +3658,82 @@ nslookup:
 
 
 ==Security
-SELinux:
+LSM: linux security module:
+https://www.kernel.org/doc/html/latest/admin-guide/LSM/index.html
+
+Primary user of LSM is Mandatory Access Control(MAC) extensions
+
+LSM loads a bit earlier than UserSpace, and controls user
+iteraction with system through policies.
+LSMs exist to apply policies to actions taken by user space, so 
+as long as the LSM infrastructure is running by the time user 
+space starts, everything is fine.
+Lockdown, though, must act earlier: it needs to be able to 
+block the action of certain types of command-line parameters and 
+must be functional even before a security policy can be loaded. 
+So the patch set starts by creating a new type of "early security 
+module" that is initialized toward the beginning of the boot process. 
+At this point, the module can't do much — even basic amenities like 
+kmalloc() are not available — but it's enough to register its 
+hooks and take control.
+
+
+
+ Loaded modules - MAC Extensions:
+ cat /sys/kernel/security/lsm
+    <Ordered list of loaded modules>
+   capability - loaded always
+   then 'minor' modules
+    yama
+   last 'major' module, ONE:
+    SELinux - OEL(RHEL?) OEL extension , might be custom
+    AppArmor - Ubuntu(Debian?) MAC Extension default
+     https://www.kernel.org/doc/html/latest/admin-guide/LSM/apparmor.html
+    Smack
+    Tomoyo
+  Process attributes for MAJOR module location:
+   /proc/.../attr
+    Subfolder with Module Name could be there
+    This is LEGACY for modules that provide subdirectories
+
+AppArmor: apparmor:
+centered around Tasks and Profiles for tasks
+Profiles are attached to Tasks
+Tasks w/o profile controlled only be regular permissions wrx (DAC)
+
+If AppArmor is not the default security module it can be enabled by passing 
+security=apparmor on the kernel’s command line.
+If AppArmor is the default security module it can be disabled by passing 
+apparmor=0, security=XXXX (where XXXX is valid security module), on the 
+kernel’s command line.
+For AppArmor to enforce any restrictions beyond standard Linux DAC 
+permissions policy must be loaded into the kernel from user space 
+(see the Documentation and tools links).
+
+  Enable\disable:
+  set CONFIG_SECURITY_APPARMOR=y
+
+
+  Set default:
+  CONFIG_DEFAULT_SECURITY="apparmor"
+  CONFIG_SECURITY_APPARMOR_BOOTPARAM_VALUE=1
+
+Wiki - http://wiki.apparmor.net
+User space tools - https://gitlab.com/apparmor
+
+Lockdown:
+  https://lwn.net/Articles/791863/
+   Together with UEFI locks who can access kernel
+   only Private Key owner with pair in UEFI
+   or certificate?
+
+  Lockdown is loaded much earlier than LSM and User Space, to prevent
+tricky cmd params from doing anything
+  Lockdown adds hooks at early-boot, throughh which operates 
+
+There are two lockdown modes. Confidentiality mode prevents user-land processes from extracting confidential information from the kernel. The other mode, Integrity, allows the kernel to switch off features that would allow user-land processes to modify the running kernel. Both of these modes even prevent processes launched by the root user or anyone with sudo privileges from modifying the kernel.
+
+SELinux: selinux:
 
 Statuses:
 1. Enforced : Actions contrary to the policy are blocked and a corresponding event is logged in the audit log.

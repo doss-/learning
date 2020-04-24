@@ -583,6 +583,7 @@ remote:
    tests what to locally prune for origin remote
 
 ls-remote:
+  refspec:
   shows all refspecs in remote, not only refs/heads, which are cloned\fetched
   also shows refs/pull - where pointers to HEAD of REMOTE branch is stored
 
@@ -612,6 +613,11 @@ To get Pull Request as a Branch:
        updated on every Fetch
    Now possible to Checkout the Pull Request HEAD:
    git checkout pr/1/head
+
+   heads/pull/#/merge
+    refspec to merge coummit.
+     This would be in GitHub even if Merge is not yet done
+     It could be used as a preview of WHAT WOULD BE 
     
 
 show:
@@ -913,3 +919,52 @@ shortlog:
   git shortlog --no-merges master --not v1.0.1
    will show list of commit messages (except merges) for 'master' branch
    since 'v1.0.1' tag. Grouped by user.
+
+GitHub:
+ https://developer.github.com
+  Hooks:
+    Push notification via HTTP POST request about what happening on repo
+    Triggered at Events, lots of them. Push event - on 'git push' into repo
+    Could have JSON or other Payload
+    Developer console for debug in Hook declaration space(page)
+  Services:
+    Push notification via Email or lots of other integrations (CI, tracker etc)
+  API:
+    Incoming notifications and Manipulations TO github
+    Has lots of different API ENDPOINTS(methods)
+     i've added it to only remember correct name of a call - Endpoint
+   Example:
+    curl https://api.github.com/users/doss-
+     will return info about 'doss-' user in JSON format
+     and other API Endpoints to related to profile
+    Authenticated user could do 5000 requests per hour
+    Guest user could do 60 requests per hour(once a minute kind of)
+   Comment on an issue:
+    Endpoint address:
+     repos/<user>/<repo>/issues/<num>/comments
+    Example: with tokenized Auth
+     curl -H "Content-Type: application/json" \
+        -H "Authorization: token TOKEN" \
+        --data '{"body":"A new comment, :+1:"}' \
+        https://api.github.com/repos/schacon/blink/issues/6/comments
+    Example: change commit status in WebHook Handler using API:
+     detailed: see gitbook 
+      https://git-scm.com/book/en/v2/GitHub-Scripting-GitHub
+     Ruby:
+      push = JSON.parse(request.body.read) # parse the JSON
+      repo_name = push['repository']['full_name']
+        ...
+      push["commits"].each do |commit|
+          ...
+        sha = commit["id"]
+      status_url = "https://api.github.com/repos/#{repo_name}/statuses/#{sha}"
+        ...
+      HTTParty.post(status_url,
+        :body => status.to_json,
+        :headers => {
+          'Content-Type'  => 'application/json',
+          'User-Agent'    => 'tonychacon/signoff',
+          'Authorization' => "token #{ENV['TOKEN']}" } 
+      }
+
+

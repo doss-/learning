@@ -800,6 +800,7 @@ ifconfig:
   displays current network interfaces
   part of the 'net-tools' package
    /etc/network/interfaces - for interfaces(5) changes
+  -a - will display MAC also
 
 lshw:
   list hardware, displays all the hardware detected by kernel and its state
@@ -1039,6 +1040,18 @@ rm:
    -f - force
    -i - interactive - will ask before do
    -v - verbose
+  To rm link:
+   rm link_name   -- just as regular file, source of link is not affected
+
+unlink:
+  delete symlink
+   Example:
+  unlink symlink_name
+
+  Find broken link:
+   find /path/to/dir -xtype l
+  Delete:
+   find /path/to/directory -xtype l -delete
 
 ln:
   create hard link by default
@@ -1396,10 +1409,28 @@ zgrep:
  grep for search in .gz compressed files
 
 lsblk:
-   List Block Devices
+  List Block Devices
   list all devices mounted and not
+   Example:
+  lsblk -po NAME,FSTYPE,SIZE,MOUNTPOINT /dev/sda /dev/sdb
+    show only 'sda' and 'sdb'
    Params:
   -f\--fs - list fylesystems
+  -d\--nodeps  - show only top device(w/o partitions)
+   Example:
+  lsblk -d /dev/sda
+  -o Col1,Col2  - Only columns Col1 and Col2
+  -O   - all columns
+  -p   - full path of Block device
+  -e\--exclude - exclude block device number
+   Example:
+  lsblk -e7,11 -po NAME,FSTYPE,SIZE,MOUNTPOINT
+    excludes Loop(7) and 11th block devices (see /proc/devices)
+   Columns:
+  MAJ:MIN - block device number : number
+   /proc/devices - list of ALL block device numbers
+  
+  
 
 block device types:
  /dev/fd* - floppy drives
@@ -1526,6 +1557,9 @@ mount:
   LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async
   labels or UUID could be taken from 'blkid' command
 
+ntfs-config:
+  Enable/disable write support for any NTFS devices
+
 fdisk:
   manipulates disk partitions tables
    Usage:
@@ -1633,6 +1667,10 @@ ssh:
 
 ssh-keygen:
   generates keypair private\public
+    Example:
+   ssh-keygen -t rsa -b 4096 -C "email" -f my_key
+    Example PUBLIC from Private:
+   ssh-keygen -y -f private_key > private_key.pub
   -t rsa - key type
   -b 4096 - generates key pair into given path
   -C "text" - comment for key
@@ -1641,6 +1679,12 @@ ssh-keygen:
   ssh-keygen -t rsa -b 4096 -C "email" -f my_key
       - will create new keypair, w/o -f it will generate
 	in the path ~/.ssh/id_rsa and its id_rsa.pub part
+  -R - remove from ~/.ssh/known_hosts
+    Example:
+   There are only 1 RSA key is allowed for the IP, in case RSA key is changed, then 
+   old one need to be removed, otherwise it will not allow ssh acces:
+    ssh-keygen -f "/home/dos/.ssh/known_hosts" -R 172.17.0.2
+
   -l - list, not create anything.
   -E - Specifies the hash algorithm used when displaying key fingerprints.  
        Valid options are: “md5” and “sha256”.
@@ -1666,9 +1710,6 @@ ssh-copy-id:
 
 ssh-keygen:
   Known hosts are stored in a file /home/<username>/.ssh/knonwn_hosts.
-   There are only 1 RSA key is allowed for the IP, in case RSA key is changed, then 
-  old one need to be removed, otherwise it will not allow ssh acces:
-   ssh-keygen -f "/home/dos/.ssh/known_hosts" -R 172.17.0.2
     Generate public key from private key:
   ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
   

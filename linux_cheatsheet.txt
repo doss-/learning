@@ -716,6 +716,14 @@ Troubleshooting:
  instead clean the file:
    sudo cat /dev/null > /var/log/syslog
 
+wifi adapter search for errors:
+  uname -rv
+  lspci -knn | grep -EiA2 net
+  dmesg|grep -Ei 'wlan|firmw|dhc'
+  sudo cat /var/log/syslog | grep -Ei 'net|wpa|dhc'
+  sudo rfkill list
+  https://www.linuxquestions.org/questions/linux-newbie-8/asus-pce-ac51-wlan-adapter-driver-doesn%27t-install-properly-4175619526/
+
 Network troubleshooting:
   nmcli device 		# display all devices 
    or: nmcli device show eth0 - will show info about the interface(eth0) including dns, gateway, address, mac etc.
@@ -796,6 +804,92 @@ lshw:
 
 lspci:
   list pci devices - network , audio, usb controllers
+   Example:
+  lspci -knn | grep -EiA2 net
+   search for network controllers, and this is drivers used by them:
+    Kernel driver in use: rtl8821ae
+    Kernel modules: rtl8821ae
+
+uname:
+  system and kernel information
+   -r   - kernel info
+   -v   - Distro info
+   Example:
+  uname -rv
+
+Boot and Startup:
+  Boot when loads:
+  * BIOS\UEFI
+  * MBR
+  * GRUB
+  * kernel is loaded into initial ramdisk(initrd or initramfs)
+  * systemd started
+  Startup:
+  * syslogd or rsyslogd is not running yet
+  * all logs go into `ring buffer`
+  * to read `ring buffer` use `dmesg`
+
+
+dmesg:
+  https://www.howtogeek.com/449335/how-to-use-the-dmesg-command-on-linux/
+  reads logs from Kernel Ring buffer 
+   kernel ring - place where logs stored during boot and OS loading
+    BIOS\UEFI, MBR, GRUB
+   During system run also stores all events like new hardware etc.
+  Example:
+   dmesg | grep -Ei 'wlan|firmw|dhc'
+    check drivers loading for wifi adapter
+  sudo remove:
+   sudo sysctl -w kernel.dmesg_restrict=0
+    ANY USER will be able to use `dmesg` now
+  -L   - color output
+  --color=always  - always use color (pipe redirection mb?
+  -H   - human timestamps + `less` is used for output
+         seconds are labeled with date
+    Example:
+   dmesg -H
+    [Apr 5 00:41] [UFW BLOCK] IN=wlp2s0 OUT= MAC=01:00
+    [  +9.499881] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+    [  +2.499111] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+    [  +0.126267] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+    [  +1.818683] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+    [  +2.920082] [UFW BLOCK] IN=wlp2s0 OUT= MAC=a8:5e
+  -T   - human readable timestamps:
+    Example:
+   dmesg -T
+    [Sun Apr  5 00:45:25 2020] [UFW BLOCK] IN=wlp2s0 OUT=
+    [Sun Apr  5 00:45:29 2020] [UFW BLOCK] IN=wlp2s0 OUT= 
+    [Sun Apr  5 00:47:30 2020] [UFW BLOCK] IN=wlp2s0 OUT= 
+  --follow  - like `tail -f`
+  -l <lvl>   -  Log levels
+    emerg: System is unusable.
+    alert: Action must be taken immediately.
+    crit: Critical conditions.
+    err: Error conditions.
+    warn: Warning conditions.
+    notice: Normal but significant condition.
+    info: Informational.
+    debug: Debug-level messages.
+
+    Example:
+   sudo dmesg -l debug,notice
+
+  -f <facility>  - Facility categories
+    kern: Kernel messages.
+    user: User-level messages.
+    mail: Mail system.
+    daemon: System daemons.
+    auth: Security/authorization messages.
+    syslog: Internal syslogd messages.
+    lpr: Line printer subsystem.
+    news: Network news subsystem.
+
+    Example:
+   dmesg -f syslog,daemon
+
+  -x  - decode. show the facility and level as human-readable prefixes 
+   to each line.
+
 
 sed:
   text stream editor, using RegEx for search\edit in stream(STDIN) line by line,
@@ -978,6 +1072,13 @@ type:
   >apt is /usr/bin/apt
 
 
+curl: vs wget:
+  If I wanted to download content from a website and have the tree-structure 
+  of the website searched recursively for that content, I’d use wget.
+
+  If I wanted to interact with a remote server or API, and possibly download 
+  some files or web pages, I’d use curl. Especially if the protocol was one 
+  of the many not supported by wget.
 
 
 wget:
@@ -989,11 +1090,49 @@ wget:
   wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb - will download .deb file in current directory w/o any output
 
 curl:
-  web requests issuer - HTTP[S] requests.
+  web requests issuer - HTTP[S] requests( see --version protocol list).
+   CAREFUL: binary download to stdout in terminal could exploit injections
+   https://www.howtogeek.com/447033/how-to-use-curl-to-download-files-from-the-linux-command-line/
   Or could download web pages and files and stuff
    -o - output, redirects output to a file, usefull when downloading files
     sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest
      will download ecs-cli binary file from amazon storage into /usr/... path
+    > - will also workd:
+      Example:
+     curl https://www.bbc.com  > bbc.html
+     When redirected, `curl` detects it and display download bar, columns:
+     % Total: The total amount to be retrieved.
+     % Received: The percentage and actual values of the data retrieved so far.
+     % Xferd: The percent and actual sent, if data is being uploaded.
+     Average Speed Dload: The average download speed.
+     Average Speed Upload: The average upload speed.
+     Time Total: The estimated total duration of the transfer.
+     Time Spent: The elapsed time so far for this transfer.
+     Time Left: The estimated time left for the transfer to complete
+     Current Speed: The current transfer speed for this transfer.
+
+   -#  - display progress bar instead of full statistics
+
+   -C    - continue from offset
+      -  - continue from last downloaded offset: simply continue download
+     Example:
+     curl -C - --output file.name http://example.com/some_partially_dwnld.file
+      Note line:
+    `** Resuming transfer from byte position 168435712`
+
+   -I - Headers!
+     Example:
+    curl -I https://www.bbc.com
+
+    download list of files:
+    * save list urls into file; new line delimited
+    * use xargs to read a file; each line as an argument
+    * pass to curl:
+     xargs -n 1 curl -O < urls-to-download.txt
+      -n 1  - treat each line in file as a separate parameter
+
+  -O - save file with same name from remote server
+
    -s - silent, no progress or error output. BUT still displays url contents
     echo "$(curl -s https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest.md5) /usr/local/bin/ecs-cli" | md5sum -c -
      will curl display md5 from amazon storage, w/o any other output, then
@@ -1005,10 +1144,11 @@ curl:
     crumb=$(curl -u "builder:1234" -s 'http://jenkins.local:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)')
     curl -u "builder:1234" -H "$crumb" -X POST http://jenkins.local:8080/job/ENV/build?delay=0sec
   -H - header of a request(contains Token)
-  -u - "user:password"
+  -u - "user:password"; Works with FTP too
   -X - Request type (GET or POST, PUT, DELETE etc) 
    default: GET
   
+
 
 du:
   disk usage
@@ -1157,6 +1297,20 @@ rsync:
     path /backup
    Example:
   rsync -aAHvh bitbucket-home.tar.gz root@o-pe-bitbucket.twlab.int:/opt/atlassian/bitbucket/
+
+ar:
+  archive?
+   seems like can unarchive deb packages(other may be too?)
+  Example:
+  https://dev.to/jake/using-libcurl3-and-libcurl4-on-ubuntu-1804-bionic-184g
+   Download libcurl3 package, extract into tar, untar it, copy following
+   symlink in source(inside untarred dir) into usr/lib:
+  $ mkdir ~/libcurl3 && cd ~/libcurl3
+  $ apt-get download -o=dir::cache=~/libcurl3 libcurl3
+  $ ar x libcurl3* data.tar.xz
+  $ tar xf data.tar.xz
+  $ cp -L ~/libcurl3/usr/lib/x86_64-linux-gnu/libcurl.so.4 /usr/lib/libcurl.so.3
+  $ cd && rm -rf ~/libcurl3
 
 tar:
   tape archive - collects all files in archive, with savin all permissions
@@ -2498,8 +2652,9 @@ apt-file:
    line above:
     deb http... xenial ... multiverse
 
-add-apr-repository:
-  Newer versions of Ubuntu support 'add-apr-repository'
+add-apt-repository:
+apt-add-repository:
+  Newer versions of Ubuntu support 'add-apt-repository'
    standard repositories could be added w/o specifing address, just repo name: 
     Example:
    sudo apt-add-repository universe
@@ -2551,10 +2706,19 @@ https://askubuntu.com/questions/148638/how-do-i-enable-the-universe-repository
 	   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
 	   $(lsb_release -cs) \ - returns distro name
 	   stable" - list of repos, test, edge could be added for docker
-
+  PPA: launchpad.net:
+        Ubuntu in default repos has only stable versions of packages that was 
+        on moment of release. Later on only security updates.
+        launchad.net has lots of repos(Personal Package Archives - PPA)
+        add PPA repo to for latest versions:
+      Ansible:
+     $ sudo apt update
+     $ sudo apt install software-properties-common
+     $ sudo apt-add-repository --yes --update ppa:ansible/ansible
+     $ sudo apt install ansible
 	Another example:
-	sudo add-apt-repository ppa:jonathonf/python-3.7
-	sudo apt-get update
+     $ sudo add-apt-repository ppa:jonathonf/python-3.7
+     $ sudo apt-get update
 	
    
 
@@ -2748,6 +2912,7 @@ yum-utils:
 
 ! Linux treats everything - device\file\directory as if it is a FILE
 
+Discertionary Access Control (DAC)(used after Mandatory Access Control MAC from LSM):
 drwxrwxrwx:
 d - type of file(file\device\dir\link)
  r - read
@@ -3516,7 +3681,82 @@ nslookup:
 
 
 ==Security
-SELinux:
+LSM: linux security module:
+https://www.kernel.org/doc/html/latest/admin-guide/LSM/index.html
+
+Primary user of LSM is Mandatory Access Control(MAC) extensions
+
+LSM loads a bit earlier than UserSpace, and controls user
+iteraction with system through policies.
+LSMs exist to apply policies to actions taken by user space, so 
+as long as the LSM infrastructure is running by the time user 
+space starts, everything is fine.
+Lockdown, though, must act earlier: it needs to be able to 
+block the action of certain types of command-line parameters and 
+must be functional even before a security policy can be loaded. 
+So the patch set starts by creating a new type of "early security 
+module" that is initialized toward the beginning of the boot process. 
+At this point, the module can't do much — even basic amenities like 
+kmalloc() are not available — but it's enough to register its 
+hooks and take control.
+
+
+
+ Loaded modules - MAC Extensions:
+ cat /sys/kernel/security/lsm
+    <Ordered list of loaded modules>
+   capability - loaded always
+   then 'minor' modules
+    yama
+   last 'major' module, ONE:
+    SELinux - OEL(RHEL?) OEL extension , might be custom
+    AppArmor - Ubuntu(Debian?) MAC Extension default
+     https://www.kernel.org/doc/html/latest/admin-guide/LSM/apparmor.html
+    Smack
+    Tomoyo
+  Process attributes for MAJOR module location:
+   /proc/.../attr
+    Subfolder with Module Name could be there
+    This is LEGACY for modules that provide subdirectories
+
+AppArmor: apparmor:
+centered around Tasks and Profiles for tasks
+Profiles are attached to Tasks
+Tasks w/o profile controlled only be regular permissions wrx (DAC)
+
+If AppArmor is not the default security module it can be enabled by passing 
+security=apparmor on the kernel’s command line.
+If AppArmor is the default security module it can be disabled by passing 
+apparmor=0, security=XXXX (where XXXX is valid security module), on the 
+kernel’s command line.
+For AppArmor to enforce any restrictions beyond standard Linux DAC 
+permissions policy must be loaded into the kernel from user space 
+(see the Documentation and tools links).
+
+  Enable\disable:
+  set CONFIG_SECURITY_APPARMOR=y
+
+
+  Set default:
+  CONFIG_DEFAULT_SECURITY="apparmor"
+  CONFIG_SECURITY_APPARMOR_BOOTPARAM_VALUE=1
+
+Wiki - http://wiki.apparmor.net
+User space tools - https://gitlab.com/apparmor
+
+Lockdown:
+  https://lwn.net/Articles/791863/
+   Together with UEFI locks who can access kernel
+   only Private Key owner with pair in UEFI
+   or certificate?
+
+  Lockdown is loaded much earlier than LSM and User Space, to prevent
+tricky cmd params from doing anything
+  Lockdown adds hooks at early-boot, throughh which operates 
+
+There are two lockdown modes. Confidentiality mode prevents user-land processes from extracting confidential information from the kernel. The other mode, Integrity, allows the kernel to switch off features that would allow user-land processes to modify the running kernel. Both of these modes even prevent processes launched by the root user or anyone with sudo privileges from modifying the kernel.
+
+SELinux: selinux:
 
 Statuses:
 1. Enforced : Actions contrary to the policy are blocked and a corresponding event is logged in the audit log.

@@ -67,6 +67,10 @@ three way merge :
 
 config:
   configure git account - addresses, user name, email etc.
+   --system  - /etc/gitconfig  for all users
+   --global  - ~/.gitconfig    for current user
+   --local   - .git/config     for current project, default
+   --file <file>
   NOTE:
    Git does NOT validate fied names, so CHECK NAMES for PROPERTIES
    misprints in names would not be validated.
@@ -93,6 +97,8 @@ config:
    Example:
   git config --global credential.helper cache
    will use login\pass cached for few minutes, to not ask user everytime
+  remote.pushDefault origin
+   default push repository, set as origin
 
    Email setup: for
   format-patch:
@@ -171,6 +177,8 @@ fetch:
 pull:
   fetches and merges from remote repo the given branch
   if there is Remote Repo(origin by default) and Remote Branch(origin/master
+   Can pull from URL, as a one-time pull - not saved as a remote
+   git pull https://github.com/onetimeguy/project [branch]
   by default) 
    Example:
   git pull origin master
@@ -198,6 +206,7 @@ push:
   if HTTPS is used, git will ask for credentials, see credential.helper 
    git push [remote] [branch|tagname]
   if Cloned, default remote is 'origin', default branch is 'master'
+  git config remote.pushDefault origin - set default remote as origin
    Example: 
   git push origin My-New-Branch
    pushes local Ny-New-Branch to the remote with write access
@@ -230,6 +239,9 @@ add:
   - begin tracking of new files
   - stage changes in tracked files
   - mark merge-conflicted files as resolved
+ Params:
+ - i/interactive  - interactive mode
+                    HELL of a mode
 
  Example:
   git add .
@@ -369,6 +381,29 @@ diff:
    diffs between ALL files in Staging area to Last Commit  
   git diff --staged file_name  
    diffs Staging\Last Commit for 'file_name'  
+  
+  --word-diff - shows diff by words
+    I.e. when 1 char changed show only this char, and not whole line
+     Example:
+    {+--word-diff+}
+    Compare branches {+tt+} using [-three-]{+3+} dots ... :
+     Where:
+    {+<added word>+} with color enabled - green
+    [-<removed word-]  - red
+
+  Compare branches using three dots ... :
+   Example:
+  git diff master...topic-branch
+   show difference between topic branch and master 
+    in fact with Last commit of topic-branch and first common anscestor
+    anscestor is found by `git merge-base topic-branch master`
+   Would display same as <branch>...<branch2>
+    git checkout topic-branch
+    git diff $(git merge-base topic-branch master)
+   WOuld display WEIRD stuff:
+    git checkout topic-branch
+    git diff master
+     WILL LOOK LIKE ON MERGE WILL DELETE EVERYTHING UNIQ TO MASTER
 
 difftool:
   same as 'git diff' but executes External diff program
@@ -434,6 +469,9 @@ log:
     good practice is precede with '--' to separate for other params
    Params:
   -p/--patch - shows patch of each commit
+    Example:
+   git log --oneline --patch master..topic
+    patch of commits that are not in master but present in topic branch
   -N  - N - number of commits to show
    Example:
   -S <string>  - show commits only where <string> were changed
@@ -441,6 +479,7 @@ log:
    git log -S 'rm:' --patch
      only commits where 'rm:' were changed and every commit patch
    git log -p -2  - will show last 2 commits with patch added
+  -g [branch]  - shows reflog formatted as git log
   --all - history from all BRANCHES (no detached-head commits shown)
   --no-merges  - do not show merge-commits 
   --stat  - show stats of each commit, including files changed
@@ -458,22 +497,29 @@ log:
        google other formats
       %cd - committer date
   --oneline - shorthand for --pretty=oneline --abbrev-commit
-  --abbrev-commit - shorter commit hashes
+  --abbrev-commit - shorter commit hashes. 
+      7 first chars out of 40 SHA-1 hash
+       until they are unambiguous
+     SHA-1 collision is less
+likely than every member of your programming team being attacked and killed by
+wolves in unrelated incidents on the same night.
+
   --name-only - shows file names for each commit\date\message\auth\email
   --graph  - builds graph of commits, shows branches and merges
           compatible with '--pretty'
     Example:
-   git log --pretty=format:"%cd %s" --graph
+   git log --pretty=format:"%cd %s" --graph --author-date-order
       will output date of commit, message, and show it as a graph
   --relative-date  - shows '2 weeks ago' instead of real dates
-  --since=N.range  - commits since i.e. 2.weeks ago (from 2 weeks till now)
+  --since=N.range  - commits since i.e. 2.weeks.ago (from 2 weeks till now)
       .week[s]; .year[s]; .day[s]; .minute[s] - w/o 's' works the same
   --after=N.range  - same as 'since' but vice versa
+  --author-date-order - sort BY DATE
   --author <user.name> - show only commits of an author name
   --comitter <user.name> - filter by committer name
   --grep  - grep from commit messages
-   Example:
-  git log --oneline --author doss- --grep shotts
+    Example:
+   git log --oneline --author doss- --grep shotts
     show oneline output of commits authored 'doss-' or having 'shotts' in
     the commit message (-m) 
   --all-match - by default --author and --grep will match on OR basis
@@ -482,13 +528,35 @@ log:
    Example:
   git log --author doss- --grep shotts
     will return only commits by 'doss-' AND having 'shotts' in message
-   Diff in commits between barnches:
-   Example:
-  git log --no-merges issue54..origin/master
-   The issue54..origin/master syntax is a log filter that asks Git to 
-   display only those commits that are on the latter branch (in this case 
-   origin/master) that are not on the first branch (in this case issue54).
-    Shows difference from issue54 to origin/master
+
+ Diff in commits between barnches:
+  trunk..branch  - first is trunk, second is trunk with only divergent changes
+                   only divergent commits are shown
+                   from Branch that are not in whole Trunk
+                     commits in Branch starting first common anscestor:
+            b - first common anscestor
+         a--b--e--f  master is Trunk
+             \       :
+              c--d   feature is Branch
+        master..feature - [D, C] 
+        feature..master - [F, E] - feature is 'trunk' now and master is 'branch'
+     Example:
+    git log origin/master..HEAD
+      origin/master is trunk and local HEAD is a divergent branch
+   branch1...branch2  - both are branches, shows only commits in those branches
+                        common changes from trunk are not shown
+            b - first common anscestor
+         a--b--e--f  master is Branch1
+            |        .
+             \       :
+              c--d   feature is Branch2
+         master...feature [F, E, D, C]
+    --left-right
+     Example from above:
+    < F
+    < E
+    > D
+    > C
 
 remote:
   lists remote handles of the current repo
@@ -501,7 +569,12 @@ remote:
    Example:
   git remote add teamone git://git.team1.ourcompany.com
   git fetch teamone
-   this will download all objects & pointers from 'teamone' to be seen locally
+    this will download all objects & pointers from 'teamone' to be seen locally
+   Example:
+    when pull from remote1 and push to remote2 (if fork)
+   $ git remote add progit https://github.com/progit/progit2.git
+   $ git branch --set-upstream-to=progit/master master
+   $ git config --local remote.pushDefault origin 
  rename:
    Sinopsys:
   <git remote> rename <remote_old_name> <remote_new_name>
@@ -537,14 +610,89 @@ remote:
   git remote prune --dry-run origin
    tests what to locally prune for origin remote
 
+ls-remote:
+  refspec:
+  shows all refspecs in remote, not only refs/heads, which are cloned\fetched
+  also shows refs/pull - where pointers to HEAD of REMOTE branch is stored
+
+To get Pull Request as a Branch:
+  git ls-remote origin
+   cbc221e7de88fa4c796ff11c760e0fb83e78f9bc	refs/pull/1/head
+   HEAD's commit hash 				path to HEAD file on REMOTE
+						1 is PullRequest #1
+  To fetch all refs required to construct WorkTree:
+   git fetch origin refs/pull/1/head
+    Will download everything required (all commits and other objects)
+     Commit Hash of latest commit in PR (its HEAD) will be in REFS_HEAD
+   git merge REFS_HEAD
+     will merge Pull Request in current branch
+  Add ALL pull requests from remote to be downloaded on 'git fetch'
+  in .git/config:
+  git config -e
+  [remote "origin"]
+        url = git@github.com:doss-/learning.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+   #add:
+        fetch = +refs/pull/*:refs/remotes/origin/pr/*
+                origin	      local location
+                location
+       Pull Request Refs are 
+       readonly
+       updated on every Fetch
+   Now possible to Checkout the Pull Request HEAD:
+   git checkout pr/1/head
+
+   heads/pull/#/merge
+    refspec to merge coummit.
+     This would be in GitHub even if Merge is not yet done
+     It could be used as a preview of WHAT WOULD BE 
+    
+
 show:
   shows detailed info about Commit or Tag
    Example:
-  git show b34fh83  - will show info about commit
+  git show ca82a6dff817ec66f44342007202690a93763949
+  git show ca82a6d  - will show info about commit
+  git show master - will show info about latest commit in master
   git show v0.1  - will show info abotu tag(and commit)
+  git show HEAD@{5} - will show 5th HEAD reference in 'refspec'
+  git show master@{yesterday} - will show HEAD of master pointed yesterday
+   				only as long as refspec length is
+  git show HEAD@{2.months.ago} - same as above
+  git show HEAD^  - shows the PARENT of the HEAD commit 
+   Same:
+   git show HEAD~ - shows FIRST PARENT of the HEAD commit
+  git show HEAD^2 - shows the Second Parent of the HEAD
+      Useful for MERGE Commits, where:
+      1st Parent - branch YOU were on when you merged (i.e. master)
+      2nd Parent - branch that was merged (i.e. topic)
+  git show HEAD~3 - show 1st parent of 1st parent of 1st parent GRANDPARENT
+   Same:
+   git show HEAD~~~ - 3 times calls First Parent of a HEAD commit
+  git show HEAD~3^2 - show SECOND Parent of Grandparent of HEAD commit
+  
+rev-parse:
+  converts object to SHA-1 hash
+   Example:
+  dmitry@E203MA:~/learning$ git rev-parse master
+  f829f16b706afa1eb29c78e34ca6e99f4cbfbc4d
+  dmitry@E203MA:~/learning$ git log --oneline -1
+  f829f16 (HEAD -> master, origin/master, origin/HEAD) git_book: part6: refspecs; WebHooks, Services, API :3h
+
+reflog:
+  shows history of local HEAD and Branch changes, any changes
+  Where local files have pointed for last few months
+   Example:
+  d7c0e86 HEAD@{3}: commit: git_book: part6: remotes; refspecs :3h
+  00180ab HEAD@{4}: commit: PPA repos; LSM, apparmor
+  8a39ae0 HEAD@{5}: commit: ansible roles
+  f01978f HEAD@{6}: commit: git_book: part6: word-diff :1.5h
+  de9e570 HEAD@{7}: commit: git_book: part5: tag; rerere; archive
 
 tag:
   creates tag or lists existing tags.
+   Example:
+   git tag -a <tag_name> -m 'comment_here' [hash, if not latest commit]
   tags are not Pushed automatically
   -l/--list  - lists existing tags - reqiored when passing wildcarded mask
   git show <tag_name> - will show detailed info about tag and commit
@@ -573,6 +721,10 @@ tag:
       creates new annotated tag for latest commit
      git tag -a <tagname> <commit_hash>
       creates new annotated tag for an older commit
+   -s  - sign tag with current user key
+     Example:
+     see 'gpg' here
+   -u <key id>  - sign tag with specific key
    -n[N]  - prints N lines of tag message
    --contains <commit> - list tags that contains the commit (hash)
     Example:
@@ -670,6 +822,27 @@ branch:
     will set track between current and 'serverfix' branches for parameterless
     pulls
 
+apply:
+  applies patches sent by email
+   also can handle added, deleted and renamed files from patch
+   Could apply patches generated by `diff` command (not git diff)
+   Should be used for legacy patches, other is done by `git am`
+  Applies whole patch or done, not in-betweens.
+   Params:
+  --check - like dry run
+   Example:
+  $ git apply --check 0001-see-if-this-helps-the-gem.patch
+   Return 0 and nothing in stdout if OK
+   Returns 1 and erros in stdout(err?) if not applies cleanly
+
+am:
+  like `git apply` but works with `git format-patch` generated patches
+   Stands for: 'apply a series of patches from a mailbox'
+   originally was reading 'mbox' format fies (concat emails into 1 file)
+    Params:
+  -3 - try 3 way merge (of parent of patch's commit is in local repo)
+  --resolved - use when patch merge conflicts were manually fixed
+
 merge vs rebase:
  https://www.youtube.com/watch?v=CRlGDDprdOQ
   Rebase overides commits. But rebase local topic branch on latest commit
@@ -740,3 +913,123 @@ rebase:
      ignores F and G - related to all be in same branch?
   --continue
      go on with rebase, after conflicts resolved (edit and 'add' to staging) 
+
+rerere:
+  REuse REcorded REsolution
+  When rerere is enabled, Git will keep a set of pre- and post-images from 
+  successful merges, and if it notices that there’s a conflict that looks 
+  exactly like one you’ve already fixed, it’ll just use the fix from last time
+   Config:
+  rerere.enabled  - turn on in config
+    Example:
+   git config [--global] rerere.enabled true
+  
+  Creates database of all resolved conflicts. 
+   git rerere   - will go through the db of conflicts and resolve current
+                  if same resolve found in DB. Default if enabled in config
+   Could preview what would be resolved
+   Could remove specific conflict resolutions
+   Could clear whole db of resolutions
+
+hash-object:
+gpg:
+  tool for signing and encryption
+  It could store list of keys. 
+  Keys could sign Tags.
+  Public key could be saved as a Blob into repository.
+   Example:
+  $ gpg --list-keys
+  > pub 1024D/F721C45A 2009-02-09 [expires: 2010-02-09]
+  $ gpg -a --export F721C45A | git hash-object -w --stdin
+  > 659ef797d181633c87ec71ac3f9ba29fe5775b92
+    will show and pipe public key into git DB as a blob object returning hash
+  $ git tag -a maintainer-pgp-pub 659ef797d181633c87ec71ac3f9ba29fe5775b92
+  $ git push tags
+    the key is in public repo now
+   To get the key:
+  $ git show maintainer-pgp-pub | gpg --import
+    Include instructions in tag's message (tag -m '<here>') to provide readme
+
+describe:
+  generates human readable name for object
+  latest tag + number of commits since till given hash + g + hash
+  g - means git
+    Example:
+   $ git describe master
+   v1.6.2-rc1-20-g8c5b85c
+    Where:
+   v.1.6.2-rc1 - tag name
+   20 commits before master (hash is passed to describe under-the-hood)
+   g - git
+   8c5b85c  - hash of 'master' branch - the given commit
+  --tags  - to use NOT annotanet tags
+     uses Annotated tags only by default
+
+
+Release
+archive:
+  archives current tree(snapshot) into stream which could be saved into archive
+    tar.gz example:
+  git archive master --prefix='project/' | gzip > `git describe master`.tar.gz
+   sames directory 'project' with all git repo in it into tar.gz
+    zip Example:
+  git archive master --prefix='prjct/' --format=zip > `git describe master`.zip 
+
+
+shortlog:
+  generates short log of commit messages since given commit for given branch
+   Example:
+  git shortlog --no-merges master --not v1.0.1
+   will show list of commit messages (except merges) for 'master' branch
+   since 'v1.0.1' tag. Grouped by user.
+
+GitHub:
+ Labs \ learning:
+  https://lab.github.com/
+ https://developer.github.com
+  Hooks:
+    Push notification via HTTP POST request about what happening on repo
+    Triggered at Events, lots of them. Push event - on 'git push' into repo
+    Could have JSON or other Payload
+    Developer console for debug in Hook declaration space(page)
+  Services:
+    Push notification via Email or lots of other integrations (CI, tracker etc)
+  API:
+    Incoming notifications and Manipulations TO github
+    Has lots of different API ENDPOINTS(methods)
+     i've added it to only remember correct name of a call - Endpoint
+   Example:
+    curl https://api.github.com/users/doss-
+     will return info about 'doss-' user in JSON format
+     and other API Endpoints to related to profile
+    Authenticated user could do 5000 requests per hour
+    Guest user could do 60 requests per hour(once a minute kind of)
+   Comment on an issue:
+    Endpoint address:
+     repos/<user>/<repo>/issues/<num>/comments
+    Example: with tokenized Auth
+     curl -H "Content-Type: application/json" \
+        -H "Authorization: token TOKEN" \
+        --data '{"body":"A new comment, :+1:"}' \
+        https://api.github.com/repos/schacon/blink/issues/6/comments
+    Example: change commit status in WebHook Handler using API:
+     detailed: see gitbook 
+      https://git-scm.com/book/en/v2/GitHub-Scripting-GitHub
+     Ruby:
+      push = JSON.parse(request.body.read) # parse the JSON
+      repo_name = push['repository']['full_name']
+        ...
+      push["commits"].each do |commit|
+          ...
+        sha = commit["id"]
+      status_url = "https://api.github.com/repos/#{repo_name}/statuses/#{sha}"
+        ...
+      HTTParty.post(status_url,
+        :body => status.to_json,
+        :headers => {
+          'Content-Type'  => 'application/json',
+          'User-Agent'    => 'tonychacon/signoff',
+          'Authorization' => "token #{ENV['TOKEN']}" } 
+      }
+
+

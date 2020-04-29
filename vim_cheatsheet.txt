@@ -70,6 +70,19 @@ Search:
   F - search backwards for 1 symbol
   ; - repeat prev search
   / - search regex globally, like in 'less'
+    ignore case case insensitive:
+    use \c anywhere in query: 
+     /strin\cgsearch; 
+     /stringsearch\c
+     /\cstringsearch
+    Or:
+     set ignorecase
+     this could be added to .vimrc
+    case sensitive, anywhere in query:
+     \C 
+    Smart:
+     set smartcase
+     switches to case sensitive if have capital letters in query
   n - next repeat forward
   N - repeat backwards
 

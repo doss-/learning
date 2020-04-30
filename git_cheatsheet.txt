@@ -240,8 +240,9 @@ add:
   - stage changes in tracked files
   - mark merge-conflicted files as resolved
  Params:
- - i/interactive  - interactive mode
+ -i/interactive  - interactive mode
                     HELL of a mode
+ -p/patch   - same as [p] in interacitive, but for everython unstaged
 
  Example:
   git add .
@@ -307,14 +308,17 @@ https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
 
 
 
-git revert:
+revert:
   creates new commit which will be added to the history
 	_after_ the commit to which user want to revert
-
+  Generally:
   DESIGNED FOR UNDO PUBLIC COMMITS
-
     Read More:
 https://www.atlassian.com/git/tutorials/undoing-changes/git-revert
+  Also:
+   could unstage hunks of files (see git add -i [r]evert)
+  -p/patch  - interactive unstaging of hunks
+  
 
 
 git ls-files:
@@ -369,6 +373,8 @@ think i need to commit it first? weird
 
 diff:
   compares changed files with latest snapshot(commit)  
+   Changes consist oh hunks:
+    https://stackoverflow.com/questions/17995092/what-does-a-hunk-mean-in-relation-to-pushes-on-sourcetree/47431804
   By default compares Working Tree with Staging area
   --staged - compares staged area to latest commit(snapshot)
   --cached - same as --staged
@@ -655,10 +661,6 @@ show:
   git show ca82a6d  - will show info about commit
   git show master - will show info about latest commit in master
   git show v0.1  - will show info abotu tag(and commit)
-  git show HEAD@{5} - will show 5th HEAD reference in 'refspec'
-  git show master@{yesterday} - will show HEAD of master pointed yesterday
-   				only as long as refspec length is
-  git show HEAD@{2.months.ago} - same as above
   git show HEAD^  - shows the PARENT of the HEAD commit 
    Same:
    git show HEAD~ - shows FIRST PARENT of the HEAD commit
@@ -670,6 +672,11 @@ show:
    Same:
    git show HEAD~~~ - 3 times calls First Parent of a HEAD commit
   git show HEAD~3^2 - show SECOND Parent of Grandparent of HEAD commit
+   refspec related:
+  git show HEAD@{5} - will show 5th HEAD reference in 'refspec'
+  git show master@{yesterday} - will show HEAD of master pointed yesterday
+   				only as long as refspec length is
+  git show HEAD@{2.months.ago} - same as above
   
 rev-parse:
   converts object to SHA-1 hash
@@ -765,6 +772,9 @@ alias:
     git config alias.testt '!echo "test line"'
      now 'git testt' will output 'test line'
 
+stash:
+  
+
 checkout:
   switch branches or restore working tree files
    Synopsys:
@@ -778,6 +788,7 @@ checkout:
     creates new branch based on given branch (origin/master)
    Remote branch tracking
    By default git does not track remote branches except Master
+  -p/patch  - interactive restore of working tree file (see git add -i)
    To manually start tracking branches do:
   --track
     Example:

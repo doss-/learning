@@ -102,6 +102,7 @@ directories structure:
  
 
 man:
+  https://www.howtogeek.com/663440/how-to-use-linuxs-man-command-hidden-secrets-and-basics/
   man [section] <command>
   man sections:
    1. General commands
@@ -115,6 +116,17 @@ man:
   Example:
    man 2 stat - will display manual for hashed 'stat'
 	man has stat(1) and stat(2), which are different commands..
+  -f <command>  - search for all entries of command and return `whatis`
+    Example:
+   man -f man
+    will return man(1) and man(7) and short whatis of both
+  -k <text>   - same as apropos - search through man, return line matched
+     if . given - it will match EVERYthing
+  
+  Count all man pages:
+    $ man -k . | wc -l
+    > 6659 
+      number of manpages on the system
 
 apropos:
   searches through man by keyword and returs matched in format:
@@ -700,6 +712,12 @@ tail:
     Same goes with 'ps'
 
 Troubleshooting:
+ Debian:
+  /var/log/syslog
+  /var/log/auth.log
+ RHEL:
+  /var/log/messages
+  /var/log/secure
  /var/log/syslog too large
  some single event spammed and keep spamming syslog, and it grows in size
  DO NOT DELETE /var/log/syslog
@@ -710,7 +728,8 @@ Troubleshooting:
  instead clean the file:
    sudo cat /dev/null > /var/log/syslog
 
-wifi adapter search for errors:
+Wifi adapter search for errors:
+  lshw -C network
   uname -rv
   lspci -knn | grep -EiA2 net
   dmesg|grep -Ei 'wlan|firmw|dhc'
@@ -787,6 +806,7 @@ ifconfig:
   displays current network interfaces
   part of the 'net-tools' package
    /etc/network/interfaces - for interfaces(5) changes
+  -a - will display MAC also
 
 lshw:
   list hardware, displays all the hardware detected by kernel and its state
@@ -1026,6 +1046,18 @@ rm:
    -f - force
    -i - interactive - will ask before do
    -v - verbose
+  To rm link:
+   rm link_name   -- just as regular file, source of link is not affected
+
+unlink:
+  delete symlink
+   Example:
+  unlink symlink_name
+
+  Find broken link:
+   find /path/to/dir -xtype l
+  Delete:
+   find /path/to/directory -xtype l -delete
 
 ln:
   create hard link by default
@@ -1383,10 +1415,28 @@ zgrep:
  grep for search in .gz compressed files
 
 lsblk:
-   List Block Devices
+  List Block Devices
   list all devices mounted and not
+   Example:
+  lsblk -po NAME,FSTYPE,SIZE,MOUNTPOINT /dev/sda /dev/sdb
+    show only 'sda' and 'sdb'
    Params:
   -f\--fs - list fylesystems
+  -d\--nodeps  - show only top device(w/o partitions)
+   Example:
+  lsblk -d /dev/sda
+  -o Col1,Col2  - Only columns Col1 and Col2
+  -O   - all columns
+  -p   - full path of Block device
+  -e\--exclude - exclude block device number
+   Example:
+  lsblk -e7,11 -po NAME,FSTYPE,SIZE,MOUNTPOINT
+    excludes Loop(7) and 11th block devices (see /proc/devices)
+   Columns:
+  MAJ:MIN - block device number : number
+   /proc/devices - list of ALL block device numbers
+  
+  
 
 block device types:
  /dev/fd* - floppy drives
@@ -1513,6 +1563,9 @@ mount:
   LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async
   labels or UUID could be taken from 'blkid' command
 
+ntfs-config:
+  Enable/disable write support for any NTFS devices
+
 fdisk:
   manipulates disk partitions tables
    Usage:
@@ -1620,6 +1673,10 @@ ssh:
 
 ssh-keygen:
   generates keypair private\public
+    Example:
+   ssh-keygen -t rsa -b 4096 -C "email" -f my_key
+    Example PUBLIC from Private:
+   ssh-keygen -y -f private_key > private_key.pub
   -t rsa - key type
   -b 4096 - generates key pair into given path
   -C "text" - comment for key
@@ -1628,6 +1685,12 @@ ssh-keygen:
   ssh-keygen -t rsa -b 4096 -C "email" -f my_key
       - will create new keypair, w/o -f it will generate
 	in the path ~/.ssh/id_rsa and its id_rsa.pub part
+  -R - remove from ~/.ssh/known_hosts
+    Example:
+   There are only 1 RSA key is allowed for the IP, in case RSA key is changed, then 
+   old one need to be removed, otherwise it will not allow ssh acces:
+    ssh-keygen -f "/home/dos/.ssh/known_hosts" -R 172.17.0.2
+
   -l - list, not create anything.
   -E - Specifies the hash algorithm used when displaying key fingerprints.  
        Valid options are: “md5” and “sha256”.
@@ -1653,9 +1716,6 @@ ssh-copy-id:
 
 ssh-keygen:
   Known hosts are stored in a file /home/<username>/.ssh/knonwn_hosts.
-   There are only 1 RSA key is allowed for the IP, in case RSA key is changed, then 
-  old one need to be removed, otherwise it will not allow ssh acces:
-   ssh-keygen -f "/home/dos/.ssh/known_hosts" -R 172.17.0.2
     Generate public key from private key:
   ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
   
@@ -1848,6 +1908,8 @@ env:
 	Prompt string could be drastically changed
 	even including redraw of clocks in the cmd on every command entered
         Example: \[\033[s\033[0;0H\033[0;41m\033[K\033[1;33m\t\033[0m\033[u\]<>$
+    Example:
+   export PS1='$(whoami)@$(hostname):$(pwd) '$
   TERM - type of the terminal
   TZ - time zone, usually *nix has Coordinated Universal Time , and it
 	is corrected with current time zone upon display
@@ -2459,6 +2521,13 @@ systemctl:
   cli for systemd service controller
   it is called by 'service' command for backwards and cross compatibility reasons
 
+journalctl:
+  displays logs
+   Params
+  -u - show logs for Unit
+   Example:
+  sudo journalctl -u sshd.service
+
 hostnamectl:
   cli of systemd service controller related to hostname changes and management
   unified way to deal with hostname, list /etc/*-release, uname and stuff
@@ -2817,6 +2886,8 @@ yum:
   .. groupinstall '<group name>' - will install all the packages from the group
   .. gropuremove '<gn>' - removes all the packages related to the group
   .. groupupdate '<gn>' - updates same stuff
+
+  yum-config-manager --enable remi  - enable repo
 
   yum repolist - lists all available(enabled) repositories
   ..  .. all - lists all the repos disregard of their staus
@@ -3238,6 +3309,12 @@ whereis:
    i.e.
   whereis pwd - will return path for binary and path for man page
    -b - search only for binaries
+  Example:
+  Remove IntelliJIdea:
+  $whereis idea
+  remove all entries returned, and places whihch they are linking
+   https://intellij-support.jetbrains.com/hc/en-us/articles/206544519
+   https://askubuntu.com/questions/300684/uninstall-intellij-ultimate-edition-version-12/300692#300692
 
 Streams and Redirects. redirection:
  Linux\Unix philosophy is that 'everything is a file' but in fact this are not

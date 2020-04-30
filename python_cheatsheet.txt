@@ -159,10 +159,10 @@ while:
 read\write files 
 open('file_path') - opens for 'r' - read, 'r' is default second param
  others:
- 'w' : use for writing
- 'x' : use for creating and writing to a new file
+ 'w' : use for writing, creates new file if none, overrides existing
+ 'w+': write\read, create if none, override
  'a' : use for appending to a file
- 'r+' : use for reading and writing to the same file
+ 'r' : read
 
 stream = open('file/path', 'r')
 stream.read() - entire contents as String

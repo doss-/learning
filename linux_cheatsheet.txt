@@ -1299,6 +1299,8 @@ gnupg: gpg:
   basic example w/o using Public-key cryptography:
    gpg --output <encrypted_file.gpg> --symmetryc <file_to_encrypt> - this will 
 	ask for passphrase and its done
+  --gen-key  - generate a key
+  --list-keys  - list all keys
 
 rsync:
   Remote Syncs files\dirs locally or remote-local\local-remote
@@ -3891,9 +3893,20 @@ yum group list
  "KDE Plasma Workspaces"  - this is KDE
  "Graphical Administration Tools" - extra admin tools for GUI
 yum groupinstall "GNOME Desktop" "Graphical Administration Tools"
-  this will install two groups for Gnomw and admin tools
+  this will install two groups for Gnome and admin tools
   Read more:
   https://www.itzgeek.com/how-tos/linux/centos-how-tos/install-gnome-gui-on-centos-7-rhel-7.html
+
+gnome:
+gnome-control-center:
+  calls GUI of main settings window
+  gnome version could be viewed somewhere here
+  also version:
+  /usr/share/gnome/gnome-version.xml
+
+gnome-tweaks:
+  calls GUI of advanced? settings window
+
 
 utilities:
 clamav:

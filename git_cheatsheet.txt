@@ -188,6 +188,11 @@ pull:
        does rebase of remote branch:
     git fetch
     gir rebase <origin>/<tracking_branch>
+  --allow-unrelated-histories
+     when commits were edited somehow, or could not get it into a tree 
+     of dependant commits, this allows to download them
+      Error Example:
+     refusing to merge unrelated ...
 
 
 request-pull:
@@ -696,6 +701,7 @@ reflog:
   f01978f HEAD@{6}: commit: git_book: part6: word-diff :1.5h
   de9e570 HEAD@{7}: commit: git_book: part5: tag; rerere; archive
 
+
 tag:
   creates tag or lists existing tags.
    Example:
@@ -731,6 +737,10 @@ tag:
    -s  - sign tag with current user key
      Example:
      see 'gpg' here
+   -v  - verify signed commit (or tag)
+      Example:
+     git tag -v v0.1
+    GPG need to have signer's public key in its keyring to able to verify
    -u <key id>  - sign tag with specific key
    -n[N]  - prints N lines of tag message
    --contains <commit> - list tags that contains the commit (hash)
@@ -773,6 +783,68 @@ alias:
      now 'git testt' will output 'test line'
 
 stash:
+  saves working tree and staging(index) into a pocket, making working 
+  directory clean.
+  could have multiple entries, saved as a refspec (places where HEAD previously
+  pinted)
+ push: 
+  default, saves all current changes into pseudo-commit
+  --keep-index  - stashes all changes, but cleans only working tree
+  -u/include-untracked - adds Untracked files to the stash
+  -a/all  - adds all files, even including IGNORED files
+  -p/patch - interactive mode(only for Tracked files)
+ list:
+  lists all saved stashes, looks like git reflog
+ show:
+  shows short Status of stash, first by default (indexing starts from 0)
+  Does NOT shows if have Untracked files (could return no lines if only 
+  untracked files in stash)
+  by specifiying refspec of stash history could list other stashes
+    Example:
+   git stash show stash@{2}
+    will show third stash
+ apply:
+  applies changes from stash to a working tree by default
+  If working tree is not clean, git tries to merge (merge conflicts possible)
+  Stash remains in reflog
+  --index - saves Staging state from stash, if something was staged
+    Example:
+   git stash apply --index stash@{2}
+  drop:
+   remove stash from reflog, removes first by default
+     Example:
+    git stash drop stash@{2}
+     remove 3rd stash from stash history
+  pop:
+   apply and drop commands together
+     Example:
+    git stash pop stash@{2} 
+  branch:
+   creates a new branch for you with your selected branch name, checks out 
+   the commit you were on when you stashed your work, reapplies your work 
+   there, and then drops the stash if it applies successfully
+    Example:
+   git stash branch MY-NEW-BRANCH
+
+clean:
+  it seems removes only Untracked files
+  Or Untracked + Ignored.
+  DOes not touch Edited files, so stash is simply better
+   Except the case of need to remove bunch of garbage(or generated) files
+   Safer: git stash --all  - which would clean tree but save it
+  Require Force:
+    clean.requireForce
+    git config --global --add clean.requireForce true
+   prefents clean without Force given
+  -f  - Force 
+  -f -f  - delete untracked nested dirs with .git inside them (repositories)
+  -n/dry-run - dry run
+    Run either with -n or -f
+    First -n; Then -f;
+  -d  - remove untracked directories
+  -x  - remove ignored files
+  -i  - interactive mode
+  
   
 
 checkout:
@@ -960,6 +1032,11 @@ gpg:
    To get the key:
   $ git show maintainer-pgp-pub | gpg --import
     Include instructions in tag's message (tag -m '<here>') to provide readme
+  Sign tags:
+    Example:
+   git config user.signingkey EA17397DA3ED365A8C2CD3E230194F56DD6B037A
+   git tag -s 'v1.5' -m 'my signed 1.5 tag'
+  Sign commits (1.79+ git version):
 
 describe:
   generates human readable name for object

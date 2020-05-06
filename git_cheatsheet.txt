@@ -193,6 +193,9 @@ pull:
      of dependant commits, this allows to download them
       Error Example:
      refusing to merge unrelated ...
+  --verify-signatures - reject commits signed with not Truested GPG 
+    Will fail to merge commits Not Signed or Signature is Not Valid
+   -S  - sign the resulting merge commit too
 
 
 request-pull:
@@ -486,12 +489,14 @@ log:
   -N  - N - number of commits to show
    Example:
   -S <string>  - show commits only where <string> were changed
+      See more details in 'Search:' below
     Example:
    git log -S 'rm:' --patch
      only commits where 'rm:' were changed and every commit patch
    git log -p -2  - will show last 2 commits with patch added
   -g [branch]  - shows reflog formatted as git log
   --all - history from all BRANCHES (no detached-head commits shown)
+  --show-signature  - display's GPG signature of tar or commit
   --no-merges  - do not show merge-commits 
   --stat  - show stats of each commit, including files changed
          list of files changed, amount of added\removed lines, sum of 
@@ -504,6 +509,7 @@ log:
      format:"%h %s"   - formats the log output, with following options:
       %h - short hash
       %s - commit comment
+      %G? - G for GOOD signatures, N for NONE, B\U\X\Y\R\E for various BAD ones
       %a - author (there are commiter and author different fields) 
        google other formats
       %cd - committer date
@@ -568,6 +574,98 @@ wolves in unrelated incidents on the same night.
     < E
     > D
     > C
+ Search:
+  git log   could be used    for:
+   for finding specific commits by the content of their messages 
+   or even the content of the diff they introduce.
+  -S  - shows commits where NUMBER OF OCCURANCES changed
+        WILL NOT show i.e. variable value change if searched by variable name
+  -G  - regex search, WILL SHOW above case
+     Example:
+    Rake::GemPackageTask.new(spec) do |pkg|
+    -    pkg.need_tar = true
+    +    pkg.need_tar = false
+     $ git log --oneline -S 'need_tar' | wc -l
+     >1
+       -S shows only initial commit with 'need_tar'
+     $ git log --oneline -G 'need_tar' | wc -l
+     >2
+       -G matches change of line with 'need_tar' but Number of occurances same
+  -L <start>,<end>:filename  - search in Lines range
+          start\end could be:
+          - number - if start\end are numbers, it's absolune, starts from 1
+          - regex  - POSIX regex. If start is regex it searches from:
+		      start of file or
+                      from end of previous -L, if there was any
+                      "^/regex/"  - start from beginning of file
+                     if End is regex and Start is a number:
+                      starts search for regex frim line number from Start 
+          - +offset -offset  - useful as <end> relative to <start>
+  -L :<funcname>:filename
+       searches in the function, which is regex
+       from beginning of the <funcname> to next funcname
+      Searches from end of previous -L by default
+      ^:<funcname> searches from beginning of the file anyway
+  -L /regex/,/regex/:filename
+       this could do the same as funcname, if git cant handle the func matching
+      Example:
+     git log -L /^Rake/,'/^end/':Rakefile
+      will search inside this function:
+       +Rake::GemPackageTask.new(spec) do |pkg|
+       +    pkg.need_tar = true
+       +end
+
+
+grep:
+  searches through any committed gree, working dir, or even indes(staging)
+   Works faster than 'ack' or 'grep'
+   Could search in previous commits(and all refspecs, since pointers to commits)
+  by regex or a string
+  By default searches in files in working directory.
+   Params:
+  -n\line-number  - shows line number where match was found
+  -c\count  - show only filenames and number of matches in each
+    Example:
+   git grep --count my_func
+  -p\show-function  - display context of match (function name of match)
+    Example:
+   $ git grep -p gmtime_r *.c
+   >date.c=static int match_multi(timestamp_t num, char c, const char *date,
+   >date.c:   if (gmtime_r(&now, &now_tm)) 
+    first output is function signature found by git 
+    second line is the match of 'gmtime_r' function
+  -e  - next command's parameter is a pattern
+        must be used if pattern starts with -
+        must be used before patterns in 'and', 'or'
+  --and  - logical AND for different patterns to appear on the line to Match
+  --or   - logical OR - DEFAULT one 
+  --not
+  ( ... )  - group, see example below or in git-grep man
+     Example:
+   git grep --and \( -e 'this' -e that\)
+  --heading - show file name before all matches in it
+              w/o it there is filename next to Each match
+  --break  - print empty line after matches from 1 file
+  .... <HASH>  - Git Grep could search in history too
+                 Hash could be specified
+                 Refspec(commit\tag\HEAD etc) could be specified
+    Example:
+   $ git grep --break --heading \
+      -n -e '#define' --and \( -e LINK -e BUF_MAX \) v1.8.0
+   >v1.8.0:builtin/index-pack.c
+   >62:#define FLAG_LINK (1u<<20)
+   >
+   >v1.8.0:cache.h
+   >73:#define S_IFGITLINK 0160000
+   >74:#define S_ISGITLINK(m)
+   >(((m) & S_IFMT) == S_IFGITLINK)
+   >
+     match line with '#define' AND one of LINK or BUF_MAX matched
+     line number is displayed of each matched line
+     due to --heading filename on top of matches from it
+     due to --break there is empty line after all matches from file 
+     Search is done in v1.8.0 tag and NOT in current version of code
+
 
 remote:
   lists remote handles of the current repo
@@ -953,6 +1051,9 @@ merge:
    Example:
    git merge topic   - will merge topic into current branch
   --abort - aborts started merge that ended with conflicts
+  --verify-signatures - reject commits signed with not Truested GPG 
+    Will fail to merge commits Not Signed or Signature is Not Valid
+   -S  - sign the resulting merge commit too
 
 merge-base:
   finds the original? base of branch, returns hash of the base commit
@@ -1015,7 +1116,7 @@ rerere:
    Could clear whole db of resolutions
 
 hash-object:
-gpg:
+ gpg:
   tool for signing and encryption
   It could store list of keys. 
   Keys could sign Tags.
@@ -1037,6 +1138,11 @@ gpg:
    git config user.signingkey EA17397DA3ED365A8C2CD3E230194F56DD6B037A
    git tag -s 'v1.5' -m 'my signed 1.5 tag'
   Sign commits (1.79+ git version):
+   commit -S  - sign commit
+    Example:
+   git commit -S -m 'signed commit'
+  log --show-signature  - shows signatures for tag and commit in git log
+   
 
 describe:
   generates human readable name for object

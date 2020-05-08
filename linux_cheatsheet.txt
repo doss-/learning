@@ -362,6 +362,9 @@ find:
    find . -name "test*" -exec stat '{}' +
     will do the same as above, but 'stat' will be executed only once with list
     of found files - stat testmatch1 testmatch2 testmatch3
+     Example mass rename:
+    find . -depth -name "*" -exec sh -c 'f="{}"; mv -- "$f" "${f%}.txt"' \;
+     rename files w/o extention into files with .txt extention
      Example:
    find . -name "test*" | xargs stat
      Example:
@@ -811,10 +814,17 @@ ifconfig:
 lshw:
   list hardware, displays all the hardware detected by kernel and its state
   and properties
-   -C <class> - class display some particluar class
+   -short  - short list of all devices found and their Classes
+   -businfo  - Better: than above, more humanfirendly, same list output
+   -class <class> - detailed info about class of devices (-short for classes)
+   -C <class> - same as above
     Example:
    lshw -C network - will display all info about network adapters and their
-			state, together with drivers and info related
+                    state, together with drivers and info related
+
+hdparm:
+  lists HDD info
+  -I - get long list of HDD info
 
 lspci:
   list pci devices - network , audio, usb controllers
@@ -1471,8 +1481,14 @@ tune2fs:
 df:
   display all mounted devices with size\free\used\paths etc
     Stands for: Disk Free
-  df -h - human readable sizes
-  df / - will show info about root partition - where / is mount point
+  -h - human readable sizes
+    Example:
+   df -h / - will show info about root partition - where / is mount point
+  -T  - adds colump with FS Type
+  -x  - exclude given FS Type
+    Example:
+    df -x tmpfs -x squashfs -h
+     not show tmps and /dev/loop* (snap) filesystems
 
 ##mount find usb disk hdd drive:
 
@@ -1590,6 +1606,10 @@ mkfs:
 
 lvm:
  Logical Volume Manager
+  How to install:
+ https://help.ubuntu.com/community/UbuntuDesktopLVM
+  Ubuntu docs:
+ https://wiki.ubuntu.com/Lvm
   How to extend Logical volume:
  https://www.youtube.com/watch?v=hugEkh50Ynk
   How to extend logical volume in text 

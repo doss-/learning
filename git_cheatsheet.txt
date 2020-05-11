@@ -453,10 +453,15 @@ commit:
               no new commit is added, but older one updated entirely
               AuthoerDate remains the same
               CommitDate is updated 
+              SHA-1 Hash also is CHANGED. 
+              DO NOT AMEND __PUSHED__ COMMITS (same as for rebase)
          To add new file to 'amended' commit add it before amend:
            Example:
           git add forgitten_file
           git commit --amend
+   --no-edit - When Amended Commit only needs files changed, w/o comment change 
+     Example:
+    git commit --amend --no-edit
 
 rm: 
   deletes file from git repo (and removes it from Working Tree)
@@ -1097,6 +1102,59 @@ rebase:
      ignores F and G - related to all be in same branch?
   --continue
      go on with rebase, after conflicts resolved (edit and 'add' to staging) 
+             #########
+             ## INTERACTIVE
+             ########
+         Edit previous commits (not latest
+           DO IT ONLY LOCALLY
+  -i  - interactive if 'EDIT' instead of 'PICK' next to commit from range
+         See all commands (pick, edit etc) in text editor's commented section
+     Example:
+    git rebase -i HEAD~3
+        OUTPUT:
+         >pick f7f3f6d Change my name a bit
+         >pick 310154e Update README formatting and add blame
+         >pick a5f4a0d Add cat-file
+      will take commits between HEAD and HEAD~3 and rebase onto 4th commit
+      from current HEAD (HEAD - 3 commits would be replayed on 4th commit)
+       Each of those commits could be EDITED(amended) - patch and comment
+     Check which commits:
+      git log --pretty=format:"%h %s" HEAD~3..HEAD
+       Notice '..' and not '...'
+     In editor after 'rebase -i HEAD~3' displayed list of commits
+      in reverse to 'git log' order (cause it is replayin oldest change first)
+     'pick' - only replay
+     'edit' - stop at this commit and edit
+        Example:
+         >edit f7f3f6d Change my name a bit
+       then change and add to staging and 'git commit --amend' 
+       then 'rebase --continue'
+           Change Order Of Commits
+            OR
+           Remove commits entirely
+      git rebase -i HEAD~3
+       In opened window REMOVE lines for commits you want to remove
+                        CHANGE order of commits 
+                     or EDIT commits
+        Example(Consider example of lines above as original):
+         >pick a5f4a0d Add cat-file
+         >pick f7f3f6d Change my name a bit
+    310154e commit was removed
+    a5f4a0d commit become parend of f7f3f6d, but was it's grandchild originally 
+     If save the editor file , AND resolve conflicts if any (and 'git add')
+      then 'git rebase --continue'
+     Commits rewritten, commits removed, new history is made.
+     DO NOT APPLY TO PUSHED COMMITS
+   Squash:
+     Squash all NEWER commits , on top of 1 oldest one
+         >pick f7f3f6d Change my name a bit   # parent commit
+         >squash 310154e Update README formatting and add blame   #child commit
+         >squash a5f4a0d Add cat-file         # grand child commit
+      <Save editor>
+         Enter commit message (merged from squashed commits) in new editor
+      <Save editor>
+         commits are overriden
+      
 
 rerere:
   REuse REcorded REsolution

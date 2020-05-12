@@ -131,6 +131,10 @@ config:
 clone:
   clones repository locally , later parent repo could be reached as origin
    Params:
+  --depth <num>  - trunkate history to number of commits 
+    Example:
+   git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+     will clone fzf with 1 commit history (reducing size to minimum)
   -o/--origin <remote_name> - change 'origin' to custom remote name
    Example:
   git clone -o booyah

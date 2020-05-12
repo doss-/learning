@@ -291,6 +291,7 @@ https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
 	Commit history
    --mixed  (default) - moves state of 2 Trees
 	Staging area
+         It will OVERWRITE Working directory if conflicting changes
 	Commit history
           Example:
      git reset HEAD~    -- moves back one commit:
@@ -780,7 +781,20 @@ show:
    Same:
    git show HEAD~~~ - 3 times calls First Parent of a HEAD commit
   git show HEAD~3^2 - show SECOND Parent of Grandparent of HEAD commit
-   refspec related:
+        Variations:
+       ~[x]       - x commits back
+      HEAD~         - previous commit 
+      HEAD~1        - previous commit
+      HEAD~~~~~~~~  - 8 commits before
+      HEAD~8        - 8 commits before
+       ^[1:2]     - First or Second parent
+      HEAD^         - previous commit (first parent)
+      HEAD^1        - previous commit (first parent)
+      HEAD^2        - previous commit (second parent) for MERGE commit
+       ~[x]^[1:2] - x commits back First or Second parent
+      HEAD~15^2     - Second Parent of 15th commit back(which was merge commit)
+
+   Refspec related:
   git show HEAD@{5} - will show 5th HEAD reference in 'refspec'
   git show master@{yesterday} - will show HEAD of master pointed yesterday
    				only as long as refspec length is
@@ -1154,7 +1168,66 @@ rebase:
          Enter commit message (merged from squashed commits) in new editor
       <Save editor>
          commits are overriden
-      
+   Split commits:
+     This is kind of a hack:
+      Say given 3 commits; 
+      And wanna split second (310154e)
+        $ git rebase -i HEAD~3
+         >pick f7f3f6d Change my name a bit
+         >edit 310154e Update README formatting and add blame
+         >pick a5f4a0d Add cat-file
+         :wq
+          #Git applies first(f7f3f6d) commit as is; then:
+        $ git reset HEAD^   # reset --mixed to Previous(f7f3f6d) 
+                            # Staging(conents of 310154e) overides Working Tree
+        $ git add README    # part of 310154e
+        $ git commit -m 'Update README formattint'
+        $ git add lib/simplegit.rb  # second part of 310154e
+        $ git commit -m 'Add blame
+        $ git rebase --continue     # apply a5f4a0d commit 
+          # Will end up with 4 commits:
+        $ git log -4 --pretty=format:"%h %s"
+        1c002dd Add cat-file              # Re-written old commit
+                                          #  (HASH, Commit Date)
+        9b29157 Add blame                 # New commit
+        35cfb2b Update README formatting  # New commit
+        f3cc40e Change my name a bit      # Re-written old commit 
+                                          #  (HASH, Commit Date)
+
+
+filter-branch:
+  nuclear
+  History-rewrite tool for Large numer of Commits.
+   In a scriptable way.
+  
+  --tree-filter:
+   Remove file from Every commit (i.e. passwords.txt committed)
+  $ git filter-branch --tree-filter 'rm -f passwords.txt' HEAD
+     Will run given command - rm -f passwords.txt - on every snapshot(commit)
+     And recommit the result (as a new commit supposedly)
+      Try it on test branch first(or better clone the repo, to be sure)
+  --all  - run on all branches
+  --subdirectory-filter:
+   Subdirectory as a New Root
+    When IMPORT FROM ANOTHER Source Control (VCS)
+  $ git filter-branch --subdirectory-filter trunk HEAD
+     Will do 'trunk' subdirectory as new Root
+  --commit-filter:
+   Change email address globally
+    To change ONLY YOURS email addresses, AND NOT OTHERS:
+  $ git filter-branch --commit-filter '
+        if [ "$GIT_AUTHOR_EMAIL" = "schacon@localhost" ];
+        then
+          GIT_AUTHOR_NAME="Scott Chacon";
+          GIT_AUTHOR_EMAIL="schacon@example.com";
+          git commit-tree "$@";
+        else
+          git commit-tree "$@";
+        fi' HEAD
+   NOTE: Because commits contain the SHA-1 values of their parents, this command
+         changes every commit SHA-1 in your history, not just those that have 
+         the matching email address.
+   
 
 rerere:
   REuse REcorded REsolution

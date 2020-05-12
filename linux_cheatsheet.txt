@@ -3183,6 +3183,10 @@ firewall-cmd:
  RELOAD AFTERWARDS:
   sudo firewall-cmd --reload
 
+ Example:
+  firewall-cmd --zone=public --add-port=5693/tcp      - turns on the rule
+  firewall-cmd --zone=public --add-port=5693/tcp --permanent   - saves the rule so it is applied on the boot
+
 
 ===ip tables / firewall
 

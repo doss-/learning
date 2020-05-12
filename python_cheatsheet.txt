@@ -3,6 +3,9 @@ https://stackoverflow.com/a/34066989
 how to change PYTHONPATH:
 http://ask.xmodulo.com/change-syspath-pythonpath-python.html
 
+53 Interview Questions and Answers:
+https://towardsdatascience.com/53-python-interview-questions-and-answers-91fa311eec3f
+
 Install:
 RHEL 6/7 :
 Centos7:
@@ -70,6 +73,17 @@ types:
 not:
   like ! in c#\ruby
    if (not varTrue) == if(!varTrue)
+
+String Interpolation:
+  name = 'Chris'
+  # 1. f strings
+    print(f'Hello {name}')
+  # 2. % operator
+    print('Hey %s %s' % (name, name))
+  # 3. format
+    print(
+     "My name is {}".format((name))
+    )
 
 print:
   2.7

@@ -1082,6 +1082,20 @@ merge-base:
   finds the original? base of branch, returns hash of the base commit
 
 rebase:
+        #######################
+        ## Use Case
+        ######################
+         $ git fetch
+         $ git status
+         > Your branch and 'origin/master' have diverged
+         $ git log --oneline --graph master...origin/master
+         $ git rebase -i origin/master
+         $ git log --oneline --graph master...origin/master
+         > * ce85413 (HEAD -> master) Only local commits here, rewritten on top
+         $ git push origin master
+         --->>Fast-Forward>>---
+        ######################
+
   changes base of current(or given) branch to another branch or commit
   !! Rewrites commits - creates new commit(new hash) with the same contents
   like date, commetter, comment etc.

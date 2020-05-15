@@ -1,28 +1,6 @@
-==========TODO:
-add lshw lspci and whole setup and recheck of wifi. iwlwifi driver and 
-way to ensure there are drivers installed in the kernel
-
-create bash script that will export variables to:
-1. current session
-2. user .bashrc file so it will be available in other sessions
-3. system-wide
-
-check distribution and update according files for
-1. user-wide
-2. system-wide 
-
-do the same for Bash Aliases
-
-
-Save this script into this repo
-
-===
-identify myself on git
-==========todo
-
 Contents
-===General
-===Env Vars / Environment variables:
+1. [General](#General)  
+[Env Vars / Environment variables:](#Env-Vars-/-Environment-variables:)
 ===User\Groups Management
 =====User\Groups Management General info
 =====Manipulate Users And Groups
@@ -48,23 +26,23 @@ Contents
 ====Ports checks
 
 
+## Example
 
+# General
+## check linux distro:
+uname -a - returns info about kernel and stuff  
+cat /etc/*-release - return info about distro  
+lsb_release - command that returns info about distro  
+cat /proc/version - file with linux version info  
 
-===General
-check linux distro:
-  uname -a - returns info about kernel and stuff
-  cat /etc/*-release - return info about distro
-  lsb_release - command that returns info about distro
-  cat /proc/version - file with linux version info
+## facter:
+  tool to get info about the system, hardware, network, user, distro..  
+  121 property in total  
+  Useful for Ansible, to get different facts like os name.  
+   Ubuntu: sudo apt-get install facter  
+   CentOS: yum install facter # enable EPEL repo  
 
-facter:
-  tool to get info about the system, hardware, network, user, distro..
-  121 property in total
-  Useful for Ansible, to get different facts like os name.
-   Ubuntu: sudo apt-get install facter
-   CentOS: yum install facter # enable EPEL repo
-
-directories structure:
+## directories structure:
  / - root
  /bin - binaries for system boot, goes with distro
  /boot - kernel boot files and RAM disc with drv 
@@ -101,7 +79,7 @@ directories structure:
  /var/log - all logs go here
  
 
-man:
+## man:
   https://www.howtogeek.com/663440/how-to-use-linuxs-man-command-hidden-secrets-and-basics/
   man [section] <command>
   man sections:
@@ -128,11 +106,11 @@ man:
     > 6659 
       number of manpages on the system
 
-apropos:
+## apropos:
   searches through man by keyword and returs matched in format:
    article (secion) - line matched
 
-echo:
+## echo:
   accepts input from params or STDIN and returns in expanded to STDOUT
   accepts multyline input, and will return it in the same manner:
    echo "this is firstline
@@ -142,16 +120,16 @@ echo:
   -n - supress new line after output, like '.Write()' vs '.WriteLine();
   -e - enable interpretation of \ escaped stuff
 
-whatis:
+## whatis:
   returns first line from man of given command
    Example:
   dos:~$ whatis ls
   >ls (1)               - list directory contents
 
-info:
+## info:
   same as 'man' for GNU software
 
-pwd:
+## pwd:
   print working directory 
   returns string with current path location
    Example:
@@ -169,14 +147,14 @@ pwd:
    $ /bin/pwd
    /home/michas/a  <<< this will display real path including link redirection
 
-cd:
+## cd:
   change directory
    Params:
   <path/to/folder> - changes dir to the folder
   -/<none>   - changes to current homedir
   ~username - changes to username homedir
 
-tree:
+## tree:
   lists directories as trees, very useful
    https://www.ostechnix.com/view-directory-tree-structure-linux/
   sudo apt install tree
@@ -187,7 +165,7 @@ tree:
   tree -h --du .terraform/
    will show sizes in human readable, and for directories too
 
-ls:
+## ls:
   list files in given directory or current one
    Params:
   -l - long format (list basically)
@@ -215,13 +193,13 @@ ls:
   Example:
   ls -lSrh - sory by size, in reverse order with human readable sizes
 
-locale:
+## locale:
   displays all Locale related env variables, like
    LANG - set up during installation, picks install language
    LC_MONETARY - currency? 
    etc.
 
-time:
+## time:
   seems like calculates time of how long command takes to execute
   like StopWatch
    Syntax:
@@ -232,7 +210,7 @@ time:
   > user 0m0.005s	#this two seems to calculate actual time of
   > sys	 0m0.005s	#+ calculations required, except manual intput
 
-date:
+## date:
   returns current date - weekday, day, month, year, time, time-zone
    Could be formatted like:
   date +"%x %r %Z"
@@ -241,15 +219,15 @@ date:
    r - time hh:mm:ss (dunno whether its 12 hours or 24 hours format)
    Z - short name of time zone like 'EET' for Eastern European Time
 
-cal:
+## cal:
   calendar, spans for several lines , looks like ok calendar
 
-file:
+## file:
  short info about a file, file type etc.
   Linux does not have extensions for files so this is 
  the sure way to acquire such info
 
-grep:
+## grep:
   Global Regular Expression Print
   filters output using regular expressions
   grep <params> <regex> <filepath>
@@ -289,13 +267,13 @@ grep:
    Recurse Example:
   grep -R pattern *
 
-fgrep:
+## fgrep:
   interprets regex special symbols as usual ones, and searches text with it
   searches FAST and simple
    fgrep ^hello file.txt - will find for literal '^hello' and not for hello at
 			the beginning of the line in the file file.txt
 
-egrep:
+## egrep:
   allows to use Extended regular expressions
    accepts same Parameters as regular 'grep'
   it allows signs as:
@@ -307,11 +285,11 @@ egrep:
 	of the line
 
 
-stat: 
+## stat: 
   returns status info about given file, if it dir, or file, when it was changed,  its size and stuff
    man 2 stat - for details
 
-find:
+## find:
   find <path> <params> <name mask>
    !!!	ORDER IS IMPORTANT
    Example:
@@ -503,7 +481,7 @@ find:
    clear output of found stuff could be redirected to file. probably STDOUT
    while STDERR will keep appear on terminal window
 
-xargs:
+## xargs:
   takes arguments for given command from stdin and executes given command with
    that arguments.
   If amount of arguments are more than a limit of command line xargs will 
@@ -519,7 +497,7 @@ xargs:
   find . -name "test*" | xargs ls -l
    will construct ls -l test1 test2 test3 .... and execute it
 
-locate:
+## locate:
   find files by name.
    NOTE: not all distros have it preinstalled
   call 'updatedb' before use, to update database used by locate
@@ -535,13 +513,13 @@ locate:
    zip in their names
 
 
-update files:
+## update files:
  touch <filename> - will update access time of a file, or create new if none
  echo "" > <filename> - create\rewrite filename with blank line
  echo "text" >> <filename> - append existing file with line 'text'
 
 
-update-alternatives:
+## update-alternatives:
   manages symbolic links i.e.:
    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.5 1 - python3.5 as first list item
    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 2 - python3.6 as second list item
@@ -551,7 +529,7 @@ update-alternatives:
   See here: 
    http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
 
-shuf:
+## shuf:
  shuffles the deck lol
  generages random output for range
  -i num-num - input range
@@ -562,7 +540,7 @@ shuf:
  shuf -i 20-25 -n 1
   will output 1 number from the range
 
-sort:
+## sort:
   sorts by alphabet by default
    Synopsis:
   Sort [option] file
@@ -596,7 +574,7 @@ sort:
 	sort -t ':' -k 7 /etc/passwd
 	will sort by 7th column using : as field separator
 
-uniq:
+## uniq:
   deletes duplicates from SORTED output
    Params: 
   -d - displays only duplicets (kinda inversion)
@@ -619,7 +597,7 @@ uniq:
   ls /bin /usr/bin | sort | uniq -d | less - will display only duplicated files
 	in both dirs, in sorted order
 
-cat:
+## cat:
   concatenate, return file contents on screen. GNU
   cat <filename> <filename> - will return contents of both to screen
   cat <file1> <file2> >> <file3> - create new\append old file with joined
@@ -633,23 +611,23 @@ cat:
   -n - show line numbers
   -s - squeeze blank lines, leaves only 1 blank if 1+ exists concequently
 
-less:
+## less:
   pager, upgraded version of 'more' command
   lists output in separate 'window' does not adding history in the console
   ALSO could be used like 'unzip' to view archives
 
-split:
+## split:
   splits file into another files, like with collection variable
   split -l 2 <file name> -  will split the file by 2 Lines into new files named
 			    xaa, xab, xac, etc.
 
-nl: 
+## nl: 
   number lines, 
   number lines by pages(number from 1 on second page)
   number only regex matched lines (-b regex)
   add header(\:\:\:) and footer(\:) between body(\:\:)
 
-fold:
+## fold:
   split lines in two if length is exceeded
    Params:
   -w n - n length of w until move to another line
@@ -659,7 +637,7 @@ fold:
   >of text an
   >d stuff
 
-fmt:
+## fmt:
   format text, like 'fold' but saves emtpy lines, spaces and tabs
    Params:
   -w n - how long line should be (same to fold) , but screws up spaces and tabs
@@ -668,7 +646,7 @@ fmt:
   fmt -cw 50 text.txt
    will format file with lines of 50 long, saving empty lines and tabs
 
-printf:
+## printf:
   format string, like String.format(). has no new line \n, gotta add it manually
   % - conversion specificator:
    s - string
@@ -685,16 +663,16 @@ printf:
    %50s - formated string max 50 chars wide
    
 
-wc: 
+## wc: 
   word count, returns number of lines, chars\bytes and words
    -l - count lines
 
-head:
+## head:
   returs top of the file - 10 lines by default
    Params:
   -n <num> - change number of returned lines
 
-tail:
+## tail:
   returns bottom of the file - 10 lines by default
    Params:
   -n <num> - number of returned lines
@@ -714,7 +692,7 @@ tail:
     WHich is usefull for automation
     Same goes with 'ps'
 
-Troubleshooting:
+## Troubleshooting:
  Debian:
   /var/log/syslog
   /var/log/auth.log
@@ -731,7 +709,7 @@ Troubleshooting:
  instead clean the file:
    sudo cat /dev/null > /var/log/syslog
 
-Wifi adapter search for errors:
+## Wifi adapter search for errors:
   lshw -C network
   uname -rv
   lspci -knn | grep -EiA2 net
@@ -740,7 +718,7 @@ Wifi adapter search for errors:
   sudo rfkill list
   https://www.linuxquestions.org/questions/linux-newbie-8/asus-pce-ac51-wlan-adapter-driver-doesn%27t-install-properly-4175619526/
 
-Network troubleshooting:
+## Network troubleshooting:
   nmcli device 		# display all devices 
    or: nmcli device show eth0 - will show info about the interface(eth0) including dns, gateway, address, mac etc.
   >DEVICE  TYPE      STATE      CONNECTION  
@@ -787,10 +765,10 @@ Network troubleshooting:
   has correct drivers. 
   
 
-NetworkManager:
+## NetworkManager:
   network management daemon
   
-nmcli:
+## nmcli:
   network manager command line interface
    Synopsys:
   nmcli [PARAMS] OBJECT {COMMAND | help}
@@ -805,13 +783,13 @@ nmcli:
    Example:
   nmcli device - will display all network devices
 
-ifconfig:
+## ifconfig:
   displays current network interfaces
   part of the 'net-tools' package
    /etc/network/interfaces - for interfaces(5) changes
   -a - will display MAC also
 
-lshw:
+## lshw:
   list hardware, displays all the hardware detected by kernel and its state
   and properties
    -short  - short list of all devices found and their Classes
@@ -822,11 +800,11 @@ lshw:
    lshw -C network - will display all info about network adapters and their
                     state, together with drivers and info related
 
-hdparm:
+## hdparm:
   lists HDD info
   -I - get long list of HDD info
 
-lspci:
+## lspci:
   list pci devices - network , audio, usb controllers
    Example:
   lspci -knn | grep -EiA2 net
@@ -834,14 +812,14 @@ lspci:
     Kernel driver in use: rtl8821ae
     Kernel modules: rtl8821ae
 
-uname:
+## uname:
   system and kernel information
    -r   - kernel info
    -v   - Distro info
    Example:
   uname -rv
 
-Boot and Startup:
+## Boot and Startup:
   Boot when loads:
   * BIOS\UEFI
   * MBR
@@ -854,7 +832,7 @@ Boot and Startup:
   * to read `ring buffer` use `dmesg`
 
 
-dmesg:
+## dmesg:
   https://www.howtogeek.com/449335/how-to-use-the-dmesg-command-on-linux/
   reads logs from Kernel Ring buffer 
    kernel ring - place where logs stored during boot and OS loading
@@ -915,7 +893,7 @@ dmesg:
    to each line.
 
 
-sed:
+## sed:
   text stream editor, using RegEx for search\edit in stream(STDIN) line by line,
   in a non-interactive way(all decisions made\given in command params)
   Reads from file or STDIN
@@ -926,8 +904,8 @@ sed:
   Also can just write something(matched) from stream into a new file
 =   sed '' file.txt - will just print everything, same as 'cat'
 
-See More: https://www.digitalocean.com/community/tutorials/the-basics-of-using-the-sed-stream-editor-to-manipulate-text-in-linux
-https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-streams-of-text-in-a-linux-environment
+ See More: https://www.digitalocean.com/community/tutorials/the-basics-of-using-the-sed-stream-editor-to-manipulate-text-in-linux
+ https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-streams-of-text-in-a-linux-environment
 
   sed <param> '<param1>/pattern/replacement/<param2>' <file>
   -n - supress default ouput
@@ -990,7 +968,7 @@ https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-s
 	of line) from a 'file'
 
 
-tee:
+## tee:
   reads from STDIN and writes to STDOUT and File
   Overrides existing file by default , to append use -a
    Good for saving in the middle of pipe
@@ -1004,11 +982,11 @@ tee:
        then moe along a pipe and 'less' with the same result as in file1
    
    
-nl:
+## nl:
   number lines in text file. only numbering not empty lines
 
 
-mkdir:
+## mkdir:
   creates dir
   mkdir <params> <path>
   -p - creates every unexisting dir along the path, return no errors
@@ -1027,7 +1005,7 @@ wildcards(not a command:
   :lower: - lowercase
   :upper: - uppercase
 
-cp:
+## cp:
   copy stuff
   cp <params> <source1 src2 src3> <destination>
   cp -rf ../source/* .
@@ -1044,10 +1022,10 @@ cp:
   ............/.* . - will not work
   ............/.*.* . - will copy '..' which is parent directory to current one
 
-mv: 
+## mv: 
   see cp: above , pretty same, except it moves\renames files
 
-rm:
+## rm:
   remove stuff, does not delete dirs and not empty dirs w/o additinal params
   rm <params> <source>
   rm -r <dirname>
@@ -1059,7 +1037,7 @@ rm:
   To rm link:
    rm link_name   -- just as regular file, source of link is not affected
 
-unlink:
+## unlink:
   delete symlink
    Example:
   unlink symlink_name
@@ -1069,7 +1047,7 @@ unlink:
   Delete:
    find /path/to/directory -xtype l -delete
 
-ln:
+## ln:
   create hard link by default
   ln <param> <path> <link name>
   -s - create soft link
@@ -1095,7 +1073,7 @@ ln:
   Soft link: upgraded hard link, could be created anywhere, orig file can be
    deleted > link will become broken
 
-type: 
+## type: 
   returns how given command is interpreted
    Example:
   dos:~$ type ls
@@ -1108,7 +1086,7 @@ type:
   >apt is /usr/bin/apt
 
 
-curl: vs wget:
+## curl: vs wget:
   If I wanted to download content from a website and have the tree-structure 
   of the website searched recursively for that content, I’d use wget.
 
@@ -1117,7 +1095,7 @@ curl: vs wget:
   of the many not supported by wget.
 
 
-wget:
+## wget:
   non interactive network downloader
    Params:
   -q - quiet, turns off wget output
@@ -1125,7 +1103,7 @@ wget:
    Example:
   wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb - will download .deb file in current directory w/o any output
 
-curl:
+## curl:
   web requests issuer - HTTP[S] requests( see --version protocol list).
    CAREFUL: binary download to stdout in terminal could exploit injections
    https://www.howtogeek.com/447033/how-to-use-curl-to-download-files-from-the-linux-command-line/
@@ -1186,7 +1164,7 @@ curl:
   
 
 
-du:
+## du:
   disk usage
   du <params> <file/dir name>
    Does not accept input from pipe, seems like
@@ -1205,7 +1183,7 @@ du:
    hidden directories:
   du -hs .[^.]*
 
-diff:
+## diff:
   checks differences two files or whole directories
    could recursevly dig into dirs for diffs, and generate patch files with
   differences, to be applied by 'patch' command
@@ -1254,14 +1232,14 @@ diff:
    +      - line added into second file
    !      - line changed (only -c mode)
 
-patch:
+## patch:
   'diff' generated patch apply
    generated patch file already has file names, so no need to say anything
   just apply:
    patch < patchfile.txt
   Just kidding - use VCS
 
-bash history:
+## bash history:
   ! - invokes the Bash history mechanism
     !echo - will display and execute latest echo from current shell history
 	    if such exists, displays error if nothing found(event not found)
@@ -1271,13 +1249,13 @@ bash history:
     ls | bogus_command; echo $? # exit code: 127
     ! ls | bogus_command; echo $? # exit code: 0
 
-unzip:
+## unzip:
   utility to unzip files. Unzips in the current folder by default
    Params:
   -d - specify folder where to extract
   -l - lists archive contents, 'less' tool does the same
 
-zip: 
+## zip: 
   creates zip archive, could also create encrypted archives(with password)
   --encrypt - will promt for password during arch creation:
    Example:
@@ -1287,21 +1265,21 @@ zip:
   
   NOTE: zip encyption is very weak, use additional or other encription like gpg
 
-Encryption 
+## Encryption:
 public private keys ssl , stuff
-https://www.devco.net/archives/2006/02/13/public_-_private_key_encryption_using_openssl.php
-Sign with private key
+ https://www.devco.net/archives/2006/02/13/public_-_private_key_encryption_using_openssl.php
+## Sign with private key:
  Example:
-https://raymii.org/s/tutorials/Sign_and_verify_text_files_to_public_keys_via_the_OpenSSL_Command_Line.html
+ https://raymii.org/s/tutorials/Sign_and_verify_text_files_to_public_keys_via_the_OpenSSL_Command_Line.html
 
 Create CRS - certificate signing request (csr)
-https://www.sslshopper.com/what-is-a-csr-certificate-signing-request.html
-openssl req -new -newkey rsa:2048 -nodes -out servername.csr -keyout servername.key 
+ https://www.sslshopper.com/what-is-a-csr-certificate-signing-request.html
+ openssl req -new -newkey rsa:2048 -nodes -out servername.csr -keyout servername.key 
 
 General info about Keys, Key Pairs, Key Storages and stuff:
-https://info.townsendsecurity.com/definitive-guide-to-encryption-key-management-fundamentals#How-Encryption-Key-Systems-Work
+ https://info.townsendsecurity.com/definitive-guide-to-encryption-key-management-fundamentals#How-Encryption-Key-Systems-Work
 
-gnupg: gpg:
+## gnupg: gpg:
   Gnu PG could encrypt documents, basically all files
    See docs for encription here:
   https://www.gnupg.org/gph/en/manual/x110.html
@@ -1312,7 +1290,7 @@ gnupg: gpg:
   --gen-key  - generate a key
   --list-keys  - list all keys
 
-rsync:
+## rsync:
   Remote Syncs files\dirs locally or remote-local\local-remote
    Synopsis:
   rsync [-params] /source/path [/another/source] /receiver/path
@@ -1336,7 +1314,7 @@ rsync:
    Example:
   rsync -aAHvh bitbucket-home.tar.gz root@o-pe-bitbucket.twlab.int:/opt/atlassian/bitbucket/
 
-ar:
+## ar:
   archive?
    seems like can unarchive deb packages(other may be too?)
   Example:
@@ -1350,7 +1328,7 @@ ar:
   $ cp -L ~/libcurl3/usr/lib/x86_64-linux-gnu/libcurl.so.4 /usr/lib/libcurl.so.3
   $ cd && rm -rf ~/libcurl3
 
-tar:
+## tar:
   tape archive - collects all files in archive, with savin all permissions
    and user's ownership
   tar <params> <archive> <another_params> <source>
@@ -1389,7 +1367,7 @@ tar:
    <path> - cold be empty for current location
   Could pass view output to grep to search for particular file
 
-gzip:
+## gzip:
   compress files. it looks for a file it can compress by default even w/o
    specifying its name
   gzip <filename>
@@ -1409,24 +1387,24 @@ gzip:
 	9 - slow and super compressed (also --best)
 	6 - default value
 
-gunzip:
+## gunzip:
  g unzip, unzips .gz files
   -c - cat, same as in gzip - writes to STDOUT leaves original files unchanged
 
-zcat: 
+## zcat: 
  shipped with gzip, is like 'cat' but with z
   could be used instead of:
  gunzip -c file.gz | less
 
-zless: 
+## zless: 
  shipped with gzip, is like 'less' but with z
   could be used instead of:
  zcat file.gz | less
 
-zgrep:
+## zgrep:
  grep for search in .gz compressed files
 
-lsblk:
+## lsblk:
   List Block Devices
   list all devices mounted and not
    Example:
@@ -1450,7 +1428,7 @@ lsblk:
   
   
 
-block device types:
+## block device types:
  /dev/fd* - floppy drives
  /dev/hd* - hard drives
  /dev/lp* - printers
@@ -1458,7 +1436,7 @@ block device types:
 	    cameras, players and stuff. 
  /dev/sr* - cd/dvd
 
-block device naming:
+## block device naming:
  old motherboards had 2 IDE channgels, with cable for 2 devices (master\slave)
  devices are named by alphabet
  partitions are named by numbers
@@ -1469,7 +1447,7 @@ block device naming:
  second channel master - c - sdc
  second channel slave - d - sdd
 
-tune2fs:
+## tune2fs:
   adjust filesystem params
    Params:
   - l <filesystem> - list file system info
@@ -1478,7 +1456,7 @@ tune2fs:
    will return Filesystem created date, means when system was installed
   because looking at name of '/' root filesystem
 
-df:
+## df:
   display all mounted devices with size\free\used\paths etc
     Stands for: Disk Free
   -h - human readable sizes
@@ -1492,14 +1470,14 @@ df:
 
 ##mount find usb disk hdd drive:
 
-format usb disk:
-https://www.wikihow.com/Format-a-USB-Flash-Drive-in-Ubuntu
-https://www.cyberciti.biz/faq/linux-disk-format/
+## format usb disk:
+ https://www.wikihow.com/Format-a-USB-Flash-Drive-in-Ubuntu
+ https://www.cyberciti.biz/faq/linux-disk-format/
 
 1. locate the disk and found its name:  
   tail -f /var/log/syslog  
-> look for something like this:  
-May 26 15:57:00 dospc kernel: [ 9385.461071]  sdc: sdc1 sdc2
+ > look for something like this:  
+ May 26 15:57:00 dospc kernel: [ 9385.461071]  sdc: sdc1 sdc2
 
 2. #lsblk  
 
@@ -1517,15 +1495,15 @@ dd if=/dev/urandom of=/dev/sdc bs=1M count=2
 
 4. fdisk /dev/sdc
 
-option: o
+ option: o
 
-will create empty partition table
+ will create empty partition table
 
-option: n
+ option: n
 
 will create new partition, then use Defaults
 
-option: w
+ option: w
 
 will write changes, could take some time. wait for it
 
@@ -1555,7 +1533,7 @@ how to get block device name, partition, mount it and unmount after:
   mount /dev/sdb1 ~/mounted_stuff
   umount /dev/sdb
 
-mount:
+## mount:
   mount drive (disk, usb, floppy etc)
   mount -o rw,remount /
    -o - dunno.. TODO
@@ -1581,10 +1559,10 @@ mount:
   LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async
   labels or UUID could be taken from 'blkid' command
 
-ntfs-config:
+## ntfs-config:
   Enable/disable write support for any NTFS devices
 
-fdisk:
+## fdisk:
   manipulates disk partitions tables
    Usage:
   fdisk <block device name>
@@ -1597,14 +1575,14 @@ fdisk:
   > m 	- see what could do
   > p 	- see all partitions of the device 
 
-mkfs:
+## mkfs:
   create new filesystem
    Params:
   -t fylesystem type
    Example:
   mkfs -t ext3 /dev/sdb1
 
-lvm:
+## lvm:
  Logical Volume Manager
   How to install:
  https://help.ubuntu.com/community/UbuntuDesktopLVM
@@ -1615,12 +1593,12 @@ lvm:
   How to extend logical volume in text 
  https://www.howtogeek.com/howto/40702/how-to-manage-and-use-lvm-logical-volume-management-in-ubuntu/
 
-fsck:
+## fsck:
   filesystem check and repair (lost+found dir will have repaired files)
    Example:
   fsck /dev/sdb1
 
-genisoimage:
+## genisoimage:
   creates ISO images
    Parameters:
   -o <file.iso> - output to
@@ -1631,7 +1609,7 @@ genisoimage:
    where cd-rom-files is a directory with files to be added into ISO image
   
 
-scp:
+## scp:
   secure copy using ssh protocol
    could copy to or copy from remote location.
   copy to remote:
@@ -1673,7 +1651,7 @@ sshd(openssh)
     /var/log/auth.log
    tail -f -n 500 /var/log/auth.log | grep 'sshd'
 
-ssh:
+## ssh:
   remote connect via ssh protocol
    
   -v - display debug info level1
@@ -1693,7 +1671,7 @@ ssh:
    open  /etc/ssh/ssh_config and set
   PermitRootLogin yes
 
-ssh-keygen:
+## ssh-keygen:
   generates keypair private\public
     Example:
    ssh-keygen -t rsa -b 4096 -C "email" -f my_key
@@ -1722,7 +1700,7 @@ ssh-keygen:
  GitHub: Get fingerprint in hashed\hex format:
   ssh-keygen -E md5 -lf ~/.ssh/git_key[.pub]
 
-ssh-copy-id:
+## ssh-copy-id:
   copies public keys securely to remote machine for paswordless login
   keys are concatenated into ~/.ssh/authorized_keys file
   it will copy all public keys available in ~/.ssh/
@@ -1736,14 +1714,14 @@ ssh-copy-id:
    cat ~/.ssh/id_rsa.pub | ssh remote_username@server_ip_address "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
    
 
-ssh-keygen:
+## ssh-keygen:
   Known hosts are stored in a file /home/<username>/.ssh/knonwn_hosts.
     Generate public key from private key:
   ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
   
   
 
-sftp:
+## sftp:
   secure file transfer protocol, allows to list dir contents
   built-in into OpenSSH server, which workks as sshd service(daemon) together
   with scp
@@ -1757,7 +1735,7 @@ sftp:
   get <remote_filename> <new_local_name>
  ls also works, ALIASES from bashrc do not work
 
-shutdown:
+## shutdown:
  shutdown or reboot or halt etc the computer
   by default shutdowns in 1 minute, also could be scheduled:
    Example:
@@ -1766,7 +1744,7 @@ shutdown:
   shutdown - will shutdown as 'shutdown +1'
   shutdown now - shutdown now
 
-at:
+## at:
  need to be installed, daemon
  schedules to do something _at_ some time:
  There are three ways to use it:
@@ -1787,14 +1765,14 @@ at:
   Example: 
  at -t 201403142134.12 < script.sh
  
-crontab:
+## crontab:
   list cron schedules
  Exacmple:
   crontab -u <username> -l
     will list all rules for a user
     need sudo
 
-cron:
+## cron:
  task scheduler
 
  *     *     *     *     *  command to be executed
@@ -1823,7 +1801,7 @@ cron:
  
      Save the file and exit the editor.
  
-awk:
+## awk:
  stuff to worh with text, programming language kind of
   Example: 
  awk 'BEGIN {printf "title"} {print "line"} END {printf "end"}' textfile.txt
@@ -1871,7 +1849,7 @@ awk:
 
 
 ===Env Vars / Environment variables:
-declare:
+## declare:
   built-in command to assign or display variables and functions
    Syntax:
   declare [-aAfFgilnrtux] [-p] [name[=value] ...]
@@ -1912,8 +1890,7 @@ declare:
    echo $b3
    >foo
 
-printenv:
-env:
+## printenv: env:
   very similar, prints environment variables to STDOUT
   printenv VAR - prints value of specified variable to STDOUT
 
@@ -1939,15 +1916,15 @@ env:
   HISTCONTROL - with =ignoredups - will ignore duplicates in bash history
   HISTSIZE - changes default 500 value of history line-length
 
-set:
+## set:
   prints ALL variables - Shell vars, local vars, shell functions
   Builtin so use 'help set'
 
 
  Read more of set and printenv\env here:
-https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps
+ https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps
  Read more of printenv\env history here:
-https://unix.stackexchange.com/questions/123473/what-is-the-difference-between-env-and-printenv
+ https://unix.stackexchange.com/questions/123473/what-is-the-difference-between-env-and-printenv
 
 How to set\export env variables in bash:
   export - share variable for child processes started from current shell  
@@ -1990,9 +1967,7 @@ Read export\env differences here:
    set +o noclobber - removes noclobber back
 
 
-execute:
-source:
-dot (.):
+## execute: source: dot (.):
   read more:
   https://superuser.com/questions/176783/what-is-the-difference-between-executing-a-bash-script-vs-sourcing-it/176788#176788
 
@@ -2019,9 +1994,9 @@ dot (.):
   and kills it after everything is done - basic behaviour of everything
 
 
-===Login process
-Read More:
-http://mywiki.wooledge.org/DotFiles
+## Login process
+ Read More:
+ http://mywiki.wooledge.org/DotFiles
 
 No GUI login into text console. Local login shell:
 1. getty(8) starts and produces 'login:' prompt
@@ -2048,7 +2023,7 @@ In case this is .profile, before read it, need to ensure that Bash is used:
     . ~/.bashrc
   fi
 
-Remote Login Shell:
+### Remote Login Shell:
 alsmost same as previous, but except 'getty' and 'login' - 'sshd' handles
 greetings(login prompt by 'getty') and password auth('login').
 PAM also linked with 'sshd', but will read /etc/pam.d/ssh (not .../login).
@@ -2056,15 +2031,15 @@ PAM also linked with 'sshd', but will read /etc/pam.d/ssh (not .../login).
 "execs" bash as a login shell, which causes it to read /etc/profile and then 
 one of .bash_profile or .bash_login or .profile.
 
-NOTE:
+ NOTE:
 during ssh login, some of local Env Vars could be sent to remote sshd
 like LANG and LC_* variables want to be preserved by the remote login.
 Unfortunately, the configuration files on the server may override them.
 
 
-===User\Groups Management
+## User\Groups Management
 
-=====User\Groups Management General info
+### User\Groups Management General info
 group related info is stored in
   /etc/group   - file, use 'vigr' for edit
 user related info stored in 
@@ -2083,8 +2058,8 @@ see more: https://unix.stackexchange.com/questions/129143/what-is-the-purpose-of
 
 
 unlike files in /etc/skel changes to this files will affect even existing users
-changes from here will be applied with every re-login to every 
-		user on thesystem:
+changes from here will be applied with every re-login to every
+  user on thesystem:
 /etc/bash.bashrc -  will affect ~/.bashrc 
 /etc/profile -  will affect ~/.profile
 
@@ -2133,11 +2108,8 @@ NOTE: there are Primary group for a user and SUpplementary groups,
     > newgroup1 john newgroup2
   Files created by user are owned by PRIMARY group of the user
 
-
-=====user\groups management general info end
-
-=====Manipulate Users And Groups
-useradd:
+# Manipulate Users And Groups
+## useradd:
   old since any *nix creation. Almost everything need to be done manually bcs of
   compatibility - different *nix platforms handles users differently, their ~
   directories could be different
@@ -2162,7 +2134,7 @@ useradd:
 NOTE: after user is created the password need to be added:
 passwd testuser
 
-=====Manual User Creation
+## Manual User Creation
 user# sudo su -		- become root
 root# vipw		- edit /etc/passwd
  add new line with user info like:
@@ -2176,20 +2148,20 @@ root# chown -R username:usergroup username/ - change recurse ownership of dir
 root# passwd username - create password for the user
 =====manual user creation end
 
-id:
+## id:
   returns info of current user - id, main group id, other groups, etc.
 
-groups:
+## groups:
   list groups of a user
   groups [username]
     w/o params gives current user groups
     with username - gives groups of that user
 
-getent:
+## getent:
   getent group <$(whoami)>
   lists all groups on system and users of those groups(similar to /etc/group)
 
-usermod:
+## usermod:
   modify existing users
   usermod [<params>] [groups] <user>
    -l - change LOGIN of the user. i.e.:
@@ -2213,12 +2185,12 @@ usermod:
   More to read at:
    https://www.tecmint.com/usermod-command-examples/
 
-userdel:
+## userdel:
   deletes user in old way
   userdel <username>
   -r - deletes home directory too
 
-adduser:
+## adduser:
   adding user
   shell around perl written useradd command, which is hard to use
    adduser <username>
@@ -2230,14 +2202,14 @@ adduser:
     detailed how adduser works on Ubuntu:
     https://askubuntu.com/questions/659953/what-is-ubuntus-automatic-uid-generation-behavior
 
-groupadd:
+## groupadd:
   adds group
   info about groups is stored in /etc/group file, see General above for details 
    once group is created use 'usermod' to add users to it
   group [options] <group>
   -g - manually set GROUP id
 
-chgrp: 
+## chgrp: 
   change group, changes group of file or directory
    Synopsys:
   chgrp [param] <group> /path/to/file
@@ -2246,7 +2218,7 @@ chgrp:
   -c - like verbose but only when change is made
   -v - verbose
 
-groupmod:
+## groupmod:
   modify existing groups
   -g - change GROUP id
     groupmod -g 300 manager - change group 'manager' to have new GID of 300
@@ -2254,7 +2226,7 @@ groupmod:
     groupmod -n managers manager - change group 'manager' to 'managers'
 
   
-passwd: 
+## passwd:
   change password for current user
    or for given user
   passwd [username]
@@ -2263,7 +2235,7 @@ passwd:
   has 'setuid' thing..
 
 
-gpasswd:
+## gpasswd:
   add\remove users from a group, set admins for the group, set password for
   a group
   gpasswd <params> <group>
@@ -2274,18 +2246,18 @@ gpasswd:
      sudo gpasswd -d johnny newgroup1 - remove 'johnny' from 'newgroup1'
   -A <user> - add ADMIN user for a group, dunno what it is about.. TODO
 
-newgrp:
+## newgrp:
   newgrp <groupname>
   Changes primary group of the user w/o deleting any groups
    could freely move between assigned groups 
   And asks for password(probably group password) if trying to set unassigned
   group as primary one
 
-groupdel:
+## groupdel:
   delete group
   groupdel [params] <groupname>
 
-setuid and setgid:
+## setuid and setgid:
  setuid:
   Attribute of a file that allows unprivileged user to have level of permission
   of original owner of the file. 
@@ -2305,9 +2277,7 @@ setuid and setgid:
 whoami:
  returns username of currently logged user
 
-=====manipulate users and groups
-
-=====Super User
+# Super User
 /etc/sudoers - file where all the privileges set. has user accounts with 
 		privileges, as well as some groups, 
 		for Ubuntu: 
@@ -2318,10 +2288,10 @@ whoami:
 NOTE: this file must be edited through 'visudo' command, this will ensure safe
   changes including lock file on edit and so on
 
-root access:
+## root access:
   should be disabled for remote login in sshd for security reasons
 
-su:
+## su:
   su - [<username>] - creates new session for a user, i.e.:
      su - user - log in under 'user' user
   log in as super user(root), need to provide root password i.e.: 
@@ -2360,18 +2330,18 @@ top: htop:
   PID number 1 is always 'init' command or 'systemd' in my case on ubuntu 16 and
   centos 7
 
-glances:
-https://opensource.com/article/19/11/monitoring-linux-glances?sc_cid=70160000001273HAAQ
+## glances:
+ https://opensource.com/article/19/11/monitoring-linux-glances?sc_cid=70160000001273HAAQ
 if you are a fan of top / htop / atop / iotop....  you might like this..
 looks like glances can also setup a "web interface" to view.. as well as monitor things like docker etc
 
-general processes:
+## general processes:
   all processes are spawned from process with ID 1, 'init' in manual or systemd
   in my case, for some reason
   so there is a PID which is Process ID
   and PPID which is Parent Process ID, so every process has parent, except PID 1  it seems
 
-strace:
+## strace:
   shows trace of used files byt the given command - magic eh?
    Example:
   strace -s 2000 hostnamectl |& grep ^open | tail -5
@@ -2379,7 +2349,7 @@ strace:
    still it could iteract with other services which could read from files, and this is not 
    seen here, alas.
 
-watch:
+## watch:
   cool debug tool again:
   execute a program periodically, showing output fullscreen
    Example:
@@ -2387,7 +2357,7 @@ watch:
   #execute 'hostnamectl' and new entry will be added 
   > root     11003     1  0 02:51 ?        00:00:00 /lib/systemd/systemd-hostnamed
 
-ps:
+## ps:
   by default returns processes run by my current user and current terminal 
   session
   ps [-[-]]<params> 
@@ -2420,11 +2390,11 @@ ps:
 	    in BSD format
   ps axjf - formatted method of processes with parents in tree view
 
-pgrep:
+## pgrep:
   process grep , could find process id (PID) by process name, like
   pgrep bash - will return PID of the bash process running somewhere locally
 
-kill:
+## kill:
   for terminating the processes
   kill <param> <PID>
   each kills param has its number equialent
@@ -2450,7 +2420,7 @@ kill:
 	as per grep matched several lines(List de-facto) every line will be 
 	rinted. And sent out of $() into kill -9 as argument
 
-killall:
+## killall:
  kills all instances of the process
   Example:
  killall xlogo - will kill all instances of 'xlogo'
@@ -2486,7 +2456,7 @@ service vs systemctl vs upstart
 service is an "high-level" command used for starting and stopping services in different unixes and linuxes. Depending on the "lower-level" service manager, service redirects on different binaries.
 For example, on CentOS 7 it redirects to systemctl, while on CentOS 6 it directly calls the relative /etc/init.d script. On the other hand, in older Ubuntu releases it redirects to upstart
 service is adequate for basic service management, while directly calling systemctl give greater control options.
-https://serverfault.com/questions/867322/what-is-the-difference-between-service-and-systemctl
+ https://serverfault.com/questions/867322/what-is-the-difference-between-service-and-systemctl
 
   RHEL-like - systemd (moved from SysVinit)
 	https://fedoraproject.org/wiki/SysVinit_to_Systemd_Cheatsheet
@@ -2532,25 +2502,25 @@ https://serverfault.com/questions/867322/what-is-the-difference-between-service-
   it seems it also supports systemctl and disable\enable with same commands,
    but creating .override file in the Debian way
 
-Systemd:
+# Systemd:
 configure units(services)
-https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/sect-managing_services_with_systemd-unit_files
+ https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/sect-managing_services_with_systemd-unit_files
  Example:
  https://www.jetbrains.com/help/teamcity/setting-up-and-running-additional-build-agents.html#Automatic-Agent-Start-under-Linux
 
 
-systemctl:
+## systemctl:
   cli for systemd service controller
   it is called by 'service' command for backwards and cross compatibility reasons
 
-journalctl:
+## journalctl:
   displays logs
    Params
   -u - show logs for Unit
    Example:
   sudo journalctl -u sshd.service
 
-hostnamectl:
+## hostnamectl:
   cli of systemd service controller related to hostname changes and management
   unified way to deal with hostname, list /etc/*-release, uname and stuff
    read more here, like really detailed - good stuff:
@@ -2558,7 +2528,7 @@ hostnamectl:
    Example:
   hostnamectl set-hostname 'gfs-server-03'
   
-change hostname:
+## change hostname:
   read more:  https://www.cyberciti.biz/faq/linux-change-hostname/
    with systemd adopted:
   hostnamectl set-hostname 'gfs-server-03'
@@ -2566,13 +2536,13 @@ change hostname:
   /etc/hostname
    + edit everything with old hostname in /etc/hosts, and add hostname to localhost addr
 
-supervisor:
+## supervisor:
   lightweight services controller, available for both RHEL and Debian like
    distros. Could be used in containers instead of systemd or systemctl etc
   Manages processes, could restart and monitor them, require config file to
   operate
    See how to start several processes in Docker using this tool:
-https://kuldeeparya.wordpress.com/tag/how-to-run-ssh-and-apache2-in-docker-container/
+ https://kuldeeparya.wordpress.com/tag/how-to-run-ssh-and-apache2-in-docker-container/
 
   config file:
 	[supervisord]
@@ -2585,15 +2555,12 @@ https://kuldeeparya.wordpress.com/tag/how-to-run-ssh-and-apache2-in-docker-conta
 	command=/bin/bash -c “source /etc/apache2/envvars && exec /usr/sbin/apache2 -DFOREGROUND”
 
 
-
-===processes and services management
-
-===Package management
-=====Debian\Ubuntu
+# Package management
+## Debian\Ubuntu
 
 .deb - packages format
 
-dpkg:
+## dpkg:
   dpackage - debian packages manager, fully console, installs only package
   -i - install a package
      only package , no dependencies - generate error with dependencies required
@@ -2606,14 +2573,14 @@ dpkg:
 	Another option is to use web interface on Ubuntu:
 	https://packages.ubuntu.com/
 
-aptitude:
+## aptitude:
   frontend of dpkg, GUI in commandline
    categories of packages, local, available etc, then all the packages by 
   categories. also displays info about each package
   Enter key to open\close category.
   g or u - install selected package
 
-apt-get: apt:
+## apt-get: apt:
   stands for Advanced Package Tool
    apt is merge of apt-get and apt-cache, for easier use, has not all functions
    but also has some additional functions
@@ -2654,7 +2621,7 @@ apt-get: apt:
   /var/cache/apt - cache folder of apt
   ./archives - contain all the archives, could be removed by 'autoclean' command
 
-apt-cache:
+## apt-cache:
   support tool of apt used to work with apt cache(updated by apt-get cache 
   command)
   apt-cache pkgnames - list of all pkgs APT knows, not all could be downloaded
@@ -2677,7 +2644,7 @@ apt-cache:
       and name of repository is Universe
    apt-cache policy - returns all used repositories, kind of 
 
-apt-file:
+## apt-file:
   another extension for apt-get, is in different package, 
    need to be installed first
 
@@ -2728,8 +2695,7 @@ apt-file:
    line above:
     deb http... xenial ... multiverse
 
-add-apt-repository:
-apt-add-repository:
+## add-apt-repository: apt-add-repository:
   Newer versions of Ubuntu support 'add-apt-repository'
    standard repositories could be added w/o specifing address, just repo name: 
     Example:
@@ -2738,9 +2704,9 @@ apt-add-repository:
   Older versions support this:
    sudo add-apt-repository "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) universe"
 
-NOTE: make sure to 'sudo apt-get update' before use newly added repository
-Read More:
-https://askubuntu.com/questions/148638/how-do-i-enable-the-universe-repository
+ NOTE: make sure to 'sudo apt-get update' before use newly added repository
+ Read More:
+ https://askubuntu.com/questions/148638/how-do-i-enable-the-universe-repository
 
   Due to regular use of secure stuff also make sure following packages are
   installed(use apt-cahce show <package name> or 'apt list --installed'):
@@ -2798,31 +2764,30 @@ https://askubuntu.com/questions/148638/how-do-i-enable-the-universe-repository
 	
    
 
-update-ca-certificates:
+## update-ca-certificates:
   updates certificates from _somewhere_
    Pamars:
   --fresh - somethinh fresh?
 
-List certificates:
+## List certificates:
   awk -v cmd='openssl x509 -noout -subject' '
     /BEGIN/{close(cmd)};{print | cmd}' < /etc/ssl/certs/ca-certificates.crt
    Search for existing root cert:
   \ | grep -i '<root cert common name>'
 
 
-=======List all installed packages:
+### List all installed packages:
   dpkg -l - list of packages and their details
   apt list --installed - list of full names
   aptitude - has a category for installed pkgs divided by categories
  Active Repositories
   apt-cache policy
 
-=====debian\ubuntu end
 
-=====RedHat RHEL\Centos
+# RedHat RHEL\Centos
 
   .rpm files
-rpm:
+## rpm:
   red hat package manager
   It seems it has some differend modes, where similar keys could exist with 
   different functions, i.e. -i - installation mode, -i in -q(query) mode is info
@@ -2875,7 +2840,7 @@ rpm:
    rpm --import - will import key somehow from somewhere..
    rpm -qa gpg-pubkey* - will list all the public verification keys on system
   
-yum:
+## yum:
   Stands for "Yellowdog Updater, Modified". yellowdog is already unsupported 
   version of Linux for PowerPC, which is also dead now
   yum <params> <package_name>
@@ -2930,12 +2895,12 @@ yum:
      use it after some bunch of packages has been installed to clean space
   yum history - history of yum - install\remove\upd package and stuff, sudo
 
-=======Manage repositories
+### Manage repositories
 repos stored in /etc/yum.repos.d, which is a directory
-to add new repository:
+## to add new repository:
  create new file in the /etc/yum.repos.d dir named '<anything>.repo'
 
-Format of repo file:
+## Format of repo file:
 [dockerrepo]  - name of the repository section
 name=Docker Repository - name of repo to display
 baseurl=https://...    - address to where from do pulls of packages
@@ -2969,27 +2934,25 @@ gpgkey=https://....    - location of the key
   yum history - check the ID column next to the command line with installation
   command of the package that need to be uninstalled
   then call 'yum history undo <ID>'
-=======uninstallation end
 
-=======List all installed packages:
+
+### List all installed packages:
   rpm -qa - query all packages, will return list of all installed packages
   yum list installed - will return list of installed packages
 
 
-yum-utils:
+## yum-utils:
   yumdownloader:
   yumdownloader <pkg>
     downloads a .rpm file, into current dir pretty similar to apt-get download
     command
-=====redhat rhel\centos end
-===package management end
 
-===File Permissions / Ownership
+# File Permissions / Ownership
 
 ! Linux treats everything - device\file\directory as if it is a FILE
 
 Discertionary Access Control (DAC)(used after Mandatory Access Control MAC from LSM):
-drwxrwxrwx:
+ drwxrwxrwx:
 d - type of file(file\device\dir\link)
  r - read
    r only gives ability to list contents, but lots of ????? and file names
@@ -3002,9 +2965,9 @@ d - type of file(file\device\dir\link)
    together with read - can ls norm and execute stuff like 'cat' to read file
 first 3 - user permissions 
 second 3 - user's group permissions
-third 3 - all other users
+ third 3 - all other users
 
-chown:
+## chown:
   changes owner and group of a file\directory\link
   chown <params> [user][:group] <file/dir>
 		 -reference=R_FILE FILE
@@ -3016,7 +2979,7 @@ chown:
   could change only owner(<owner>), only group(<:group>), or both(<owner:group>)  could take ownership schema like owner:group from a file:
    chown --from=:user :otheruser file.txt
 
-chmod:
+## chmod:
   change modification
   chmod [<params>] <permissions> <file_path>
   text modifications:
@@ -3042,11 +3005,11 @@ chmod:
   --preserve-root - fail to operate recursively on '/'
   -R - recursive
 
-lsattr:
+## lsattr:
   lists extra attributes of files on linux file system
   lsattr file1 - display attributes of the file1
 
-chattr:
+## chattr:
   changes extra attributes, lots of them, here some:
   i - immutable (can not be changed)
   a - appendable (can be opened only in append mode)
@@ -3058,12 +3021,10 @@ chattr:
   i.e. 
   chattr +u file1 - adds undeletable attr to file1
 
-===file permissions / ownership end
-
-===IPTables / Linux kernel Firewall(not d)
-read more:
-https://www.unixmen.com/iptables-vs-firewalld/
-https://linuxacademy.com/cp/socialize/index/type/community_post/id/15473
+# IPTables / Linux kernel Firewall(not d)
+ read more:
+ https://www.unixmen.com/iptables-vs-firewalld/
+ https://linuxacademy.com/cp/socialize/index/type/community_post/id/15473
 
 !!!!!!!!!!!!!!!!
 !!  WHen using SSH configure SSH rules first BEFORE changing 
@@ -3081,8 +3042,8 @@ generic? - iptables-services - firewall service that uses iptables, generic
 	   it seems
 
 
-Main three groups or something:
-Tables:
+## Main three groups or something
+### Tables:
  used to group different functionalities and separated in five:
  - filter - default table if no specified. Packet filtering.
    Built-in chains:
@@ -3095,7 +3056,7 @@ Tables:
  - security - Mandatory Access Control(MAC) networking rules
  -t\--table - parameter to specify a table
 
-Chains:
+### Chains:
  Tables contain set of chains.
  Chains group rules on different points of process.
  Chains could be Built-in or User defined.
@@ -3105,7 +3066,7 @@ Chains:
  -N\--new-chain - adds user defined chain
  -X (--delete-chain) - delete chain
 
-Rules:
+### Rules:
  Defined as a set of matches and a target. 
  Are listed in chains and followed by order until a match is found, then packet
  is handled by the target specified by the rule.
@@ -3116,7 +3077,7 @@ Rules:
 		     that were used to add rule is saved and displayed here
 
 
- Matches:
+### Matches:
    if match is true the packet will be processed by iptables.
    Following matches exist(not full list):
    -s (--source) - source of the packe(IP, hostname or network IP)
@@ -3137,7 +3098,7 @@ Rules:
 	If not next rule will be processed until RETURN or end of rules, then
 	Default TARGET(Default policy) will be applied.
 
- Targets:
+### Targets:
   Determines the action to be taken if packet is Matched.
   -j (--jump) - specify Target
   There are 4 built-in Targets:
@@ -3146,7 +3107,7 @@ Rules:
    QUEUE - sends the packet to user space
    RETURN - returns to previous chain, or handle by Chain policy(Default?)
 
-Default Policies:
+### Default Policies:
   When packet is not matched by any Rule on the Chain - it is handled by the
   target specified in the policy of that chain.
   Two main approaches:
@@ -3155,7 +3116,7 @@ Default Policies:
   -P (--policy) <chain> <target> - set default policy for a chain with target
 
 
-iptables:
+## iptables:
   a generic table structure for the definition of rulsets
   basically ruleset of Linux kernel firewall
   it is a tool to get daemon(service) install other app:
@@ -3174,13 +3135,13 @@ default rules, /etc/sysconfig/iptables for CentOS 7
    Ubuntu: sudo service ufw start\stop\status
    Centos: servicectl start\stop\status iptables
 
-IP address ranges:
+## IP address ranges:
 CIDR blocks
-https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation
-https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks
+ https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation
+ https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks
 
-firewalld:
-firewall-cmd:
+## firewalld:
+## firewall-cmd:
   https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-using-firewalld-on-centos-7
  firewall-cmd --get-default-zone
   get default zone
@@ -3207,11 +3168,8 @@ firewall-cmd:
   firewall-cmd --zone=public --add-port=5693/tcp      - turns on the rule
   firewall-cmd --zone=public --add-port=5693/tcp --permanent   - saves the rule so it is applied on the boot
 
-
-===ip tables / firewall
-
-===Bash
-=====Bash command line shortcuts
+# Bash
+## Bash command line shortcuts
 ctrl+a - moves cursor on the beginning of the line
 ctrl+e - moved cursor on the End of the line
 ctrl+u - removes everything from cursor position to the beginning of line
@@ -3221,32 +3179,32 @@ ctrl+l - cleares screen except of current command LINE
 ctrl+p - last executed command shown in command line, same as UP ARROW key 
 ctrl+c - terminate current process + exit\del current line by terminating it
 ctrl+z - pause program, adding it to backgroud job. 'bg'\'fg' to continue run
-history:
+## history:
 ctrl+r - bash history by typed command
 ctrl+r - again looks one matched line upwards
 ctrl+j - edit matched line
 ctrl+o - execute current command from history
 
-=====Bash Shell
-alias:
+## Bash Shell
+## alias:
  new aliasws workws only for current session
  alias <new name>="<command>" - adds command as alias
  alias <old name> - shows command
  alias - shows all aliases for current session
 
-sleep:
+## sleep:
   just regular sleep, stops current thread for amount of given seconds
 
   Experiments:
   sleep 10 & - will stop the thread for 10 seconds and move it to background
 
-background: (not command)
+## background: (not command)
   to start process in a background use & at the end
    Example:
   xlogo & - will start xlogo but cmd will return control to user
    xlogo will run as a Job, with 'Running' state
 
-jobs:
+## jobs:
   built-in command
   shows jobs in background, running, stopped
    More read:
@@ -3256,26 +3214,26 @@ jobs:
 
   NOte: kill could also accept JOB_SPECs to kill jobs, instead of PIDs
 
-fg:
+## fg:
   moves job to the foreground
   fg JOB_SPEC
    Example:
   fg 1 - moves job [1] to the foreground
   Ctrl+z will move it back, but 'paused'- use bg to continue in background
 
-bg:
+## bg:
   moves job to the background
    If program is 'Stopped' like after executiong ctrl+z shortcut, bg <%num>
   will continue its execution as a job, in the background
    Params:
   %job_spec - address numbered job
 
-script:
+## script:
   writes a session script - all executed commands and stuff
    with time parameter will create file with timings of each command and could
   play it afterwards using these two files
 
-bash:
+## bash:
   man bash
   
   -c - accepts a whole bunch of commands like:
@@ -3295,7 +3253,7 @@ bash:
    \h - hostname
       Hostname is stored in /etc/hostname
 
-hostname:
+## hostname:
   network computer name. command returns current hostname
   value is stored in /etc/hostname
    Synopsis:
@@ -3314,14 +3272,14 @@ hostname:
     If nothing is available in /etc/hostname first hostname with 127.0.0.1 
    address will be taken as hostanme
 
-history:
+## history:
   lists history, dumps .bash_history file into STDOUT, lines numbered
   -c - Clear history, but only in session, .bash_history remains the same
 	only in CentOS it seems, ubuntu does nothing
    Example:
   history | grep /usr/bin - look for only what matched
 
-which:
+## which:
   shows location of a command and its alias if exists
    Does not show built-ins
   can search by alias too
@@ -3329,7 +3287,7 @@ which:
    i.e.
   which ll - will return alias line and path for binary
 
-whereis:
+## whereis:
   searches for binary file, sources, man files of the command
   Does not work with aliases!
    i.e.
@@ -3346,10 +3304,10 @@ Streams and Redirects. redirection:
  Linux\Unix philosophy is that 'everything is a file' but in fact this are not
   files but block defices stored in /dev or /proc directories, and not files but
   some stuff stored in RAM for instance
-STD - means standard
+ STD - means standard
   Read More:
   https://stackoverflow.com/questions/3385201/confused-about-stdin-stdout-and-stderr
-STDIN:
+## STDIN:
   I/O Stream
   file handle that process read to get info from user
   NOTE:
@@ -3361,10 +3319,10 @@ STDIN:
   let you pass the filename /dev/stdin to programs that only work with files, 
   but you want to control more interactively. (Someday this will be a useful 
   trick for you to know. :) 
-STDOUT:
+## STDOUT:
   I/O Stream
   process writes normal info to this file handle
-STDERR:
+## STDERR:
   I/O Stream
   process writes error info to this file handle
 
@@ -3387,37 +3345,37 @@ NOTE: redirect Standard Output(and error too) to null will hide it from everyone
   Errors also could be hidden like this, in case of exposing of some secure or
   sensitive info
 
-Redirect SDOUT and STDERR into two files in the same time:
+## Redirect SDOUT and STDERR into two files in the same time:
   cat goodFile notExistingFile >mystdout 2> mystderr
 	mystdout will contain standard output
 	mystderr will contain standard error output
 
-Redirect STDOUT and STDERR into single file:
+## Redirect STDOUT and STDERR into single file:
   cat goodFile notExistingFile >mystdout 2>&1
 	mystdout will contain both STDOUT and STDERR
     Or
   cat goodFile notExistingFile &> mystdout
 
-noclobber:
+## noclobber:
   is an option set-up by 'set' command
    prevents redirection '>' from overriding files. it will return an error
   
 
 
-pipe: |:
+## pipe: |:
   redirects standard output of first program into standard input of another
 
-expand:
+## expand:
   changes Tabs to Spaces in files from argument or stream from STDIN
    Example:
     cat -A test   >>> ^Ia ^Ia    a^Ia$
     expand test | cat -A  >>>        a       a    a  a$
   will change all tabs in file to spaces.
 
-unexpand:
+## unexpand:
   change Spaces to Tabs - vice versa of 'expand'  
 
-cut:
+## cut:
   Removes section from each line(column in fact) from a File
    Or parses each line in file by delimiter(Default is TAB) and could retreive
    only selected columns, or bytes - this is for -f option
@@ -3472,20 +3430,20 @@ cut:
 	username and user home directory
 	So cut accepts STDIN redirection
 
-paste:
+## paste:
  vice versa of 'cut' - pastes columns in files
 
-join:
+## join:
  sql join but for text files
   in case of need to use this, use man\google, i'm to lazy to document
  Sorry.
 
-bash escapes:
-special symbols:
+## bash escapes:
+## special symbols:
 $'\t' - print tab, which is not printable character, same as /r/n or somehting
 
-=====Bash Scripting
-test:
+## Bash Scripting
+## test:
  [ 1 -eq 1 ]    - ints compared with -eq, -lt, -gt, -ge, etc
  [ 'a' = 'a' ]  - strings compared with =, <, >, >=, etc
   tests condition, returns 0 if test is passed(true)
@@ -3520,7 +3478,7 @@ test:
 	Else, egrep will return 1, and thus second echo (after ||) will be
 	executed
   
-for:
+## for:
   regular for loop could be done in command line too
 
   for i in `command`; do echo $i; done
@@ -3530,12 +3488,12 @@ for:
   for line in `cat file1`; do echo $line; done
 	
 
-===Other programs:
+# Other programs:
 
-elinks:
+## elinks:
   command line browser, with interface similar to MC or aptitude
   
-mc:
+## mc:
   two-windowed GUI to work with file system
 
 
@@ -3621,9 +3579,9 @@ server {
 	ALso i commented default 'root' not sure if this necessary
 
 
-===Networking
+# Networking
 
-networking relies on configuration files:
+## Networking relies on configuration files:
 /etc/sysconfig/network-scripts/ifcfg-<interfase_name> - this file describes 
 	how network interface works, every interface has its own file.
 	Settings of the interface are stored in here
@@ -3644,15 +3602,15 @@ networking relies on configuration files:
 /etc/resolv.conf - something like 'hosts' in Windows, it seems, store default DNS here
 	 Example:
 	nameserver 8.8.8.8   - default google's DNS
-see this for details on resolving Networking issue on VMWare:
-https://superuser.com/questions/901672/centos-7-ping-8-8-8-8-connect-network-is-unreachable/901677
+ see this for details on resolving Networking issue on VMWare:
+ https://superuser.com/questions/901672/centos-7-ping-8-8-8-8-connect-network-is-unreachable/901677
 
-tcptraceroute:
+## tcptraceroute:
   traceroute to port 
    Example:
   sudo tcptraceroute teamcity.tideworks.com 443
 
-ip: 
+## ip: 
   link - creates network interface with name and type:
 	also could be used if 'ifconfig' is absent
 	Example:
@@ -3680,12 +3638,13 @@ ip:
 		bridge_ports dummy0	#some mock stuff
 		bridge_stp off
 		bridge fd 0 		#frame 0
-====Ports checks
-read more:
-https://www.cyberciti.biz/faq/how-do-i-find-out-what-ports-are-listeningopen-on-my-linuxfreebsd-server/
-https://www.maketecheasier.com/check-open-ports-linux/
 
-netstat:
+## Ports checks
+ read more:
+ https://www.cyberciti.biz/faq/how-do-i-find-out-what-ports-are-listeningopen-on-my-linuxfreebsd-server/
+ https://www.maketecheasier.com/check-open-ports-linux/
+
+## netstat:
   find open ports
   Find port on machine:  https://www.tecmint.com/find-open-ports-in-linux/
    Params:
@@ -3703,12 +3662,12 @@ netstat:
   Check ports 9211, 8685 opened on local machine for tcp\udp for IPv4 and IPv6:
    netstat -lntu | egrep "9211|8685"
 
-ss:
+## ss:
   netstat could be outdated on some systems, use it instead
    Example:
   sudo ss -tulwn - display all opened ports on local machine
 
-lsof:
+## lsof:
   also checks ports, could display processes that are using
    port, and files used by the process
 
@@ -3718,13 +3677,13 @@ lsof:
    - 4 - ipv4
    - tcp - display tcp (cant use 4 and tcp in the same time, it seems)
 
-telnet:
+## telnet:
   check ports open
   telnet <hostname/ip> <port>
    Example:
   telnet lwpeartifabld.tideworks.com 5000
   
-nmap:
+## nmap:
   Network Mapped, detects open ports on my system
    -s - Scan, there are lots of it
     -sT - scan TCP
@@ -3748,7 +3707,7 @@ nmap:
   Example:
    nmap -sT -O localhost    - [s]cans [T]CP on localhost
  	
-nslookup:
+## nslookup:
   looks for domain names by given IP
   uses /etc/resolv.conf  - where all the DNS servers are
    resolv.conf:
@@ -3758,11 +3717,13 @@ nslookup:
   nameserver 172.19.65.1
   nameserver 10.253.1.1
   nameserver 10.253.1.3
+   Example:
+  noslookup $(hostname -I)   - dns entry if only 1 if
 
 
-==Security
+# Security
 LSM: linux security module:
-https://www.kernel.org/doc/html/latest/admin-guide/LSM/index.html
+ https://www.kernel.org/doc/html/latest/admin-guide/LSM/index.html
 
 Primary user of LSM is Mandatory Access Control(MAC) extensions
 
@@ -3824,7 +3785,7 @@ permissions policy must be loaded into the kernel from user space
 Wiki - http://wiki.apparmor.net
 User space tools - https://gitlab.com/apparmor
 
-Lockdown:
+## Lockdown:
   https://lwn.net/Articles/791863/
    Together with UEFI locks who can access kernel
    only Private Key owner with pair in UEFI
@@ -3838,53 +3799,53 @@ There are two lockdown modes. Confidentiality mode prevents user-land processes 
 
 SELinux: selinux:
 
-Statuses:
+## Statuses:
 1. Enforced : Actions contrary to the policy are blocked and a corresponding event is logged in the audit log.
 2. Permissive : Permissive mode loads the SELinux software, but doesn’t enforce the rules, only logging is performed.
 3. Disabled : The SELinux is disabled entirely.
 
-Read about status change and check:
-https://www.thegeekdiary.com/how-to-check-whether-selinux-is-enabled-or-disabled/
+## Read about status change and check:
+ https://www.thegeekdiary.com/how-to-check-whether-selinux-is-enabled-or-disabled/
 
-getenforce:
+## getenforce:
   check status of selinux
    Example:
   # getenforce
   Permissive
 
-setenforce:
+## setenforce:
   change enforce
    Example:
   # setenforce 0
   # getenforce
   Permissive
 
-setstatus:
+## setstatus:
   more detailed current status output
 
-change to permissive and configuration info:
-https://www.thegeekdiary.com/how-to-disable-or-set-selinux-to-permissive-mode/
+ change to permissive and configuration info:
+ https://www.thegeekdiary.com/how-to-disable-or-set-selinux-to-permissive-mode/
 
 cat /etc/selinux/config
 SELINUX=disabled  # to disable
 
-dot in permisisons:
+## dot in permisisons:
 drwxr-xr-x.    < this dot(.) means file has Access Control List(ACL) with SELinux.
-this will not appear if SELinux is disabled
+ this will not appear if SELinux is disabled
 
-setfacl:
+## setfacl:
  will or unset ACL for files\directories etc.  (the dot at the end of permisisons)
-https://stackoverflow.com/questions/30594871/what-does-the-dot-at-the-end-of-the-permissions-in-the-output-of-ls-lah-mean
+ https://stackoverflow.com/questions/30594871/what-does-the-dot-at-the-end-of-the-permissions-in-the-output-of-ls-lah-mean
 
 
 
-==Virtualization general
+# Virtualization general
 Virtual box has several different network interfaces
 
 NAT and NATNet networks would not be accessible from outside(and HOST)
 so to SSH into virtual machine, gotta use Port Forwarding 
   and connecto to localhost:<forwarded_port>
-table:
+ table:
 +-----------+-------------+-------------+----------------+----------------+
 |           | VM <-> Host | VM1 <-> VM2 | VM -> Internet | VM <- Internet |
 +-----------+-------------+-------------+----------------+----------------+
@@ -3907,7 +3868,7 @@ The NAT network service ("NAT network" in the dropdown) is like a home router, N
 
 ===GUI
 GUI on Centos7
-https://unix.stackexchange.com/questions/181503/how-to-install-desktop-environments-on-centos-7
+ https://unix.stackexchange.com/questions/181503/how-to-install-desktop-environments-on-centos-7
 
 GNOME install on Centos7
 yum group list
@@ -3921,20 +3882,20 @@ yum groupinstall "GNOME Desktop" "Graphical Administration Tools"
   Read more:
   https://www.itzgeek.com/how-tos/linux/centos-how-tos/install-gnome-gui-on-centos-7-rhel-7.html
 
-gnome:
-gnome-control-center:
+## gnome:
+## gnome-control-center:
   calls GUI of main settings window
   gnome version could be viewed somewhere here
   also version:
   /usr/share/gnome/gnome-version.xml
 
-gnome-tweaks:
+## gnome-tweaks:
   calls GUI of advanced? settings window
 
 
-utilities:
-clamav:
-clamscan:
+# utilities:
+## clamav:
+## clamscan:
       ClamAV – A command line utility: It is a free, open source, and cross-platform antivirus toolkit for detecting many types of malicious software and viruses.
     ClamTK – A Graphical utility: ClamTk is a graphical front-end for the Clam Antivirus. It is designed to be an easy-to-use, lightweight, on-demand antivirus scanner for Linux systems.
    Install:

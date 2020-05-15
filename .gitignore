@@ -14,7 +14,8 @@
 /python/*
 
 #mkdocs related stuff
-/cheatsheets/docs/img/devops_conf_2019
+/cheatsheets/site
+/devops_conf_2019
 
 #ignore jenkins and mysql working stuff in jenkins-course
 /jenkins-course/jenkins-data/credentials.csv

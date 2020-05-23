@@ -12,6 +12,33 @@ Authentication:
      this will check connection, and great <username> in case of success
      And correct protocol should be used, otherwise will ask for login/pass
 
+Git Repository structure:
+  .git/   - directory of a repo, located in root of project dir(working dir)
+  index   - binary flat manifest file with Index (staging area)
+            git ls-files -s      - will show all files in staging area 
+                              unchanged too, just all.
+                              If file is changed its SHA-1 changes and new file
+                              will have changes staged with 'git add'
+     Example:
+    git ls-files -s             # note Rakefile's SHA-1
+    git cat-file 28fc54 -p      # changes as in HEAD's snapshot
+    git add Rakefile            # add edited Rakefile into Index
+    git ls-files -s             # note Rakefile's SHA-1 changed
+    git cat-file -p 8ba074      # changes as was STAGED
+    git diff --staged Rakefile  # Diff between 28fc54 and 8b074
+     diff --git a/Rakefile b/Rakefile
+     index 8ba0741..28fc54e 100644
+    See 'git checkout' below
+  HEAD   - branch name or commit(if HEAD is Detached)
+  config - local Repo's git config
+  refs/  - direcotry with refspecs
+  refs/heads/  - local Branches go here
+  refs/remotes/  - remote HEADs of Branches
+  refs/stash     - the stash HEADs (see git stash below)
+  ref/tags/      - tags as u may imagine
+
+
+
 Git Data Storage:
   https://www.youtube.com/watch?v=ZKrtHjf5yPQ
   Git has 5 types or objects:
@@ -24,17 +51,8 @@ Git Data Storage:
     hash-named and compressed text files. Name formed as follows:
     2chars/otherChars
     where SHA-1 hash first 2 chars is the Directory and other chars is filename
-cat-file:
-   Views the contents of Hashnamed object-file:
-    Params:
-   -t  - returns type
-   -p  - pretty prints contents
-    Example:
-   .git/objects/aa/a524cf75aa4b8baf1be939b39f32a6644a8f2a - is a git object
-    To get its type concat dir-name and file-name as a param:
-   git cat-file -t aaa524cf75aa4b8baf1be939b39f32a6644a8f2a
-    To get contents:
-   git cat-file -p aaa524cf75aa4b8baf1be939b39f32a6644a8f2a
+
+
 Commit Object structure:
   1. Pointer to Parent commits (0 for initial 2+ for Merge commit)
   2. Pointer to Root Tree - Root directory
@@ -51,7 +69,8 @@ Branch:
    into the given branch.
   'master' is the same branch as others, just a default name after 'git init' 
 HEAD:
-  points to current branch
+  points to current place(usually branch) - similar to 'pwd' in bash
+    Could point to commit too (when in 'Detached HEAD' state)
   Text file .git/HEAD, has relative path to current branch
   Usually sticks to a branch, then moves forward with commit as 
   well as 'branch' pointer also moves forward.
@@ -62,7 +81,40 @@ three way merge :
   WHAT IS MERGE BASE 
    this is one of Parent commits, better suited for merge?
 
+Plumbing commands:
+
+cat-file:
+   Views the contents of Hashnamed object-file:
+    Params:
+   -t  - returns type
+   -p  - pretty prints contents
+    Example:
+   .git/objects/aa/a524cf75aa4b8baf1be939b39f32a6644a8f2a - is a git object
+    To get its type concat dir-name and file-name as a param:
+   git cat-file -t aaa524cf75aa4b8baf1be939b39f32a6644a8f2a
+    To get contents:
+   git cat-file -p aaa524cf75aa4b8baf1be939b39f32a6644a8f2a
+
    
+ls-tree:
+  list contents of a tree object
+   Params:
+  -r  - recurse into subtrees, show only blobs within all HEAD tree
+    Example:
+   git ls-tree -r HEAD
+    will show all 'blobs' for HEAD, in every nested tree
+
+
+ls-files
+  Show information about files in the index and the working tree
+   Params:
+  -s/stage  - staged contents (with hashes, permissions, path/name
+        [<tag> ]<mode> <object> <stage> <file>
+        git ls-files --unmerged and git ls-files --stage can be used to examine
+        detailed information on unmerged paths.
+         See 'Git repository structure' at beginning
+  -u/unperged  - unmerged files in output (forces --stage)
+
 
 
 config:
@@ -247,6 +299,9 @@ push:
 
 add:
   "add precisely this content to the next commit"
+  Process:
+   - takes content of Working directory
+   - copies it to Index (staging area)
  uses:
   - begin tracking of new files
   - stage changes in tracked files
@@ -267,8 +322,11 @@ status:
      - number of commits ahead\behind
    - staged files (to be committed)
      - both tracked and untracked
+     Essentially shows diff of Index with HEAD
    - changed tracked files
+     Essentially shows diff of Working Dir with Index
    - untracked files
+     Essentially shows diff of filesystem dir with Working Dir
 
   Params:
    -s/--short  - short form:
@@ -280,32 +338,76 @@ status:
      M -- Modified NOT Staged
 
 
-git reset:
-  moves HEAD and Branch(e.g. Master) pointers to previous commit
-   Unlike revert it does not create new commit, just moves pointer
-  to a previous commit (or any other if specified)
-   Read More:
-https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
+reset:
+  directly manipulates contents of all the 3 Trees
+  With Commit's SHA-1 or Refspec (commit, tag etc)
+  1. Move the branch HEAD points to (stop here if --soft)
+   Always do (--soft)
+    changes value (commit's SHA-1) of where branch points
+    - if Detached HEAD state simply changes commit value which
+    - is already stored in HEAD file
+      Example:
+     git reset --soft HEAD~
+  2. Make the index look like HEAD (stop here unless --hard)
+   Secondly do (--mixed) - Default
+    writes snapshot of where now HEAD>branch>commit points for snapshot
+    into the Index
+      Example:
+     git reset HEAD~
+  3. Make the working directory look like the index
+   Thirdly do (--hard)
+    writes contents of Index over the Working Tree, overriding anything
+    This leaves commit dangling until it would be killed by GC
+    changes in Working Directory are destroyed
+     Example:
+    git reset --hard HEAD~
+
+  With files:
+  1. --soft: skips HEAD move since HEAD is pointer to whole commit\refspec
+    but Index and Working Directory can mix parts of different commits
+  2. --mixed: Updates Inxex with given file from given commit
+    NOTE: --mixed with Files is deprecated, use 'SHA-1 -- filename' instead
+     Example:
+    git reset HEAD file.txt 
+     Unstage file (opposite to 'git add')
+     Example:
+    git reset 62a2b8c file.txt
+    git reset 62a2b8c -- file.txt
+     override Index with file.txt from 62a2b8c commit's snapshot
+  3. --hard: overrides Workig directory by that file too
+
+  Squashing:
+   c1: fil-a.txt v1 ---c2> file-a.txt v2 ---c3>  file-a.txt v3
+                           file-b.txt v1          file-b.txt v1
+                    ------------------------c4>  file-a.txt v3
+                                                 file-b.txt v1 
+  1. Move HEAD back on commit which would be parent to Squashed commit
+      Example:
+     git reset --soft c1
+  2. file-a.txt v3 and file-b.txt v1 are int Index and Working Tree now
+     In other words files are staged
+  3. Commit those files from Index:
+      Example:
+     git commit -m 'this is c4 commit'
+      NOTE:
+     c2 and c3 become Dangled commits and would be out of log(GC will del em)    
+
+  When To Use double dash --:
+   -- separates branches from files, if threre is ambiguity this is required
+      Also it allows filenames started with - , to not be interpreted cli params
+     Example:
+    git reset 62a2b8c -- 62a2b8c
+     Branch and File have same name
+    git reset HEAD -- -file-named-with-dash
+     NOTE: same would work with 'touch'
+    touch -- -file-named-with-dash
+    
 
   DESIGNED TO UNDO LOCAL COMMITS
 
-   --hard - moves state of all 3 Git Trees (DANGEROUS)
-	Working directory
-	Staging area
-	Commit history
-   --mixed  (default) - moves state of 2 Trees
-	Staging area
-         It will OVERWRITE Working directory if conflicting changes
-	Commit history
-          Example:
-     git reset HEAD~    -- moves back one commit:
-      HEAD~ or HEAD^ means the commit before head 
-     git reset <hash of the commmit TO MOVE TO! >
-   --soft - moves state only of 1 Tree
-	Commit history
-
    In case of --hard reset all the data will be wiped out
 	w/o possibility to restore it
+         Except commit will be still there until Garbage Collection (git gc)
    Mixed reset clears staging area, moving everything from there
 	back to Working directory tree, so changes are there and
 	not lost
@@ -315,9 +417,19 @@ https://www.atlassian.com/git/tutorials/undoing-changes/git-reset
 
    Example:
      reset foo.py - resets foo.py leaving it only in Working tree
-
      reset HEAD~2 - moves HEAD back for 2 commits, using --mixed
 	flag as default
+
+   Params:
+  --patch - interactive; unstage content on a hunk-by-hunk basis.
+
+gc:
+  garbage collection, frees disk space
+   Dangerous: a little
+   it also deletes dangling commits (w/o refspec on top)
+    i.e. 'git reset --soft HEAD~' would produce 1 dangling commit
+  See discussion on HOW OFTEN to run:
+   https://stackoverflow.com/questions/55729/how-often-should-you-use-git-gc
 
 
 
@@ -448,7 +560,11 @@ commit message convention:
   - Use a hanging indent
 
 commit:
-  creates snapshot(commit) of Staging area, adds it to local repo  
+  creates commit of Staging area, adds it to local repo  
+   Process:
+    - creates snapshot of Index(staging area)
+    - creates commit object which points to snapshot
+    - moves current branch to this commit
   by default Launches default editor(core.editor) for commit message
    -m/--message=''  - add message w/o core.editor use
    -v/--verbose - verbose display in default editor of diffs committed
@@ -506,6 +622,16 @@ log:
    git log -p -2  - will show last 2 commits with patch added
   -g [branch]  - shows reflog formatted as git log
   --all - history from all BRANCHES (no detached-head commits shown)
+          Pretends that as if all refs/ listed as <commit>
+
+          shows only parents of refs/, no children
+          commits done from detached HEAD are not parents of any refs
+     Example:
+             o----o----o----x   <-- will not be shown
+                       ^            since is not parent of anything 
+                    new HEAD        in refs/ directory
+                  after soft
+                    reset
   --show-signature  - display's GPG signature of tar or commit
   --no-merges  - do not show merge-commits 
   --stat  - show stats of each commit, including files changed
@@ -913,6 +1039,8 @@ stash:
   --keep-index  - stashes all changes, but cleans only working tree
   -u/include-untracked - adds Untracked files to the stash
   -a/all  - adds all files, even including IGNORED files
+    Example:
+   git stash --all  - will stage working dir and index to Stash
   -p/patch - interactive mode(only for Tracked files)
  list:
   lists all saved stashes, looks like git reflog
@@ -970,11 +1098,16 @@ clean:
 
 checkout:
   switch branches or restore working tree files
+   Process:
+    - changes HEAD to branch ref(refs/heads/<branch>)
+    - populates Index(staging) with snapshot of that commit
+    - copies contents of Index to Working Directory 
+    - HEAD == Index == Working directory
    Synopsys:
   git checkout [params] [[--] filename]
    Params:
-  -b <new-branch> - switch to the newly created branch
-    creates new branch based on current HEAD
+  -b <new-branch> - creates new branch based on current HEAD
+                    and switch to the newly created branch
   -b <new-branch> <based-on-branch>
     Example:
   git checkout -b new-branch origin/master
@@ -1096,6 +1229,7 @@ rebase:
          --->>Fast-Forward>>---
         ######################
 
+   TRIGGERS 'git gc --auto'
   changes base of current(or given) branch to another branch or commit
   !! Rewrites commits - creates new commit(new hash) with the same contents
   like date, commetter, comment etc.

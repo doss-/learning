@@ -29,7 +29,8 @@ Contents
 ## Example
 
 # General
-## check linux distro:
+
+## check linux distro:  
 uname -a - returns info about kernel and stuff  
 cat /etc/*-release - return info about distro  
 lsb_release - command that returns info about distro  
@@ -43,40 +44,40 @@ cat /proc/version - file with linux version info
    CentOS: yum install facter # enable EPEL repo  
 
 ## directories structure:
- / - root
- /bin - binaries for system boot, goes with distro
- /boot - kernel boot files and RAM disc with drv 
-  for boot, and boot program itself
-  /boot/grub/grub.conf - boot config
-  /boot/vmlinuz - kernel
- /dev - all devices are here
- /etc - configs all here
-  /ect/crontab - cron config
-  /etc/fstab - mounts config
-  /etc/passwd - users list
- /home - contains all users' dirs
-  ~/bin - bins of particular user, add to PATH to use
- /lib - shared by various programs libraries(DLLs), probably for /bin's
- /lost+found - if HDD feels bad, some stuff could appear here
- /media - user-related mount points for flash, hdd, cd etc 
+ ```/``` - root  
+ ```/bin``` - binaries for system boot, goes with distro  
+ ```/boot``` - kernel boot files and RAM disc with drv 
+  for boot, and boot program itself  
+  ```/boot/grub/grub.conf``` - boot config  
+  ```/boot/vmlinuz``` - kernel  
+ ```/dev``` - all devices are here  
+ ```/etc``` - configs all here  
+  ```/ect/crontab``` - cron config  
+  ```/etc/fstab``` - mounts config  
+  ```/etc/passwd``` - users list  
+ ```/home``` - contains all users' dirs  
+  ```~/bin``` - bins of particular user, add to PATH to use  
+ ```/lib``` - shared by various programs libraries(DLLs), probably for  /bin's
+ ```/lost+found``` - if HDD feels bad, some stuff could appear here  
+ ```/media``` - user-related mount points for flash, hdd, cd etc
    which are mounted manually
- /opt - optional installed software and other stuff
+ ```/opt``` - optional installed software and other stuff
    mostly used for commercial software
- /proc - files to peek at kernel things
- /root - root's home dir
- /sbin - same as /bin
- /tmp - temp used by various programs, could be cleaned at boot
- /usr - programs and files used by users
- /usr/bin - programs from distro, almost everythign already installed goes here
- /usr/lib - shared libraries for /usr/bin programs
- /usr/local - empty by default, available for all users on system
-  /usr/local/bin - locally compiled\created bins should go here
-  /usr/local/sbin - locally created system bins for administration
- /usr/sbin - System bins, come with distro, i suppose
- /usr/share - shared stuff(configs, files, images) except shared libs
- /usr/share/doc - mans for installed soft go here
- /var - variables, most changed dir, contains DBs, buffers, emails
- /var/log - all logs go here
+ ```/proc``` - files to peek at kernel things  
+ ```/root``` - root's home dir  
+ ```/sbin``` - same as ```/bin```  
+ ```/tmp``` - temp used by various programs, could be cleaned at boot  
+ ```/usr``` - programs and files used by users  
+ ```/usr/bin``` - programs from distro, almost everythign already installed goes here  
+ ```/usr/lib``` - shared libraries for /usr/bin programs  
+ ```/usr/local``` - empty by default, available for all users on system  
+  ```/usr/local/bin``` - locally compiled\created bins should go here  
+  ```/usr/local/sbin``` - locally created system bins for administration  
+ ```/usr/sbin``` - System bins, come with distro, i suppose  
+ ```/usr/share``` - shared stuff(configs, files, images) except shared libs  
+ ```/usr/share/doc``` - mans for installed soft go here
+ ```/var``` - variables, most changed dir, contains DBs, buffers, emails  
+ ```/var/log``` - all logs go here
  
 
 ## man:
@@ -159,10 +160,10 @@ cat /proc/version - file with linux version info
    https://www.ostechnix.com/view-directory-tree-structure-linux/
   sudo apt install tree
    
-   Example:
-  tree .terraform/
-   will show everything inside .terraform directory in tree-view
-  tree -h --du .terraform/
+   Example:  
+  ```tree .terraform/```  
+   will show everything inside .terraform directory in tree-view  
+  ```tree -h --du .terraform/```  
    will show sizes in human readable, and for directories too
 
 ## ls:

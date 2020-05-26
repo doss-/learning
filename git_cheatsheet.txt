@@ -344,8 +344,8 @@ reset:
   1. Move the branch HEAD points to (stop here if --soft)
    Always do (--soft)
     changes value (commit's SHA-1) of where branch points
-    - if Detached HEAD state simply changes commit value which
-    - is already stored in HEAD file
+     if Detached HEAD state simply changes commit value which
+     is already stored in HEAD file
       Example:
      git reset --soft HEAD~
   2. Make the index look like HEAD (stop here unless --hard)
@@ -354,13 +354,18 @@ reset:
     into the Index
       Example:
      git reset HEAD~
+   Also works with FilePATHs. Doesn't move HEAD in this case.
+      Example:
+     git reset HEAD -- file-to-unstage.txt
   3. Make the working directory look like the index
    Thirdly do (--hard)
     writes contents of Index over the Working Tree, overriding anything
     This leaves commit dangling until it would be killed by GC
     changes in Working Directory are destroyed
-     Example:
-    git reset --hard HEAD~
+      Example:
+     git reset --hard HEAD~
+   Doesn't work with FilePATHs.
+  
 
   With files:
   1. --soft: skips HEAD move since HEAD is pointer to whole commit\refspec
@@ -1093,16 +1098,40 @@ clean:
   -d  - remove untracked directories
   -x  - remove ignored files
   -i  - interactive mode
+
+checkout vs reset difference:
   
+                             | HEAD |  Index | Workdir | WD Safe?
+  | Commit Level             |
+  | reset --soft [commit]    | REF  |  NO    | NO      | YES
+  | reset [commit]           | REF  |  YES   | NO      | YES
+  | reset --hard [commit]    | REF  |  YES   | YES     | NO
+  | checkout <commit>        | HEAD |  YES   | YES     | YES
+  | File Level               |
+  | reset [commit] <paths>   | NO   |  YES   | NO      | YES
+  | checkout [commit] <paths>| NO   |  YES   | YES     | NO
   
 
 checkout:
   switch branches or restore working tree files
+  Works with and Without Paths:
+  Without paths:
    Process:
     - changes HEAD to branch ref(refs/heads/<branch>)
     - populates Index(staging) with snapshot of that commit
     - copies contents of Index to Working Directory 
     - HEAD == Index == Working directory
+   Differences from 'git reset --hard SHA-1\refspec':
+    - Changes HEAD itself - to which hash\refspec(branch) it points
+    - Tries to merge current snapshot and snapshot from SHA-1\Refspec
+    - if merge with conflicts checkout will stop
+  With paths:
+   Process:
+    - Does not move HEAD anywhere (like 'git reset' with filepaths)
+    - Takes 'file' from snapshot pointed by SHA-1\Refspec 
+      Overrides Index same as 'git reset [branch] -- file'
+    - Overrides Working Directory 
+      Similar to 'git reset --hard hash\refspec(branch) -- file'
    Synopsys:
   git checkout [params] [[--] filename]
    Params:

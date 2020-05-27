@@ -133,7 +133,7 @@ config:
   -l - list all params
   -e - open editor to edit config file (.git/config)
   --add - add key value pair: key value
-   Example:
+    Example:
    git config --global --add user.name doss-
    will add to Global config key 'user.name', with value 'doss-'
   --global / system / local - use different config file, locacl for repo
@@ -142,15 +142,19 @@ config:
   user.email - users email, these two fields are used to identify user
    in github
   core.editor - default editor to use
-   Example:
-  git config core.editor vim
+    Example:
+   git config core.editor vim
    will add vim for current repo as a 'vim' (full path from PATH prob)
   credential.helper - use credential manager, useful for HTTPS with login\pwd
-   Example:
-  git config --global credential.helper cache
+     Example:
+   git config --global credential.helper cache
    will use login\pass cached for few minutes, to not ask user everytime
   remote.pushDefault origin
    default push repository, set as origin
+  merge.conflictstyle diff3
+   default is 'merge'; accepts 'diff3', see 'checkout:'
+    Example:
+   $ git config --global merge.conflictstyle diff3
 
    Email setup: for
   format-patch:
@@ -364,6 +368,9 @@ reset:
     changes in Working Directory are destroyed
       Example:
      git reset --hard HEAD~
+      Example:
+      Abort Merge
+     git reset --hard HEAD
    Doesn't work with FilePATHs.
   
 
@@ -506,9 +513,10 @@ diff:
    Changes consist oh hunks:
     https://stackoverflow.com/questions/17995092/what-does-a-hunk-mean-in-relation-to-pushes-on-sourcetree/47431804
   By default compares Working Tree with Staging area
-  --staged - compares staged area to latest commit(snapshot)
-  --cached - same as --staged
-  --check - cheks whitespace issues
+  --staged  - compares staged area to latest commit(snapshot)
+  --cached  - same as --staged
+  --check  - cheks whitespace issues
+  -b  - ignore whitespace differences, at line end too
 
    Example:  
   git diff  
@@ -540,6 +548,11 @@ diff:
     git checkout topic-branch
     git diff master
      WILL LOOK LIKE ON MERGE WILL DELETE EVERYTHING UNIQ TO MASTER
+
+  Merge diff:
+   --ours  - display my changes left after merge conflict fix
+   --theirs  - display MERGE_HEAD (the branche i'm merging into) changes
+   --base  - sum of ours and theirs changes compared to merge-base commit
 
 difftool:
   same as 'git diff' but executes External diff program
@@ -1081,7 +1094,7 @@ stash:
    git stash branch MY-NEW-BRANCH
 
 clean:
-  it seems removes only Untracked files
+  Removes Untracked files
   Or Untracked + Ignored.
   DOes not touch Edited files, so stash is simply better
    Except the case of need to remove bunch of garbage(or generated) files
@@ -1158,8 +1171,26 @@ checkout:
     will also create a tracking, shorthand for --track, if:
     - branch for checkout does not exist locally
     - exactly matches the name on only one remote
-   Vice-versa (when need to point local branch to track some remote one):
-   git branch -u origin/another-branch
+    Vice-versa (when need to point local branch to track some remote one):
+     git branch -u origin/another-branch
+  --conflict[=merge|diff3]  - merge is default and re-checkouts merge conflict
+        with conflict markers for Ours and Theirs  
+        diff3 recheckouts the conflict and adds Base diff as 3rd diff 
+     Example:
+    $ git checkout --conflict=diff3 hello.rb
+    > def hello
+    > <<<<<<< ours
+    > puts 'hola world'
+    > ||||||| base
+    > puts 'hello world'
+    > =======
+    > puts 'hello mundo'
+    > >>>>>>> theirs
+    > end
+      Set this format as default: config merge.conflictstyle diff3
+  --theirs  - 'accept theirs' discarding Ours changes in conflict
+              either for file or snapshot, i assume
+  --ours  - discard all theirs changes , vice versa to --theirs
 
 branch:
   shows branches, creates branches
@@ -1221,21 +1252,32 @@ merge vs rebase:
  But still suck.
 
 merge:
-   merges branches
-   if can Fast Forward (where there is just consequental commits w/o divergent)
-   will NOT create merge commit
-  If automerged then it will merge and create mergecommit with resulting work
-  When conflicts, manual merge required, resulting in merge commit
-  does 3 way merge of two branches:
+  merges branches
+  - If can Fast Forward (where there is just consequental commits w/o divergent)
+    will NOT create merge commit
+  - If automerged then it will merge and create mergecommit with resulting work
+  - When conflicts, manual merge required, resulting in merge commit
+
+  BEFORE:
+   - Working Directory clean (so can Undo Anything)
+     Either Stash or Commit to temp branch
+      `git merge --abort` could fail if WD is not clean
+
+  Does 3 way merge of two branches:
    two latest commits of each branch
    creates new commit based on merge of those commits
    new commit goes into main branch(where other branch was merging)
   <branch_to_merge_into_current> - merges given branch into current
     will be executed after fetch in pull, when it will merge fetched
     branch origin/<current_tracked> into current branch
-   Example:
+    Example:
    git merge topic   - will merge topic into current branch
   --abort - aborts started merge that ended with conflicts
+            ALSO if something still WRONG, another way to Abort:
+            `git reset --hard HEAD`
+  -Xignore-all-space  - ignores whitespaces _completely_ when comparing lines
+  -Xignore-space-change  - threats sequences of 1+ whitespace characters(\s)
+                           as equal
   --verify-signatures - reject commits signed with not Truested GPG 
     Will fail to merge commits Not Signed or Signature is Not Valid
    -S  - sign the resulting merge commit too

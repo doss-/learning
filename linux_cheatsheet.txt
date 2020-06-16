@@ -1035,8 +1035,10 @@ wildcards(not a command:
    -f - force
    -i - interactive - will ask before do
    -v - verbose
-  To rm link:
-   rm link_name   -- just as regular file, source of link is not affected
+  Remove symlink:
+   rm symlink_to_file
+   rm symlink_to_dir
+   rm symlink_to_dir/   <-- will not work
 
 ## unlink:
   delete symlink
@@ -1458,7 +1460,7 @@ General info about Keys, Key Pairs, Key Storages and stuff:
   because looking at name of '/' root filesystem
 
 ## df:
-  display all mounted devices with size\free\used\paths etc
+  display all MOUNTED devices with size\free\used\paths etc
     Stands for: Disk Free
   -h - human readable sizes
     Example:
@@ -1534,10 +1536,49 @@ how to get block device name, partition, mount it and unmount after:
   mount /dev/sdb1 ~/mounted_stuff
   umount /dev/sdb
 
+## exportfs:
+  maintain table of exported NFS file systems
+  /etc/exports  - file containing all directories to be exported
+    Example:
+   /u01/app/mainsail       i-tpt-dv-db111(rw,no_root_squash)
+
+   Params:
+  -a  - export all unexported directories
+    Example:
+   exportfs -a
+    will export all unexported directores, and those could be
+    mounted on another machine
+
 ## mount:
   mount drive (disk, usb, floppy etc)
+
+  USE CASE:
+    #ssh into Network machine with mountable share
+    vim /etc/exports  # add line like '/u01/app/mainsail       i-tpt-dv-db111(rw,no_root_squash)'
+    exportfs -a       # reload /etc/exports   <-- otherwise get 'mount.nfs: mount(2): Permission denied' error 
+    vim /etc/fstab    # add mount like 'i-tpt-dv-ms:/u01/app/mainsail        /u01/app/mainsail       nfs     rw,bg,hard,nointr,rsize=32768,wsize=32768,tcp,actimeo=0,vers=3,timeo=600    0 0'
+    mount -a -vvvv    # mount all lines added to /etc/fstab, doing it verbose
+
+  USE CASE 2:
+   Example:
+  Usecase for mount network dir:
+   Source(hostname i-pct-dv-ms):
+    /etc/exports:
+   /u01/app/mainsail	i-tpt-dv-db191(rw,no_root_squash)
+   # Recheck everything is correct there, if not - correct and run:
+    exportfs -r
+     which will reexport and update all local entries
+   Target(hostname i-tpt-dv-db191):
+    /etc/fstab:
+   i-pct-dv-ms:/u01/app/mainsail        /u01/app/mainsail       nfs     rw,bg,hard,nointr,rsize=32768,wsize=32768,tcp,actimeo=0,vers=3,timeo=600    0 0
+   mount -vvvv /u01/app/mainsail/
+   df -h
+    Now will show the mount since it is MOUNTED now
+
+
   mount -o rw,remount /
    -o - dunno.. TODO
+   -vvvv  - verbose
    rw - seems to be read\write
    remount - pretty clear at first glance
    / - what to remount
@@ -1550,7 +1591,8 @@ how to get block device name, partition, mount it and unmount after:
     mount ISO image
    mount -t iso9660 -o loop image.iso /path/to/mountpoint
 
-  -a - mount all lines added to /etc/fstab
+  -a  - mounts ALL from /etc/fstab
+
   
   /etc/fstab - config for filesystems
    read by fsck, mount, unmount
@@ -3169,6 +3211,7 @@ CIDR blocks
   firewall-cmd --zone=public --add-port=5693/tcp      - turns on the rule
   firewall-cmd --zone=public --add-port=5693/tcp --permanent   - saves the rule so it is applied on the boot
 
+
 # Bash
 ## Bash command line shortcuts
 ctrl+a - moves cursor on the beginning of the line
@@ -3904,3 +3947,12 @@ yum groupinstall "GNOME Desktop" "Graphical Administration Tools"
    Execute scan:
    Example:
   clamscan --invected --log=clamscan.log --recursive --copy=infected_files --detect-pua=yes /
+
+## xxd:
+  converts files to HEX
+  Useful when 2 same files displayed as different
+  Convert to HEX, find differences - those could be spaces, use dos2unix to fix
+  
+
+## dos2unix:
+  line ending converter

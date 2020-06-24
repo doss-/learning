@@ -869,6 +869,9 @@ test:
   -s FILE 	FILE exists and its size greater than 0
   -L FILE 	exists and is soft symblic link
   -d FILE 	FILE exists and is a directory.
+    Example:
+   if [ -d "$1" ]; then       # $1 is 1st param of script and contains Path
+     echo "this is directory"
   -b FILE	exists and is Block device (i.e /dev/sda1)
   -c FILE 	exists and char device
   -r FILE 	FILE exists and the read permission is granted.

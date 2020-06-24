@@ -127,6 +127,8 @@ images:
    IMAGE ID - id of the image
    CREATED - when it was created in the repo(not pulled locally)
    SIZE - size of the image
+  -q - show only IDs
+  -a - show Intermediate images too
 
 pull:
   pulls image from a repo

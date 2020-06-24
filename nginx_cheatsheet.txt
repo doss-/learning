@@ -1,0 +1,45 @@
+
+
+# Server example
+
+```
+server {
+  listen 3000;
+
+  location / {
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+  }
+}
+```
+
+Where:
+- nginx will listen for port 3000
+- requests coming to `/` will have root of `/usr/share/nginx/html`
+- index would be either `index.html` or `index.htm`
+
+# Reverse Proxy example:
+
+```
+upstream client {
+  server client:3000;
+}
+
+upstream api {
+  server api:5000;
+}
+
+server {
+  listen 80;
+
+  location / {
+    proxy_pass http://client;
+  }
+```
+
+Where:
+- two upstreams (machines behind the reverse proxy)
+-- with server located at machine with `api` and `client` hostnames
+-- those servers are axpected to listen at ports `3000` and `5000` respectively
+- reverse proxy server itself will listen at port 80
+- requests coming to root `/` will be passed to `http` of machine with `client` hostname

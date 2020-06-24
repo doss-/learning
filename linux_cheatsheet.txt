@@ -3711,6 +3711,9 @@ server {
    Example:
   sudo ss -tulwn - display all opened ports on local machine
 
+## netcat:
+  check, send network packets, port monitor etc
+
 ## lsof:
   also checks ports, could display processes that are using
    port, and files used by the process

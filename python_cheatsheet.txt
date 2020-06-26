@@ -135,6 +135,13 @@ list:
   Concat lists:
   
 
+## ternary operators:
+ value_if_true if condition else value_if_false
+   Example:
+  is_nice = True
+  state = "nice" if is_nice else "not nice"
+
+
 
 if:
   if 1>2:

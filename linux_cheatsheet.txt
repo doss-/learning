@@ -3875,7 +3875,7 @@ tricky cmd params from doing anything
 
 There are two lockdown modes. Confidentiality mode prevents user-land processes from extracting confidential information from the kernel. The other mode, Integrity, allows the kernel to switch off features that would allow user-land processes to modify the running kernel. Both of these modes even prevent processes launched by the root user or anyone with sudo privileges from modifying the kernel.
 
-SELinux: selinux:
+# SELinux: selinux:
 
 ## Statuses:
 1. Enforced : Actions contrary to the policy are blocked and a corresponding event is logged in the audit log.
@@ -3892,11 +3892,15 @@ SELinux: selinux:
   Permissive
 
 ## setenforce:
-  change enforce
+  change enforce TEMPORARY
    Example:
   # setenforce 0
   # getenforce
   Permissive
+
+  change enforce PERMANENTLY
+  cat /etc/selinux/config
+  SELINUX=disabled  # to disable
 
 ## setstatus:
   more detailed current status output
@@ -3904,8 +3908,6 @@ SELinux: selinux:
  change to permissive and configuration info:
  https://www.thegeekdiary.com/how-to-disable-or-set-selinux-to-permissive-mode/
 
-cat /etc/selinux/config
-SELINUX=disabled  # to disable
 
 ## dot in permisisons:
 drwxr-xr-x.    < this dot(.) means file has Access Control List(ACL) with SELinux.

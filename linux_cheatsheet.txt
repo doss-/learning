@@ -1290,8 +1290,9 @@ General info about Keys, Key Pairs, Key Storages and stuff:
   basic example w/o using Public-key cryptography:
    gpg --output <encrypted_file.gpg> --symmetryc <file_to_encrypt> - this will 
 	ask for passphrase and its done
-  --gen-key  - generate a key
-  --list-keys  - list all keys
+ Params:
+  `--gen-key`  - generate a key
+  `--list-keys`  - list all keys
 
 ## rsync:
   Remote Syncs files\dirs locally or remote-local\local-remote
@@ -3769,7 +3770,37 @@ server {
 
 
 # Security
-LSM: linux security module:
+
+## pass:
+password manager kind of
+https://www.passwordstore.org/#download - see docs here
+### Initialize simple store
+ `pass init gpg-id@email.com`
+### Initialize git store
+ `pass git init`  
+  All contents of simple store will be added as 'Initial commit'
+### Sign the commits with the login gpg key
+ `pass git config --bool --add pass.signcommits true`
+ all commits will be signed using user.signingkey or the default git signing key
+### List passwords
+ `pass`
+### Find existing passwords
+ `pass find .com`  
+ `pass search .com`  
+ Find existing passwords that match .com
+### Add password
+ `pass insert Directory_name/name_for_password` name could be website or something else  
+### Add multiline password
+ `pass insert -m Directory_name/name_for_password` - multiline, for detailed stuff
+### Generate password
+ `pass generate Dir_name/pass_name <pass_length_int>`
+### Show password
+ `pass Directory_name/name_for_password`
+### Copy password into clipboard
+ `pass -c Directory_name/name_for_password`
+
+
+## LSM: linux security module:
  https://www.kernel.org/doc/html/latest/admin-guide/LSM/index.html
 
 Primary user of LSM is Mandatory Access Control(MAC) extensions

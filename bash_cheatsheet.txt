@@ -804,6 +804,20 @@ if:
     <other commands>
   fi
 
+```
+  if TEST-COMMANDS; then
+  
+  CONSEQUENT-COMMANDS;
+  
+  elif MORE-TEST-COMMANDS; then
+  
+  MORE-CONSEQUENT-COMMANDS;
+  
+  else ALTERNATE-CONSEQUENT-COMMANDS;
+  
+  fi 
+```
+
   lots info here:
   https://ryanstutorials.net/bash-scripting-tutorial/bash-if-statements.php
 
@@ -844,6 +858,9 @@ test:
   and $num1 -lt $num2 will return TRUE if both undefined
 
   CHECK YOUR VARIABLES BEFORE USE
+
+  Check if string empty:
+  https://www.cyberciti.biz/faq/unix-linux-bash-script-check-if-variable-is-empty/
 
    Test Strings\Ints:
   Operator 	Description
@@ -932,6 +949,13 @@ test:
     Note that 'false' and 'true' are not commands, commands return 1 and 0
    and behavios incorrectly
 
+## let:
+  pretty same to (( ))
+   https://linuxize.com/post/bash-increment-decrement-variable/
+  let 'i=i+1'
+  let 'i+=1'
+  let 'i++'
+  !!!NOT let '$i++'!!!
 
 (( )):
   Permits Arithmetic expansion and Evaluation for 
@@ -949,7 +973,9 @@ test:
    (( --var ))  - same manner decrement
    (( var-- ))  - display then decrement
    Assignment:
-   $((b+=a)) - add 'a' to 'b' and assign result to 'b' - b=$a+$b
+   ((var1+=var2)) - add 'a' to 'b' and assign result to 'b' - b=$a+$b
+  !!!NOT $((var1++))!!!   <- bash will try execute '$var1' afterwards
+
 
    Evaluation:
    if ((10>=5)); then echo "10 greater or equal 5"; fi
@@ -1063,6 +1089,7 @@ while:
 
 exit status:  
 exit code:
+   $?
   bash scripts ALWAYS returns exit code. 'exit' is optional
   commands ALWAYS return exit code too. 
   Functions ALWAYS return exit code too. 'return' is optional
@@ -1208,7 +1235,7 @@ Pseudo-terminal will not be allocated because stdin is not a terminal.
 hBs
 login_shell     on    
 
-functions:
+## functions:
   shell could have functions, funcions MUST BE declared before its call,
   otherwise shell will interpret funcion names as regular commands
    Functions could be executed and calld from shell, added to scripts or 
@@ -1223,6 +1250,62 @@ functions:
   global variables.
    $0 in fuction contains name of the script being executed
    $FUNCNAME - contains name of the function being executed
+
+There are two typical ways of declaring a function. I prefer the second approach.
+
+Params: https://unix.stackexchange.com/questions/298706/how-to-pass-parameters-to-function-in-a-bash-script
+        https://stackoverflow.com/questions/6212219/passing-parameters-to-a-bash-function
+
+```
+function function_name {
+   command...
+} 
+```
+
+or
+
+```
+function_name () {
+   command...
+} 
+```
+
+To call a function with arguments:
+
+```
+function_name "$arg1" "$arg2"
+```
+
+The function refers to passed arguments by their position (not by name), that is $1, $2, and so forth. $0 is the name of the script itself.
+
+Example:
+
+```
+function_name () {
+   echo "Parameter #1 is $1"
+}
+```
+
+Also, you need to call your function after it is declared.
+
+```
+#!/usr/bin/env sh
+
+foo 1  # this will fail because foo has not been declared yet.
+
+foo() {
+    echo "Parameter #1 is $1"
+}
+
+foo 2 # this will work.
+```
+
+Output:
+
+```
+./myScript.sh: line 2: foo: command not found
+Parameter #1 is 2
+```
 
    Syntax:
   function name {

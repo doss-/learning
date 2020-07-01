@@ -812,6 +812,7 @@ remote:
   lists remote handles of the current repo
    Params:
   -v  - verbose, shows URLs for every remote
+        SHOW ALL REMOTES
  add:
   adds a new remote
    Sinopsys:

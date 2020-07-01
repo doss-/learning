@@ -529,6 +529,13 @@ cat /proc/version - file with linux version info
 	python3 entry
   See here: 
    http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
+ Update EDITOR:
+  sudo update-alternatives --install /usr/bin/editor editor /usr/bin/vim 10  
+   where /usr/bin/editor  - the entrypoint link used when 'editor' is called  
+         editor  - name  
+         /usr/bin/vim  - real path which will be used when /usr/bin/editor is called by 'editor' name  
+         10  - priority
+  sudo update-alternatives --config editor   # pick vim editor which was  just installed
 
 ## shuf:
  shuffles the deck lol

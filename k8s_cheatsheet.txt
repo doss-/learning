@@ -1,0 +1,179 @@
+# What is Kubernetes
+System for running many diffent types and different numbers of  containers over multiple different machines (PC or VM).
+
+- It could run different images of the containers
+- It could run containers on different machines (if it is the Node)
+
+# Why use Kubernetes
+To scale up containers on different machines in different quantities.
+
+- Only specified containers could be scaled.
+- Different containers could scale at different numbers.
+
+# Production and Dev environments difference
+
+# Kubectl
+
+## Install
+https://kubernetes.io/docs/tasks/tools/install-kubectl/#install-kubectl-on-linux
+
+1. download and add executable: 
+``` 
+curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt` /bin/linux/amd64/kubectl 
+chmod +x ./kubectl
+```
+2. add into Path
+```
+echo $PATH
+sudo mv ./kubectl /usr/local/bin/kubectl
+```
+
+3. test
+```
+kubectl version --client
+```
+
+### Autocompletion
+
+1. check bash autocompletion installed and monitors completion dir
+```
+apt list --installed | grep completion
+OR
+yum list installed | grep completion
+
+grep '/etc/bash_completion.d' /usr/share/bash-completion/bash_completion
+```
+2. Write kubectl completion into common dir
+```
+sudo su -
+kubectl completion bash >/etc/bash_completion.d/kubectl
+```
+3. Reopen terminal, relogin or re-source .bashrc
+```
+. ~/.bashrc
+```
+
+## API versions in Config(`.yaml`) files
+
+Different versions support different predefined sets of Objects available to use out of the box.  
+Presumably those could be extended at custom level.
+
+### v1:
+includes at least following types:
+- componentStatus
+- configMap
+- Endpoints
+- Event
+- Namespace
+- Pod
+
+### apps/v1
+includes at least following types:
+- ControllerRevision
+- StatefulSet
+
+## Objects (`kind:`)
+
+Kubernetes operates objects.  
+Kubernetes cluster contains of Objects of different types.  
+Config file(`.yaml`) is required for each object.  
+Object represents either container or entity required for container - like Port mapping.  
+
+### Pod
+
+Type of Objects that runs containers.
+
+Example:
+```
+apiVersion: v1
+kind: Pod
+metadata:
+    name: client-pod
+    labels:
+        component: web
+spec:
+    containers:
+        - name: client
+          image: stephengrider/multi-client
+          ports: 
+            - containerPort: 3000
+```
+
+### Service
+Types of Objects that are related to networking setup.
+
+
+#### NodePort
+Port mapping for Pods
+
+Example:
+```
+apiVersion: v1
+kind: Service
+metadata:
+    name: client-node-port
+spec:
+    type: NodePort
+    ports:
+        - ports: 3050
+          targetPort: 3000
+          nodePort: 31515
+    selector:
+        component: web
+```
+
+### ReplicaController
+
+### StatefulSet
+
+
+
+## Commands
+
+### cluster-info
+check cluster info
+ 
+Expect output:
+>Kubernetes master is running at https://192.168.99.100:8443  
+KubeDNS is running at https://192.168.99.100:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+
+
+# Minicube
+
+## Install
+
+1. check virtualization is turned on
+```
+grep -E --color 'vmx|svm' /proc/cpuinfo
+```
+
+2. download and add executable:
+```
+curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 \
+  && chmod +x minikube
+```
+3. install (copy into path dir)
+```
+sudo mkdir -p /usr/local/bin/
+sudo install minikube /usr/local/bin/
+```
+
+4. check version
+```
+minikube version
+```
+
+5. pick driver and start  
+Virtual box is default driver; full list of drivers: https://kubernetes.io/docs/setup/learning-environment/minikube/#specifying-the-vm-driver  
+Usually drivers require installation, like one for `kvm2`
+```
+minikube start --driver=virtualbox
+minikube status
+```
+
+6. stop minikube
+```
+minikube stop
+```
+

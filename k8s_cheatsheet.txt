@@ -53,6 +53,18 @@ kubectl completion bash >/etc/bash_completion.d/kubectl
 . ~/.bashrc
 ```
 
+## Overal Architecture
+
+- Master
+- Node
+- - Pod 
+- - - Container
+
+![image](img/k8s_VM_by_Minikube_overall.jpg)
+![image](img/k8s_VM_by_Minikube_detailed.jpg)
+
+
+
 ## API versions in Config(`.yaml`) files
 
 Different versions support different predefined sets of Objects available to use out of the box.  
@@ -78,10 +90,13 @@ Kubernetes operates objects.
 Kubernetes cluster contains of Objects of different types.  
 Config file(`.yaml`) is required for each object.  
 Object represents either container or entity required for container - like Port mapping.  
+Objects are running inside a Kubernetes Node.  
 
 ### Pod
 
-Type of Objects that runs containers.
+Type of Objects that runs containers.  
+Pod could have more than 1 container running in it.  
+Pod is like a Package with binaries - smallest deployable thing. Which means only vital containers need to be inside (like only vital binaries need to be in a package, and other binaries go to other packages).
 
 Example:
 ```
@@ -102,10 +117,14 @@ spec:
 ### Service
 Types of Objects that are related to networking setup.
 
+#### ClusterIP
 
 #### NodePort
-Port mapping for Pods
 
+NOTE: ONly good in development setup!!  
+
+Port mapping for Pods.   
+Key values inside `selector:` yaml node here are the links to which exact Pod(or other Object i believe) should be these options be applied to.  
 Example:
 ```
 apiVersion: v1
@@ -115,12 +134,33 @@ metadata:
 spec:
     type: NodePort
     ports:
-        - ports: 3050
+        - port: 3050
           targetPort: 3000
           nodePort: 31515
     selector:
         component: web
 ```
+When NodePort object boot up it will look into `selector:` , get `component: web` and look for Objects which have same key-value.  
+And Object(Pod) with name 'client-pod' will have same key-value pair - `component: web`. Then port mapping from Service::NodePort will be applied to the Pod with 'client-pod' name.  
+`component` is key but is not a keyword and coud be _any string_.
+`web` is value but could also be _any string_.
+
+Ports:  
+
+NodePort is the layer through which all communication to Pod is moving.
+If any other Pod wants to communicate to the Pod it will go through NodePort which describes port info for particular `selector`:  
+![NodePort_Ports](img/k8s_NodePort_Ports.jpg)
+
+- port  
+port number at which other Pods going to contact NodePort to send traffic to `targetPort`
+- targetPort  
+port number at which NodePort will send traffic to (the one target Pod expects)
+- nodePort (__range: 30000 - 32767__)  
+port number at wchich NodePort is being accessed by the Browser. NodePort kind of become a 'target Pod` here.
+
+#### LoadBalancer
+
+#### Ingress
 
 ### ReplicaController
 

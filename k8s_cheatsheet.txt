@@ -10,6 +10,10 @@ To scale up containers on different machines in different quantities.
 - Only specified containers could be scaled.
 - Different containers could scale at different numbers.
 
+# Short summary
+
+![takeaways](img/k8s_imprt_takeaways.jpg)
+
 # Production and Dev environments difference
 
 # Kubectl
@@ -114,6 +118,22 @@ spec:
             - containerPort: 3000
 ```
 
+### Deployment
+Production grade `pod`; kind of.
+Runs set (1+) of identical `pods`(which usually run 1 container or more but really close related). Controls the heals of `pods` and resarts if necessary.  
+Basically `Deployment` objects are little `masters` to the `Pods` they create. Like `master` governs all the `Objects` in Kubernetes.
+
+#### Deployments vs Pods
+
+![deployment_vs_pods](img/k8s_pod_vs_deployment.jpg)
+
+#### Pod Template
+
+Every deployment has a `Pod Template` which is a patter on how to create Pods from this Deployment in the future.
+
+![deployment_details](img/k8s_deployment_details.jpg)
+
+
 ### Service
 Types of Objects that are related to networking setup.
 
@@ -168,9 +188,20 @@ port number at wchich NodePort is being accessed by the Browser. NodePort kind o
 
 
 
-## Commands
+## CLI Commands
 
-### cluster-info
+### apply:
+Changes current configuration of the Cluster - thus changing the 'Desired state'  
+Master will start to work onto bringing 'Actual state' to 'Desired state'  
+
+![Apply command structure](img/k8s_Apply_struct.jpg)
+
+>NOTE:  
+Only some fields of config file could be updated through `apply`.  
+_The Pod "client-pod" is invalid: spec: Forbidden: pod updates may not change fields other than `spec.containers[*].image`, `spec.initContainers[*].image`, `spec.activeDeadlineSeconds` or `spec.tolerations` (only additions to existing tolerations)_
+
+
+### cluster-info:
 check cluster info
  
 Expect output:
@@ -178,6 +209,48 @@ Expect output:
 KubeDNS is running at https://192.168.99.100:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 
+### get:
+prints status of group of object types (i.e. `pods`)
+
+> NOTE:  
+`pods` is same as `pod` and probably all other plural\single stuff.  
+Same applies probably to all other commands and types(kinds).
+
+To get list of pods:
+![get_pods](img/k8s_get_pods_struct.jpg)
+
+Expected output:
+```
+dos:simplek8s$ kubectl get pods
+NAME         READY   STATUS    RESTARTS   AGE
+client-pod   1/1     Running   0          25s
+```
+Where `READY`: \<number of running pods\>/\<number of desired pods to run\>
+
+To get list of Services:
+```
+dos:simplek8s$ kubectl get services
+NAME               TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+client-node-port   NodePort    10.102.55.176   <none>        3050:31515/TCP   4m13s
+kubernetes         ClusterIP   10.96.0.1       <none>        443/TCP          2d22h
+```
+`kubernetes` is kind of system service, could ignore that for now  
+`PORT` [column](#nodeport) lists both `port` and `nodePort` properties
+
+### describe:
+
+describes a particular object
+
+![describe](img/k8s_describe_struct.jpg)
+
+To get info about a pod with a name:
+```
+dos:simplek8s$ kubectl get pod
+NAME         READY   STATUS    RESTARTS   AGE
+client-pod   1/1     Running   2          25h
+dos:simplek8s$ kubectl describe pods client-pod | grep -i image:
+    Image:          stephengrider/multi-worker
+```
 
 # Minicube
 
@@ -217,3 +290,10 @@ minikube status
 minikube stop
 ```
 
+## CLI Comands
+
+### start
+starts minikube and 1 VM
+
+### ip
+shows ip of that one VM

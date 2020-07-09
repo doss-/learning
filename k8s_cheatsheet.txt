@@ -67,6 +67,11 @@ kubectl completion bash >/etc/bash_completion.d/kubectl
 ![image](img/k8s_VM_by_Minikube_overall.jpg)
 ![image](img/k8s_VM_by_Minikube_detailed.jpg)
 
+Node arch with bunch of pods of different services running in it.
+- Every service is represented by single `Deployment`object. 
+- Each `Deployment` has its `NodePort` object
+
+![node_inner_detailed](img/k8s_node_inner_struct_detailed.jpg)
 
 
 ## API versions in Config(`.yaml`) files
@@ -263,6 +268,17 @@ client-deployment-5dfb6bf966-sh48j   1/1     Running   0          25h   172.17.0
 
 ```
 
+### set:
+
+set params for objects
+
+> Updates images of Pods when there are no changes to run `kubectl apply`
+
+Example:
+```
+kubectl set image deployment/client-deployment client=doss/my-multi-client:v5
+```
+will set `image` property of `client` container in object `deployment` with name `client-deployment`. This will add specific tag - `v5`
 
 
 
@@ -279,6 +295,27 @@ NAME         READY   STATUS    RESTARTS   AGE
 client-pod   1/1     Running   2          25h
 dos:simplek8s$ kubectl describe pods client-pod | grep -i image:
     Image:          stephengrider/multi-worker
+```
+
+### logs:
+
+same as `docker logs <container_id>` - pulls logs (stdout + stderr) from container
+
+Example:
+```
+kubectl get pods
+> NAME                                READY   STATUS    RESTARTS   AGE
+> client-deployment-569cd5b6d-5mj49   1/1     Running   0          22h
+
+kubectl logs client-deployment-569cd5b6d-5mj49
+```
+
+### exec:
+same as `docker exec`, some params are also apply.
+
+Example:
+```
+kubectl exec -it client-deployment-569cd5b6d-5mj49 bash
 ```
 
 ### delete:
@@ -335,3 +372,16 @@ starts minikube and 1 VM
 
 ### ip
 shows ip of that one VM
+
+### docker-env
+useful for debug  
+generates exports to connect local docker-client to docker-server running in minikube VM
+
+Example:
+```
+eval $(minikube docker-env)
+```
+subshell will generate env vars exports
+eval will load it into current shell
+
+`docker ps` will now return containers running inside `minikube` VM

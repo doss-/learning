@@ -932,8 +932,14 @@ VOLUME
 	https://docs.docker.com/storage/volumes/
 
 prune:
-  docker volume prune - delete all volumes that are not currently used by
+  volume prune - delete all volumes that are not currently used by
 	running containers
+  image prune - delete all unused volumes
+  system prune - delete all unused stuff
+  -a  - also delete all unused stuff... 
+   Example:
+  docker system prune -a
+   will delete much stuff. wow. not fast.
 
 volume drivers:
   vieux/sshfs:

@@ -100,7 +100,18 @@ Objects are running inside a Kubernetes Node.
 
 Type of Objects that runs containers.  
 Pod could have more than 1 container running in it.  
-Pod is like a Package with binaries - smallest deployable thing. Which means only vital containers need to be inside (like only vital binaries need to be in a package, and other binaries go to other packages).
+Pod is like a Package with binaries - smallest deployable thing. Which means only vital containers need to be inside (like only vital binaries need to be in a package, and other binaries go to other packages).  
+- __Pod is a VM running in Node__
+- __Pod get its IP__
+- __Pod gets re-created almost with every config change__
+- __Pod gets new IP when re-created__
+- __NodePod service routes traffic to a Pod getting away re-generated IP thing__
+- __Node could have many Pods running__
+
+>Fun Fact:  
+Node is possibly a VM  
+Which runs Pods inside, which are also VMs  
+Which run Containers inside, which are also VMs
 
 Example:
 ```
@@ -237,6 +248,24 @@ kubernetes         ClusterIP   10.96.0.1       <none>        443/TCP          2d
 `kubernetes` is kind of system service, could ignore that for now  
 `PORT` [column](#nodeport) lists both `port` and `nodePort` properties
 
+#### get params:
+
+-o \[wide\]  - more detailed output, like add IP addresses and stuff
+
+Example:  
+```
+dos:simplek8s$ kubectl get deployments -o wide
+NAME                READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                       SELECTOR
+client-deployment   1/1     1            1           25h   client       stephengrider/multi-client   component=web
+dos:simplek8s$ kubectl get pods -o wide
+NAME                                 READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+client-deployment-5dfb6bf966-sh48j   1/1     Running   0          25h   172.17.0.4   minikube   <none>           <none>
+
+```
+
+
+
+
 ### describe:
 
 describes a particular object
@@ -252,7 +281,16 @@ dos:simplek8s$ kubectl describe pods client-pod | grep -i image:
     Image:          stephengrider/multi-worker
 ```
 
+### delete:
+deletes an `Object` using configuration file which was used to create(`apply`) it.
+
+![delete](img/k8s_delete_struct.jpg)
+
 # Minicube
+
+NOTE: service below is NodePort k8s object
+![minikube_details](img/k8s_minikube_details.jpg)
+
 
 ## Install
 

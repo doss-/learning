@@ -74,7 +74,16 @@ Node arch with bunch of pods of different services running in it.
 ![node_inner_detailed](img/k8s_node_inner_struct_detailed.jpg)
 
 
-## API versions in Config(`.yaml`) files
+## Config file structure in Config(`.yaml`) files
+- `apiVersion:`  - the version to use, only one
+[API version](#api-versions) allowed
+- `kind:`  - Type of the [object](#objects) configured
+- `metadata:` - system details about the Object (`name:`; `labels:`)
+- `spec:`  - specification of the object, each type has own
+
+
+## API versions 
+(`apiVersion:`)
 
 Different versions support different predefined sets of Objects available to use out of the box.  
 Presumably those could be extended at custom level.
@@ -93,13 +102,17 @@ includes at least following types:
 - ControllerRevision
 - StatefulSet
 
-## Objects (`kind:`)
+
+## Objects 
+(`kind:`)
 
 Kubernetes operates objects.  
 Kubernetes cluster contains of Objects of different types.  
 Config file(`.yaml`) is required for each object.  
 Object represents either container or entity required for container - like Port mapping.  
 Objects are running inside a Kubernetes Node.  
+Objects can have Labels - key value pairs, both could be custom, which 
+are unique keys by which other objects could distingiush one object(including container) groups from another and interact with.
 
 ### Pod
 
@@ -134,10 +147,58 @@ spec:
             - containerPort: 3000
 ```
 
+#### spec
+- containers:  - array of containers to run on pod  
+    - name:  - name of the container  
+        - image:  - address of the image to run for container  
+        - ports:  - array of ports which to open   
+            - containerPort:   - port at which application will listen  
+
 ### Deployment
 Production grade `pod`; kind of.
 Runs set (1+) of identical `pods`(which usually run 1 container or more but really close related). Controls the heals of `pods` and resarts if necessary.  
 Basically `Deployment` objects are little `masters` to the `Pods` they create. Like `master` governs all the `Objects` in Kubernetes.
+
+Example:
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client-deployment
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      component: web 
+  template:
+    metadata:
+      labels:
+        component: web 
+    spec:
+      containers:
+        - name: client
+          #image: stephengrider/multi-client
+          image: myname/my-multi-client
+          ports:
+            - containerPort: 3000
+
+```
+
+#### spec
+- replicas:  - number of replicas of the Pod  
+- selector:  - how to select objects(pods) for interaction  
+    - matchLabels:  - method on how to select pods  
+        - `key: value` pair to match in pods(objects) for interaction  
+- template:  - template from which create the pods (below is same as Pod)  
+    - metadata: - same as from Pod except no name  
+        - labels: list of labels (w/o `-`) - key value pairs
+            - `key: value` pair to match in pods(objects) for  interaction 
+    - spec:  - all the same as for Pod
+        - containers:
+            - name: 
+            - image: 
+            - ports:
+                - containerPort: 
 
 #### Deployments vs Pods
 
@@ -155,11 +216,47 @@ Types of Objects that are related to networking setup.
 
 #### ClusterIP
 
+Production grade analog of NodePort.
+
+![clusterip_struct](img/k8s_ClusterIP_struct.jpg)
+
+Provides access to set of pods running inside a Cluster.  
+Pods are still inaccessible from outside world - this is private router for private objects inside the Cluster.
+
+spec: ports:
+- port:  - port number at which other services from Cluster will access this ClusterIP object to get to a Pod running behind this ClusterIP
+- targetPort:  - port number at which application running in a Pod will listen for connections.
+
+Example:
+```
+apiVersion: v1
+kind: Service
+metadata:
+    name: client-cluster-ip-service
+spec:
+    type: ClusterIP
+    selector:
+        component: web
+    ports:
+        - port: 3000
+          targetPort: 3000
+```
+
 #### NodePort
 
 NOTE: ONly good in development setup!!  
 
 Port mapping for Pods.   
+
+![NodePort_Ports](img/k8s_NodePort_Ports.jpg)
+
+- port  
+port number at which other Pods going to contact NodePort to send traffic to `targetPort`
+- targetPort  
+port number at which NodePort will send traffic to (the one target Pod expects)
+- nodePort (__range: 30000 - 32767__)  
+port number at wchich NodePort is being accessed by the Browser. NodePort kind of become a 'target Pod` here.
+
 Key values inside `selector:` yaml node here are the links to which exact Pod(or other Object i believe) should be these options be applied to.  
 Example:
 ```
@@ -185,14 +282,7 @@ Ports:
 
 NodePort is the layer through which all communication to Pod is moving.
 If any other Pod wants to communicate to the Pod it will go through NodePort which describes port info for particular `selector`:  
-![NodePort_Ports](img/k8s_NodePort_Ports.jpg)
 
-- port  
-port number at which other Pods going to contact NodePort to send traffic to `targetPort`
-- targetPort  
-port number at which NodePort will send traffic to (the one target Pod expects)
-- nodePort (__range: 30000 - 32767__)  
-port number at wchich NodePort is being accessed by the Browser. NodePort kind of become a 'target Pod` here.
 
 #### LoadBalancer
 

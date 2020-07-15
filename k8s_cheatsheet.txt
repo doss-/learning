@@ -214,6 +214,27 @@ Every deployment has a `Pod Template` which is a patter on how to create Pods fr
 ### Service
 Types of Objects that are related to networking setup.
 
+#### Volume
+Is an Object that serves as a storage for container which is mounted into container's filesystem.  
+Volume exists on Pod level - Pod could be destroyed too. **And Pods are getting destroyed on each `kubectl apply`**  - see [Persistent Volumes](#persistent-volumes) for *persistent* solution.  
+Conceptually same as a volume in Docker and basically as a volume (i.e. LVM's) in Unix where volumes are separate disks mounted into particular point in filesystem tree.
+
+![volume_descr](img/k8s_volume_descr.jpg)
+
+#### Persistent Volume
+
+![volume_vs_persistent_volume](img/k8s_volume_vs_persistent_volume.jpg)
+
+#### Persistent Volume Claim
+or PVC  
+Is set of options on which Persistent Volumes are available for use
+
+Has two types:  
+* **Statically generated**  
+are already in stock
+* **Dynamically generated**  
+are generated on demand
+
 #### ClusterIP
 
 Production grade analog of NodePort.
@@ -457,13 +478,13 @@ minikube stop
 
 ## CLI Comands
 
-### start
+### start:
 starts minikube and 1 VM
 
-### ip
+### ip:
 shows ip of that one VM
 
-### docker-env
+### docker-env:
 useful for debug  
 generates exports to connect local docker-client to docker-server running in minikube VM
 
@@ -475,3 +496,31 @@ subshell will generate env vars exports
 eval will load it into current shell
 
 `docker ps` will now return containers running inside `minikube` VM
+
+## Debug
+
+* [get container logs](#logs:)
+* [connect local docker client to minikube's docker daemon](#docker-env:)
+
+Example:
+```
+dos:multi-docker$ kubectl get pods
+NAME                                 READY   STATUS    RESTARTS   AGE
+...
+server-deployment-5fdbfcfc99-c4689   1/1     Running   0          9m5s
+...
+
+dos:multi-docker$ kubectl logs server-deployment-5fdbfcfc99-c4689
+
+> @ start /app
+> node index.js
+
+Listening
+{ Error: connect ECONNREFUSED 127.0.0.1:5432
+    at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1161:14)
+  errno: 'ECONNREFUSED',
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 5432 }
+```

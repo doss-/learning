@@ -57,7 +57,7 @@ kubectl completion bash >/etc/bash_completion.d/kubectl
 . ~/.bashrc
 ```
 
-## Overal Architecture
+# Overal Architecture
 
 - Master
 - Node
@@ -82,13 +82,13 @@ Node arch with bunch of pods of different services running in it.
 - `spec:`  - specification of the object, each type has own
 
 
-## API versions 
+# API versions 
 (`apiVersion:`)
 
 Different versions support different predefined sets of Objects available to use out of the box.  
 Presumably those could be extended at custom level.
 
-### v1:
+## v1:
 includes at least following types:
 - componentStatus
 - configMap
@@ -96,14 +96,18 @@ includes at least following types:
 - Event
 - Namespace
 - Pod
+- PersistentVolumeClaim
+- Service
+    - ClusterIP
 
-### apps/v1
+## apps/v1
 includes at least following types:
 - ControllerRevision
 - StatefulSet
+- Deployment
 
 
-## Objects 
+# Objects 
 (`kind:`)
 
 Kubernetes operates objects.  
@@ -114,7 +118,7 @@ Objects are running inside a Kubernetes Node.
 Objects can have Labels - key value pairs, both could be custom, which 
 are unique keys by which other objects could distingiush one object(including container) groups from another and interact with.
 
-### Pod
+## Pod
 
 Type of Objects that runs containers.  
 Pod could have more than 1 container running in it.  
@@ -147,14 +151,25 @@ spec:
             - containerPort: 3000
 ```
 
-#### spec
+### spec
+- volumes:
+    - name:  - by this name containers would reference the volume
+    - persistentVolumeClain:  - list of PVCs
+        - claimName:  - name of PVC as in its config
 - containers:  - array of containers to run on pod  
     - name:  - name of the container  
         - image:  - address of the image to run for container  
         - ports:  - array of ports which to open   
             - containerPort:   - port at which application will listen  
+        - volumeMounts:  - list of volumes from `volumes` to use
+            - name:  - name of the volume as in `volumes` above
+            - mountPath:  - where to mount the volume inside container's fs
+            - subPath:  - name of the sub folder in which to store data
+        - env:  - array of name:value pairs with names and values of env vars
+            - name: - name of env var which will be passed into container
+            - value: - the value of the env var (i.e. redis-cluster-ip-service)
 
-### Deployment
+## Deployment
 Production grade `pod`; kind of.
 Runs set (1+) of identical `pods`(which usually run 1 container or more but really close related). Controls the heals of `pods` and resarts if necessary.  
 Basically `Deployment` objects are little `masters` to the `Pods` they create. Like `master` governs all the `Objects` in Kubernetes.
@@ -175,16 +190,23 @@ spec:
       labels:
         component: web 
     spec:
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: database-persistent-volume-claim
       containers:
         - name: client
           #image: stephengrider/multi-client
           image: myname/my-multi-client
           ports:
             - containerPort: 3000
+          volumeMounts:
+                    - name: postgres-storage
+                      mountPath: /var/lib/postgresql/data
 
 ```
 
-#### spec
+### spec
 - replicas:  - number of replicas of the Pod  
 - selector:  - how to select objects(pods) for interaction  
     - matchLabels:  - method on how to select pods  
@@ -194,40 +216,69 @@ spec:
         - labels: list of labels (w/o `-`) - key value pairs
             - `key: value` pair to match in pods(objects) for  interaction 
     - spec:  - all the same as for Pod
+        - volumes:
+            - name:  - by this name containers would reference the volume
+            - persistentVolumeClain:  - list of PVCs
+                - claimName:  - name of PVC as in its config
         - containers:
             - name: 
             - image: 
+            - env: - array of name:value pairs for Env variables
+                - name: - name of the Env variable passed into container
+                - value: \ valueFrom:  - where from take value for `name`
             - ports:
                 - containerPort: 
+            - volumeMounts:  - list of volumes from `volumes` to use
+                - name:  - name of the volume as in `volumes` above
+                - mountPath:  - where to mount the volume inside container's fs
 
-#### Deployments vs Pods
+### Deployments vs Pods
 
 ![deployment_vs_pods](img/k8s_pod_vs_deployment.jpg)
 
-#### Pod Template
+### Pod Template
 
 Every deployment has a `Pod Template` which is a patter on how to create Pods from this Deployment in the future.
 
 ![deployment_details](img/k8s_deployment_details.jpg)
 
 
-### Service
+## Service
 Types of Objects that are related to networking setup.
 
-#### Volume
+### Volume
 Is an Object that serves as a storage for container which is mounted into container's filesystem.  
 Volume exists on Pod level - Pod could be destroyed too. **And Pods are getting destroyed on each `kubectl apply`**  - see [Persistent Volumes](#persistent-volumes) for *persistent* solution.  
 Conceptually same as a volume in Docker and basically as a volume (i.e. LVM's) in Unix where volumes are separate disks mounted into particular point in filesystem tree.
 
 ![volume_descr](img/k8s_volume_descr.jpg)
 
-#### Persistent Volume
+### Persistent Volume
+
+Get all persistent volumes:
+```
+kubectl get pv
+```
 
 ![volume_vs_persistent_volume](img/k8s_volume_vs_persistent_volume.jpg)
 
-#### Persistent Volume Claim
+### Persistent Volume Claim
 or PVC  
-Is set of options on which Persistent Volumes are available for use
+
+Get all persistent volume claims:
+```
+kubectl get pvc
+```
+
+Is set of options on which Persistent Volumes are available for use.  
+
+Steps:  
+Kubernetes will look for exact volumes as given in PVS config;  
+if there is available one (created) - which is Static  
+if there is none available - will Dynamically create one  
+To attach PVC to container, it should have:  
+Volumes listed in its spec([Pod](#pod) or [Deployment](#deployment))  
+Volumes with mount points listed for each container in Pod or Deployment  
 
 Has two types:  
 * **Statically generated**  
@@ -235,9 +286,75 @@ are already in stock
 * **Dynamically generated**  
 are generated on demand
 
-#### ClusterIP
+Access Modes:  
+how Persistent Volume could be accessed, k8s will look for PV with exact Access mode given in config type.
+![access_modes](img/k8s_pvc_access_modes.jpg)
+ReadWriteOnce - Read and Write for single node    
+ReadOnlyMany - Read only for many nodes  
+ReadWriteMany - Read and Write for many nodes  
+
+Storage:  
+size of Volume to use, k8s will look for PV of exact size given in config. Units:  
+- Gi  - gigabyte
+
+#### spec:
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: database-persistent-volume-claim
+spec:
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 2Gi
+```
+Use the claim in [Deployment](#deployment) template:  
+```
+  ...
+  template:
+    spec:
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: database-persistent-volume-claim
+      ...
+      containers:
+        - name:
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+  ...  
+```
+
+
+
+#### storageclass:
+
+[Documentation](https://kubernetes.io/docs/concepts/storage/storage-classes/)
+
+The way k8s would use to store Persistent Volumes  
+Option in PVC config.  
+Also have default value - for minikube and cloud providers too.
+
+Get list of available classes and detailed info about:  
+```
+kubectl get storageclass
+kubectl describe storageclass
+```
+
+classes:  
+default - for minikube would be with `k8s.io/minikube-hostpath` provider
+
+
+
+### ClusterIP
 
 Production grade analog of NodePort.
+`metadata:name` is used when connecting to a pod running behind the ClusterIP service  
+`ports:port` is used when connecting to the pod 
+`ports:targetPort` is where the connection to be redirected from ClusterIP into the Pod
 
 ![clusterip_struct](img/k8s_ClusterIP_struct.jpg)
 
@@ -263,7 +380,7 @@ spec:
           targetPort: 3000
 ```
 
-#### NodePort
+### NodePort
 
 NOTE: ONly good in development setup!!  
 
@@ -305,19 +422,38 @@ NodePort is the layer through which all communication to Pod is moving.
 If any other Pod wants to communicate to the Pod it will go through NodePort which describes port info for particular `selector`:  
 
 
-#### LoadBalancer
+### LoadBalancer
 
-#### Ingress
+older way of getting traffic into a Node (`NodePort` also does it , but that 100% for dev envs).  
+`Load Balancer` exposes 1 `Deployment`(set of same Pods) for reach from outside of the Node.
+It is used instead of `ClusterIP` object
+It also will create some Load Balancer Entity on the Cloud Provider in use(AWS or GCP etc.).
+Cannot expose 2+ `Deployments` see [Ingress](#ingress) object for that
 
-### ReplicaController
+### Ingress
 
-### StatefulSet
+modern way of getting traffic into a Node for Production grade environments.
+Could access outside access for 1+ `Deployments`
+
+#### Types
+
+k8s has several implementations of Ingress Services:  
+1. Nginx Ingress (kubernetes made)
+
+![ngix_ingress_controllers](img/k8s_nginx_ingress_controllers.jpg)
+
+2. Nginx Ingress (nginx made)
+
+
+## ReplicaController
+
+## StatefulSet
 
 
 
-## CLI Commands
+# CLI Commands
 
-### apply:
+## apply:
 Changes current configuration of the Cluster - thus changing the 'Desired state'  
 Master will start to work onto bringing 'Actual state' to 'Desired state'  
 
@@ -328,7 +464,7 @@ Only some fields of config file could be updated through `apply`.
 _The Pod "client-pod" is invalid: spec: Forbidden: pod updates may not change fields other than `spec.containers[*].image`, `spec.initContainers[*].image`, `spec.activeDeadlineSeconds` or `spec.tolerations` (only additions to existing tolerations)_
 
 
-### cluster-info:
+## cluster-info:
 check cluster info
  
 Expect output:
@@ -336,7 +472,7 @@ Expect output:
 KubeDNS is running at https://192.168.99.100:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 
-### get:
+## get:
 prints status of group of object types (i.e. `pods`)
 
 > NOTE:  
@@ -364,7 +500,7 @@ kubernetes         ClusterIP   10.96.0.1       <none>        443/TCP          2d
 `kubernetes` is kind of system service, could ignore that for now  
 `PORT` [column](#nodeport) lists both `port` and `nodePort` properties
 
-#### get params:
+### get params:
 
 -o \[wide\]  - more detailed output, like add IP addresses and stuff
 
@@ -379,7 +515,7 @@ client-deployment-5dfb6bf966-sh48j   1/1     Running   0          25h   172.17.0
 
 ```
 
-### set:
+## set:
 
 set params for objects
 
@@ -393,7 +529,7 @@ will set `image` property of `client` container in object `deployment` with name
 
 
 
-### describe:
+## describe:
 
 describes a particular object
 
@@ -408,7 +544,47 @@ dos:simplek8s$ kubectl describe pods client-pod | grep -i image:
     Image:          stephengrider/multi-worker
 ```
 
-### logs:
+## create:
+create an object  
+usually objects created from .yml files by `apply` command but some `secrets` are required to be created manually due to security reasons like storing config(.yaml) file for secret with plain text secret in repo is pointless.
+
+### secret:
+an object that contains secret like passwords  
+Secrets are manually created from CLI on both dev and production environments
+
+Example:
+```
+dos:multi-docker$ kubectl create secret generic my-name-of-secret --from-literal PASSWDENVVAR=p@$$w0rd
+dos:multi-docker$ kubectl get secrets 
+NAME                  TYPE                                  DATA   AGE
+default-token-gp6dt   kubernetes.io/service-account-token   3      14d
+pgpassword            Opaque                                1      15s
+
+```
+`DATA` column displays how many key-value pairs secret has
+
+#### Types of secrets
+- generic  - most of the secrets goes here (like passwords etc.)
+- docker-registry  - auth with custom docker registry
+- tls  - https(ssl) setup of TLS keys
+
+### pod\deployment's template spec:
+how to use in configs with env variables:
+```        
+        ...
+          spec:
+            containers:
+              ...
+              env:
+                - name: POSTGRES_PASSWORD
+                  valueFrom: 
+                    secretKeyRef:
+                        name: pgpassword
+                        key: PGPASSWORD
+        ...
+```
+
+## logs:
 
 same as `docker logs <container_id>` - pulls logs (stdout + stderr) from container
 
@@ -421,7 +597,7 @@ kubectl get pods
 kubectl logs client-deployment-569cd5b6d-5mj49
 ```
 
-### exec:
+## exec:
 same as `docker exec`, some params are also apply.
 
 Example:
@@ -429,7 +605,7 @@ Example:
 kubectl exec -it client-deployment-569cd5b6d-5mj49 bash
 ```
 
-### delete:
+## delete:
 deletes an `Object` using configuration file which was used to create(`apply`) it.
 
 ![delete](img/k8s_delete_struct.jpg)
@@ -476,15 +652,15 @@ minikube status
 minikube stop
 ```
 
-## CLI Comands
+# CLI Comands
 
-### start:
+## start:
 starts minikube and 1 VM
 
-### ip:
+## ip:
 shows ip of that one VM
 
-### docker-env:
+## docker-env:
 useful for debug  
 generates exports to connect local docker-client to docker-server running in minikube VM
 
@@ -497,7 +673,7 @@ eval will load it into current shell
 
 `docker ps` will now return containers running inside `minikube` VM
 
-## Debug
+# Debug
 
 * [get container logs](#logs:)
 * [connect local docker client to minikube's docker daemon](#docker-env:)

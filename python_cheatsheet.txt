@@ -215,6 +215,11 @@ exception handling:
         print("set ARTI_CLEAN_USER_ARTI and ARTI_CLEAN_PASSWD_ARTI environment \
                variables before script execution!")
         sys.exit(1)
+  Catch any exception:
+   1 try:
+   2   untrusted.execute()
+   3 except Exception as e:
+   4   write_to_page( "<p>Error: %s</p>" % str(e) )
 
 
 pip:

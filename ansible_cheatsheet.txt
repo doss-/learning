@@ -174,6 +174,7 @@ https://docs.ansible.com/ansible/latest/cli/ansible.html
 	Inventory (/etc/ansible/hosts)
   Or use name of the section from Inventory file instead of 'all'
  --limit "<ip/hostname>" - limit operation to only given ip\hostname from
+ `run_once: true` - limit to run on 1 machine inside the playbook
   the group selected from inventory file
    Example:
   ansible app -b -a "service ntpd restart" --limit "192.168.60.4"
@@ -184,6 +185,10 @@ https://docs.ansible.com/ansible/latest/cli/ansible.html
    Example:
   ansible app -b -a "service ntpd restart" --limit "*.4"
   This also works with --list-hosts to test the pattern:
+   Playbook patterns:
+  ansible-playbook playbooks/provision_vm.yml --list-hosts -l i-jax-dv-mvmqf*.twlab.int
+  Will return i-jax-dv-mvmqf and i-jaxx-dv-mvmqfR two machines
+   
    Example:
   ansible app --list-hosts -limit ~".*\.4"  
     will return only matched hosts from the group

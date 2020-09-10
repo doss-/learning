@@ -1,0 +1,6 @@
+### Test-NetConnection:
+ping and port check on target machine
+Example:
+```
+Test-NetConnection -ComputerName 10.220.192.114 -Port 22 -InformationLevel "Detailed"
+```

@@ -323,6 +323,19 @@ stats:
   docker stats `docker ps -q` - will display resources usage for all the
 	container that are currently Running
   
+system:
+  df:
+   same as regular `df` in linux - shows images, containers, volumes and cache 
+  on how many space is used by those.
+   Example:
+root@jenkins:/opt/tideworks/docker/overlay2# docker system df
+TYPE                TOTAL               ACTIVE              SIZE                RECLAIMABLE
+Images              318                 10                  93.9GB              92.82GB (98%)
+Containers          16                  0                   3.656MB             3.656MB (100%)
+Local Volumes       482                 1                   8.199MB             8.199MB (100%)
+Build Cache         0                   0                   0B                  0B
+
+
 events:
   Attaches to Docker daemon and displays all the current docker events like
   stopping or starting container etc.
@@ -403,6 +416,7 @@ load:
 rmi:
   removes image by its name ID or repo + tag
   docker rmi <repo:tag>
+   Shortcut for `docker image rm`
   It will untag and delete image
   Images that has container instatiated from it(even stopped) will not be 
   deleted without Force. 
@@ -411,6 +425,18 @@ rmi:
    Example:
   docker rmi centos:centos6 - will remove image from repo 'centos 'tagged as 
 	'centos6' which is basically its version
+
+image:
+  show info about images
+  ls:
+   List images
+
+   Example:
+  docker image ls -f dangling=true
+   show list of unused images
+
+  prune:
+   deletes all dangling images
 
 rm:
   removes container by its ID or name
@@ -933,7 +959,14 @@ VOLUME
 
 prune:
   docker volume prune - delete all volumes that are not currently used by
-	running containers
+	running containers  
+    Free space:  
+    /var/lib/docker/overlay2 contains all the images info, it could grow out of control  
+    to clean it up use the following:
+  ```
+  docker system df
+  docker system prune -a
+  ```
 
 volume drivers:
   vieux/sshfs:

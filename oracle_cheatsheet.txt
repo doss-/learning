@@ -1,0 +1,28 @@
+
+# ASM
+
+## Check where ASM disks are located
+```
+df -ah
+```
+  check whether there are any network mounts.
+
+```
+ll /dev/oracleafd/disks/
+# or anything like /dev/oracle<...>/disks
+cat /dev/oracleafd/disks/DATA1
+# this will contain path to disk where DATA1 is located on
+# i.e. /dev/sdc
+fdisk -l
+# look for /dev/sdc
+```
+
+to check detailed info about ASM disk groups:
+```
+# load oracle env:
+. x  # 'x' could differ
+asmcmd
+lsdg
+# list disk group will return list of disk groups and overal\free size
+```
+

@@ -727,6 +727,11 @@ cat /proc/version - file with linux version info
   >lo      loopback  unmanaged  --     
     # connected in wifi type device means it is working and connected to 
     # wireless router
+
+  Networking off:
+  nmcli networking off
+  nmcli networking off
+
   lshw -C network	# display all info related about network devices
    Output:
     *-network               
@@ -1669,6 +1674,9 @@ sshd(openssh)
   sftp enable switch is located there, could be commented out and sshd restart
   to disable it
    /etc/ssh/ssh_config
+    LogLevel DEBUG3
+     Enables detailed logs
+     useful when got ssh logon issues
   some another config
   ==
    Options important:
@@ -3683,6 +3691,19 @@ server {
 		bridge_ports dummy0	#some mock stuff
 		bridge_stp off
 		bridge fd 0 		#frame 0
+
+## f5fpc:
+ F5 Linux CLI (command line interface ) Edge Client Installer
+ work machine: D:\devops\BigIP
+ home machine: somewhere in 'vpn'
+ Install:
+ 1. chmod +x Install.sh
+ 2. bash Install.sh
+ Aliases:
+ alias vpn-go="sudo f5fpc -s -t seapop.tideworks.com -u 'usa\twuser' -x"
+ alias vpn-info="sudo f5fpc -i"
+ alias vpn-stop="sudo f5fpc -o"
+
 
 ## Ports checks
  read more:

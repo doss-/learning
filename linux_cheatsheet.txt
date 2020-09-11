@@ -1817,8 +1817,43 @@ how to get block device name, partition, mount it and unmount after:
     Example:
  Get fingerprint:
   ssh-keygen -lf ~/.ssh/keyname[.pub]
- GitHub: Get fingerprint in hashed\hex format:
-  ssh-keygen -E md5 -lf ~/.ssh/git_key[.pub]
+ ### GitHub: Get fingerprint in hashed\hex format:
+ ```
+  ssh-keygen -E md5 -lf ~/.ssh/git_key[.pub]  
+ ```
+
+ #### GitHub troubleshoot:  
+ verbose connect to github with `git` user  
+ `ssh -vT git@github.com`  
+ Expected output:  
+ ```
+debug1: Connecting to github.com [140.82.121.4] port 22.
+debug1: Connection established.
+debug1: identity file /home/dos/.ssh/id_rsa type 0
+...
+debug1: Offering public key: RSA SHA256:JZ.......On8 /home/dos/.ssh/id_rsa
+debug1: Authentications that can continue: publickey
+debug1: Trying private key: /home/dos/.ssh/id_dsa
+debug1: Trying private key: /home/dos/.ssh/id_ecdsa
+debug1: Trying private key: /home/dos/.ssh/id_ed25519
+debug1: No more authentication methods to try.
+```
+`id_rsa` is not the key GitHub knows.
+Check which keys `ssh-agent` knows - it is auth tool used.
+```
+#start the agent
+ eval "$(ssh-agent -s)"
+#list md5 of all known keys
+ ssh-add -l -E md5
+```
+> only returned keys are used for auth  
+Add key if not listed:  
+```
+#add key
+ ssh-add ~/.ssh/other_key_rsa
+#recheck
+ ssh-add -l -E md5
+```
 
 ## ssh-copy-id:
   copies public keys securely to remote machine for paswordless login
@@ -2388,7 +2423,7 @@ root# passwd username - create password for the user
   - `/bin/passwd` - centos/red hat  
 
   has `setuid` bit which allows unprivileged users to use 'root' owned files.  
-  I.e - `passwd`  
+  I.e - `passwd`, `sudo`, `su`  
 
 ### check for setuid:
 ```
@@ -2397,6 +2432,7 @@ ls -la `which passwd`
 ```
 The `s` implies that the executable bit (`x`) is set, otherwise you would see a capital `S`. This happens when the `setuid` or `setgid` bits are set, but the executable bit is not, showing the user an inconsistency: the `setuid` and `setgit` bits have no effect if the executable bit is not set.   
 The `setuid` bit has no effect on directories. 
+_Setuid_: see [setuid](#setuid:-setgid:) for details
 
 
 ## gpasswd:
@@ -2421,24 +2457,7 @@ The `setuid` bit has no effect on directories.
   delete group
   groupdel [params] <groupname>
 
-## setuid and setgid:
- setuid:
-  Attribute of a file that allows unprivileged user to have level of permission
-  of original owner of the file. 
-  For example passwd executable is owned by Root user. But unprivileged user 
-  could execute it and the passwd binary will made the changes into /etc/passwd 
-  and /etc/shadow file(contains some related to passwords stuff too), and those 
-  both files also are owned by root user.
-  In the same time passwd used by unprivileged user accepts no params - means
-  user can not change other users passwords
- setgid:
-  Attribute of file\directory inherited byu sub dirs\files, so subdirs inherit 
-  parent's attributes. 
-  Gives access  equal to group owning the file to unprivileged user executing 
-  the file.
-  Unprivileged user executes file Under the privileges granted to the user group  owner of that file.
-
-whoami:
+## whoami:
  returns username of currently logged user
 
 # Super User
@@ -2522,37 +2541,70 @@ looks like glances can also setup a "web interface" to view.. as well as monitor
   > root     11003     1  0 02:51 ?        00:00:00 /lib/systemd/systemd-hostnamed
 
 ## ps:
-  by default returns processes run by my current user and current terminal 
-  session
-  ps [-[-]]<params> 
-	   UNIX standards - -<params>
-	   BSD standards - <params>
-	   GNU standards - --<params>
-	params could be mixed, but conflicts could appear
-   a - list all processes that has terminal attached: ps a
-   x - list all processes owned my you(same EUID as ps)
-   ax - list all processes(less columns)
-   u - user oriented format
-   p <pidlist> (-p, --pid)- select process by id (or just PID, == --pid <PID>)
-   -C <cmdlist> - select by command name(COMMAND column)
-   t <ttylist> - select by tty
-   U, -U, -u, --user - selects by user name or EUID(RUID for -U), different 
-		selections by user , will output different stuff
-   -j - jobs format
-   j - job control format
-   -H - hierarhy(tree\forest format)
-   l - long format
-   -l long format , -y good with this
-   -f - full format listing
-   f - ASCII art process hierarchy (forest)
-   o, -o, --format - change columns format
-  	i.e. ps -o pid,ruser=RealUser -o comm=Command - wil return 3 columns
-		named PID, RealUser and Command, with values of standard colmns
+  by default returns processes run by my current user and current terminal session  
+  ```
+  ps [-[-]]<params>   
+	   UNIX standards - -<params>  
+	   BSD standards - <params>  
+	   GNU standards - --<params>  
+  ```
+params could be mixed, but conflicts could appear  
+  a - list all processes that has terminal attached: ps a  
+  x - list all processes owned my you(same EUID as ps)  
+  ax - list all processes(less columns)  
+  u - user oriented format  
+  p <pidlist> (-p, --pid)- select process by id (or just PID, == --pid <PID>)  
+  -C <cmdlist> - select by command name(COMMAND column)  
+  t <ttylist> - select by tty  
+  U, -U, -u, --user - selects by user name or EUID(RUID for -U), different selections by user , will output different stuff  
+  -j - jobs format  
+  j - job control format  
+  -H - hierarhy(tree\forest format)  
+  l - long format  
+  -l long format , -y good with this  
+  -f - full format listing  
+  f - ASCII art process hierarchy (forest)  
+  o, -o, --format - change columns format  
+  Example:  
+  `ps -o pid,ruser=RealUser -o comm=Command` - wil return 3 columns
+  named PID, RealUser and Command, with values of standard colmns
 
-  ps aux - returns all processes run by all users from all terminals
-	    if user does not exist 'x' in case of UNIX format it could treat it
-	    in BSD format
-  ps axjf - formatted method of processes with parents in tree view
+`ps aux` - returns all processes run by all users from all terminals
+    if user does not exist 'x' in case of UNIX format it could treat it
+    in BSD format
+`ps axjf` - formatted method of processes with parents in tree view
+
+Example:
+```
+ps -eo pid,euser,ruser,comm
+```
+will show effective user(`euid`) and real user(`ruid`) and command executed
+
+## setuid: setgid:
+  executable bit from permissions set:  
+  The `setuid` bit has no effect on directories. 
+  `rwx` but for `x` it would be `s` in owner permissions  
+  `setuid` - SETs User ID
+  `setgid` - SETs Group ID
+  Runs program with permissions of the owner but not executor.  
+  `EUID` - effective user ID - id of Executable file Owner  
+  `RUID` - real user ID - id of User who executed the Executable file
+
+  But better to have them all the same (default behavior of `sudo`) - `EUID` usually set to all others `IDs`  (or `RUID` if setuid file owned not by `root` user) 
+  To change the behavior add following into `/etc/sudoers` file:
+  ```
+  Defaults    stay_setuid
+  ```
+  Setup setuid:
+  ```
+  root@host [~]# touch myfile
+  root@host [~]# chmod u+s myfile 
+## capital `S` because no Executable(x) permissions for owner
+##-rwSrw-r-- 1 test test 0 Mar 2 17:59 myfile
+root@host [~]#  chmod u+x myfile 
+## now it is as expected - lowercase `s`
+##-rwsrw-r-- 1 test test 0 Mar 2 17:59 myfile
+  ```
 
 ## pgrep:
   process grep , could find process id (PID) by process name, like
@@ -3180,6 +3232,9 @@ second 3 - user's group permissions
   r/w/x - read/write/execute
   i.e.
   chmod a+rwx <filename> - give all the permissions of read/write/execute
+
+  _Setuid_: see [setuid](#setuid:-setgid:)
+
 
   binary mode:
   4 - read
@@ -4234,3 +4289,82 @@ cat /sys/fs/cgroup/memory/docker/534c...3a6/memory.limit_in_bytes
 > 209715200
 
 ```
+
+## LKM
+Loadable Kernel Modules  
+Could be FOSS or proprietary, 3rd party, or closed sources(pre-compiled) modules also exists.
+
+Linux Kernel is monolithic, but with loadable modules it could be totally changed w/o performing the reboot.
+
+Kernel Modules loads:  
+- devices (like drivers and stuff)
+- system calls (like API for stuff)
+- filesystems (fs support could be loaded at runtime)
+
+Live ISO CD disks could work because of the LKM - Kernel loads required stuff (drivers, syscalls and fs support) at runtime.
+
+### LKM and GRUB(Boot Loaders)
+`/boot/config` file contains list of modules to load or NOT load  
+Example:  
+`/boot/config-4.15.0-117-generic`
+
+### modprobe:
+loads and unloads Linux Kernel Modules
+
+## Memory Management
+Kernel manages memory, take care of it and keepin it clean
+
+### Types of memory:  
+- __Physical Memory__  
+is the RAM
+
+- __Swap__  
+parts of Hard Drive which are used as the Memory by Kernel. There are many various Swap stuff, like /dev/shm partition used by Oracle DB , which sould be same or above than SGA (which is sum of two other types of ORacle memory. i hate Oracle.)
+
+- __Virtual Memory__  
+Abstration. Virtual representation of real memory (RAM and\or Swap) given to a Process so it sees it as a real memory.  
+Similar to CPU units having some amount of own RAM to have Memory Table pointing to real memory to fool a Process that it owns whole Computer's RAM.
+
+
+## Kernel Network Stack
+it has 7 layers (not to be confused with 7 TCP\IP Network Layers):  
+- 1th is in _User Space_: Application layer (i.e. Web Browser)
+- 2-6th are in _Kernel Space_: System Call Interface
+- 2-6th are in _Kernel Space_: Protocol Agnostic Interface 
+- 2-6th are in _Kernel Space_: Network Protocol
+- 2-6th are in _Kernel Space_: Device Agnostic Interface
+- 2-6th are in _Kernel Space_: Device Driver
+- 7th: Physical Hardware (i.e. Physical Network Device)
+
+## Process management
+There are two types of processes around:  
+- Foreground Processes or Interactive Processes.  
+  processes started by a User connected to the System, which did not started automatically as some Service
+- Background Processes or Non-Interactive Processes.  
+  processes started by the System as a Service or something similar.  
+  such processes does not expect any User input.
+  usually started by Init system (i.e. systemd), User can control such processes via Init system configuration or [command line] interfaces
+
+Processes could have Parents and Children.  
+All the processes are the children(or anscestors) of process with ID `1`. which is usually an `init` process (except Docker, it is complicated there).
+
+### Process States
+- __Running__ - running or ready to be run
+- __Waiting__ - waiting for an Event or a Resource
+- __Stopped__ - usually stopped by SIGnal 
+- __Zombie__ - the process is Dead, but not completely (further research required)
+
+## Virtual FileSystem
+Consists of:
+- System Call Interface
+  - Virtual File System (VFS)  
+  abstract layer over the Physical device (i.e. Hard Drive)
+    - various filesystems support (ext4, ntfs u name it)
+  - Buffer Cache  
+  filesystem agnostic cache storage for data before it is written\read to-from disk
+- Device Drivers  
+  which are the Interface for particular Physical Device (since those are all has it's own interface unknown to Kernel until Driver comes to rescue)
+
+## System Call Interface
+Well defined and safe implementation to give access for User Space Processes to perform variety of tasks - such as work with storage and networking devices, CPI, Memory and all th eother stuff around
+Interface for POSIX Compliang and Linux Specific Applications to access Kernel functions

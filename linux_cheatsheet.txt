@@ -529,6 +529,13 @@ cat /proc/version - file with linux version info
 	python3 entry
   See here: 
    http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
+ Update EDITOR:
+  sudo update-alternatives --install /usr/bin/editor editor /usr/bin/vim 10  
+   where /usr/bin/editor  - the entrypoint link used when 'editor' is called  
+         editor  - name  
+         /usr/bin/vim  - real path which will be used when /usr/bin/editor is called by 'editor' name  
+         10  - priority
+  sudo update-alternatives --config editor   # pick vim editor which was  just installed
 
 ## shuf:
  shuffles the deck lol
@@ -1035,8 +1042,10 @@ wildcards(not a command:
    -f - force
    -i - interactive - will ask before do
    -v - verbose
-  To rm link:
-   rm link_name   -- just as regular file, source of link is not affected
+  Remove symlink:
+   rm symlink_to_file
+   rm symlink_to_dir
+   rm symlink_to_dir/   <-- will not work
 
 ## unlink:
   delete symlink
@@ -1170,6 +1179,18 @@ wildcards(not a command:
   du <params> <file/dir name>
    Does not accept input from pipe, seems like
     use 'xargs'
+    
+```
+  Where to look for used space:
+  du -hs /var/log/journal/
+  du -hs ~/deja-dup
+```
+  Cleanup `systemd` journals:
+read more: https://ma.ttias.be/clear-systemd-journal/
+```
+journalctl --vacuum-time=10d
+```
+
   du -hs dirname
    -h - human readable
 	Example:
@@ -1288,8 +1309,9 @@ General info about Keys, Key Pairs, Key Storages and stuff:
   basic example w/o using Public-key cryptography:
    gpg --output <encrypted_file.gpg> --symmetryc <file_to_encrypt> - this will 
 	ask for passphrase and its done
-  --gen-key  - generate a key
-  --list-keys  - list all keys
+ Params:
+  `--gen-key`  - generate a key
+  `--list-keys`  - list all keys
 
 ## rsync:
   Remote Syncs files\dirs locally or remote-local\local-remote
@@ -1302,6 +1324,7 @@ General info about Keys, Key Pairs, Key Storages and stuff:
    Source or Receiver MUST be local, BOTH Remotes NOT WORK
     Params:
   -a - archive, recursive and saves files attributes
+  -A - preserve ACLs
   -v - verbose
   --delete - remove files that are in Receiver but not in SOurce
   --rsh=<shell> - remote shell, i.e. ssh - will transfer files via network
@@ -1495,7 +1518,7 @@ xz:
   because looking at name of '/' root filesystem
 
 ## df:
-  display all mounted devices with size\free\used\paths etc
+  display all MOUNTED devices with size\free\used\paths etc
     Stands for: Disk Free
   -h - human readable sizes
     Example:
@@ -1571,31 +1594,79 @@ how to get block device name, partition, mount it and unmount after:
   mount /dev/sdb1 ~/mounted_stuff
   umount /dev/sdb
 
+## exportfs:
+  maintain table of exported NFS file systems
+  /etc/exports  - file containing all directories to be exported
+    Example:
+   /u01/app/mainsail       i-tpt-dv-db111(rw,no_root_squash)
+
+   Params:
+  -a  - export all unexported directories
+    Example:
+   exportfs -a
+    will export all unexported directores, and those could be
+    mounted on another machine
+
 ## mount:
   mount drive (disk, usb, floppy etc)
-  mount -o rw,remount /
-   -o - dunno.. TODO
-   rw - seems to be read\write
-   remount - pretty clear at first glance
-   / - what to remount
+  __Troubleshooting:__
+  - `tail -f /var/log/syslog` or `/var/log/messages`
+  - use `-v` or `-vvvv` params with `mount` command
 
-    Example:
-   lsblk -f     - view all devices
-   mount /dev/sda5 /path/to/mount/point - mount device
-   umount /dev/sda5   - unmount (Notice N letter absent in commnad name)
-    Example:
-    mount ISO image
+  USE CASES:  
+  ssh into Network machine with mountable share  
+  `vim /etc/exports`  
+  > add line like `/u01/app/mainsail       i-tpt-dv-db111(rw,no_root_squash)`  
+
+  `exportfs -ar`       
+  > reload /etc/exports   <-- otherwise get 'mount.nfs: mount(2): Permission denied' error  
+  Where:
+  > - `-r` is reexport
+  > - `-a` is export or UNexport `all` directories in `/etc/exports`
+
+  `vim /etc/fstab`    
+  > add mount like `i-tpt-dv-ms:/u01/app/mainsail        /u01/app/mainsail       nfs     rw,bg,hard,nointr,rsize=32768,wsize=32768,tcp,actimeo=0,vers=3,timeo=600    0 0`  
+  `mount -a -vvvv`    
+  > mount all lines added to /etc/fstab, doing it verbose
+
+  simply add automount of HDD from old windows:  
+  `LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async`  
+  labels or UUID could be taken from `blkid` command (if block device) dev names are also accepted(`/dev/sda`), but could mess around if block devices are detected in different order 
+
+  Remount root as read-write:  
+  `mount -o rw,remount /`    
+
+  Params:  
+  - -o - options like `rw,remount` and so on
+    - rw - seems to be read\write  
+    - remount - pretty clear at first glance  
+  - -v - verbose  
+  - -vvvv  - very verbose     
+  - / - what to remount
+  - -a  - mounts ALL from /etc/fstab
+
+  Example:
+  ```
+  #view all devices:
+   lsblk -f  
+  #mount device
+   mount /dev/sda5 /path/to/mount/point 
+  #unmount (Notice N letter absent in commnad name)
+   umount /dev/sda5  
+  ```
+
+  Example:
+  ```
+  #mount ISO image
    mount -t iso9660 -o loop image.iso /path/to/mountpoint
+  ```
 
-  -a - mount all lines added to /etc/fstab
-  
-  /etc/fstab - config for filesystems
-   read by fsck, mount, unmount
-  lines from this file read during 'mount -a'.
-   check man fstab for details. 
-  simply add automount of HDD from old windows:
-  LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async
-  labels or UUID could be taken from 'blkid' command
+  `/etc/fstab` - config for filesystems
+   read by `fsck`, `mount`, `unmount` at boot
+  lines from this file read during `mount -a`.  
+  > check man fstab for details.   
+
+
 
 ## ntfs-config:
   Enable/disable write support for any NTFS devices
@@ -1651,43 +1722,54 @@ how to get block device name, partition, mount it and unmount after:
   secure copy using ssh protocol
    could copy to or copy from remote location.
   copy to remote:
+  ```
   scp <params> <file_path> <receiving_username>@<address>:<receiving_file_path>
+  ```
   copy from remote:
+  ```
   scp <params> <remote_username>@<address(ip\name)>:<remote_local_path> <path>
+  ```
   params:
   -v - verbose  
 
-sshd(openssh)
-  daemon config location:
-   /etc/ssh/sshd_config
-  sftp enable switch is located there, could be commented out and sshd restart
-  to disable it
-   /etc/ssh/ssh_config
+## sshd(openssh):
+  daemon config location:  
+  `/etc/ssh/sshd_config`  
+  sftp enable switch is located there, could be commented out and sshd restart to disable it  
+   `/etc/ssh/ssh_config`  
   some another config
-  ==
-   Options important:
-  PermitRootLogin:
-    “yes”, “prohibit-password”, “without-password”, “forced-commands-only”, or “no”
-  ==
+  
+### Options important:
+ __PermitRootLogin:__   
+  - “yes”,
+  - “prohibit-password”
+  - “without-password”
+  - “forced-commands-only”
+  - “no”
+  
   RSA keys for ssh authentication generation process:
-  https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7
-  Passwordless:
+  https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7  
+  Passwordless:  
   to add security ssh login with Password could be disabled, to login
-  only with keypair:
+  only with keypair:  
   https://linuxize.com/post/how-to-setup-passwordless-ssh-login/#disabling-ssh-password-authentication
   https://help.ubuntu.com/community/SSH/OpenSSH/Keys
-   Log files of sshd:
-  RHEL:
-   /var/log/secure
+   Log files of sshd:  
+  RHEL:  
+   `/var/log/secure`
     Example:
+  ```
    tail -f -n 500 /var/log/secure | grep 'sshd'
     If getting errors like:
    'ROOT LOGIN REFUSED FROM 10.253.0.28 port 34318'
     the Root login is disabled
    PermitRootLogin yes
+  ```
   Other:
+  ```
     /var/log/auth.log
    tail -f -n 500 /var/log/auth.log | grep 'sshd'
+  ```
 
 ## ssh:
   remote connect via ssh protocol
@@ -1783,37 +1865,74 @@ sshd(openssh)
   shutdown now - shutdown now
 
 ## at:
- need to be installed, daemon
- schedules to do something _at_ some time:
- There are three ways to use it:
-  Example 1:
- echo "shutdown" | at now + 1 min - will execute what echo will return
-  	at time of now + 1 minute - echo will return stuff in ''
-  Example 2:
+ need to be installed, daemon  
+ schedules to do something _at_ some time  
+ Example:
+ ` 
+ There are three ways to use it:  
+  ### Example 1:  
+execute what echo will return	at time of now + 1 minute - echo will return stuff in ''  
+``` 
+echo "shutdown" | at now + 1 min
+```
+  ### Example 2:  
+redirect STDIN from cmd.txt , will read	from there, and shutdown 
+```
  echo "shutdown" > cmd.txt
- at now + 1 min < cmd.txt - it will redirect STDIN from cmd.txt , will read
-	from there, and shutdown 
-  Example 3: 
- at now + 1 min
- at> shutdiwn     - will wait for input in STDIN
- ctrl+d           - to exit, and wait given time before execute shutdown
+ at now + 1 min < cmd.txt 
+```
+  ### Example 3:  
+wait for input in STDIN
+```
+ at 22:30
+ at> shutdown
+ ```
+ `CTRL+D` to exit, and wait given time before execute shutdown
 
-  Time could be like:
- [[CC]YY]MMDDhhmm[.ss]
+  Time could be like:  
+ `[[CC]YY]MMDDhhmm[.ss]`  
   Example: 
+ ```
  at -t 201403142134.12 < script.sh
+ ```
+ ```
+ # September 30 2015 at 22:30
+ at 22:30 30.09.15
+ ```
  
 ## crontab:
-  list cron schedules
- Exacmple:
-  crontab -u <username> -l
-    will list all rules for a user
-    need sudo
+  list cron schedules;
+  System crontab location `/etc/crontab`
+  usage:	
+
+  `crontab [-u user] file`  
+	`crontab [ -u user ] [ -i ] { -e | -l | -r }`  
+
+- `-u` list all rules for a user:  
+`crontab -u <username> -l`  
+- `-e` edit current user crontab file
+- `-r` remove current crontab
+- `-i` as `-r` but with confirmation
+- `-u username file.txt` install crontab file from file.txt
+ 
+### Crontab file syntax
+- System crontab `/etc/crontab` and `/etc/crontab.d` files can set UID to execute cron job  
+- Cron job STDOUT and STDERR could be redirected to file or null or email  
+
+Example:  
+run every day at 6:42 as a `superuser`; `stdout` and `stderr` to `null`:
+```
+42 6 * * * root /usr/local/bin/cleansystem > /dev/null 2>&1
+```
+
+see [cron](#cron) for detailed syntax
+    
 
 ## cron:
  task scheduler
+ ```
 
- *     *     *     *     *  command to be executed
+ *     *     *     *     *  command >> stdouterr.txt (or /dev/null)
  -     -     -     -     -
  |     |     |     |     |
  |     |     |     |     +----- day of week (0 - 6) (Sunday=0)
@@ -1821,23 +1940,19 @@ sshd(openssh)
  |     |     +--------- day of month (1 - 31)
  |     +----------- hour (0 - 23)
  +------------- min (0 - 59)
+ ```
+
 
  So, for example, this will run ls every day at 14:04:
  
- 04 14 * * * ls
+ `04 14 * * * ls`
  
  To set up a cronjob for a specific date:
  
-     Create a new crontab by running crontab -e. This will bring up a window of 
-	your favorite text editor.
- 
-     Add this line to the file that just opened. This particular example will 
-	run at 14:34 on the 15th of March 2014 if that day is a Friday (so, OK,
- 	it might run more than once):
- 
-     34 14 15 5  /path/to/command        
- 
-     Save the file and exit the editor.
+  - Create a new crontab by running crontab -e. This will bring up a window of your favorite text editor. 
+  - Add this line to the file that just opened. This particular example will run at 14:34 on the 15th of March every 5th year if that day is a Friday (so, OK, it might run more than once):  
+ `34 14 15 5  /path/to/command`
+  - Save the file and exit the editor.
  
 ## awk:
  stuff to worh with text, programming language kind of
@@ -2264,13 +2379,24 @@ root# passwd username - create password for the user
     groupmod -n managers manager - change group 'manager' to 'managers'
 
   
-## passwd:
-  change password for current user
-   or for given user
-  passwd [username]
-  located in /usr/bin/passwd - ubuntu
-             /bin/passwd - centos/red hat
-  has 'setuid' thing..
+## passwd:  
+  ![Strength](img/password_strength.jpg)
+  change password for current user or for given user  
+  `passwd [username]`  
+  located in 
+  - `/usr/bin/passwd` - ubuntu  
+  - `/bin/passwd` - centos/red hat  
+
+  has `setuid` bit which allows unprivileged users to use 'root' owned files.  
+  I.e - `passwd`  
+
+### check for setuid:
+```
+ls -la `which passwd`
+-rwsr-xr-x 1 root root 59640 Mar 22  2019 /usr/bin/passwd*
+```
+The `s` implies that the executable bit (`x`) is set, otherwise you would see a capital `S`. This happens when the `setuid` or `setgid` bits are set, but the executable bit is not, showing the user an inconsistency: the `setuid` and `setgit` bits have no effect if the executable bit is not set.   
+The `setuid` bit has no effect on directories. 
 
 
 ## gpasswd:
@@ -2477,7 +2603,10 @@ nice: renice:
   nice -n 20 /bin/bash - will start New(-n) process from /bin/bash binary, with
    priority of 20(the lowest one)
    
-=====Service controllers
+=====Init
+
+The Tragedy of systemd (Jan 24, 2019; linux.conf.au) - 
+https://www.youtube.com/watch?v=o_AIw9bGogo
 
 
 sysvinit, systemd, upstart
@@ -2551,12 +2680,36 @@ configure units(services)
   cli for systemd service controller
   it is called by 'service' command for backwards and cross compatibility reasons
 
+### list-units:
+  list of active units on the system  
+  Default command of Systemctl
+
+### reload:
+### daemon-reload:
+  NOTE: Need to be called if Unit configuration has been changed during Runtime
+  Reolads either 1 unit if passed to `reload`  
+  or all of the units if `daemon-reload` is called (it is paremeterless)  
+   Example:  
+  ```
+  systemctl reload NetworkManager.service  # reloads only Network Manager unit
+  systemctl daemon-reload # reloads all the services
+  ```
+
+### list-jobs:
+  lists jobs (Jobs is different kind of units)
+
 ## journalctl:
   displays logs
    Params
   -u - show logs for Unit
    Example:
+  ```
   sudo journalctl -u sshd.service
+  ```
+    OR:
+  ```
+  journalctl _SYSTEMD_UNIT=NetworkManager.service
+  ```
 
 ## hostnamectl:
   cli of systemd service controller related to hostname changes and management
@@ -3206,6 +3359,7 @@ CIDR blocks
   firewall-cmd --zone=public --add-port=5693/tcp      - turns on the rule
   firewall-cmd --zone=public --add-port=5693/tcp --permanent   - saves the rule so it is applied on the boot
 
+
 # Bash
 ## Bash command line shortcuts
 ctrl+a - moves cursor on the beginning of the line
@@ -3705,6 +3859,9 @@ server {
    Example:
   sudo ss -tulwn - display all opened ports on local machine
 
+## netcat:
+  check, send network packets, port monitor etc
+
 ## lsof:
   also checks ports, could display processes that are using
    port, and files used by the process
@@ -3760,7 +3917,37 @@ server {
 
 
 # Security
-LSM: linux security module:
+
+## pass:
+password manager kind of
+https://www.passwordstore.org/#download - see docs here
+### Initialize simple store
+ `pass init gpg-id@email.com`
+### Initialize git store
+ `pass git init`  
+  All contents of simple store will be added as 'Initial commit'
+### Sign the commits with the login gpg key
+ `pass git config --bool --add pass.signcommits true`
+ all commits will be signed using user.signingkey or the default git signing key
+### List passwords
+ `pass`
+### Find existing passwords
+ `pass find .com`  
+ `pass search .com`  
+ Find existing passwords that match .com
+### Add password
+ `pass insert Directory_name/name_for_password` name could be website or something else  
+### Add multiline password
+ `pass insert -m Directory_name/name_for_password` - multiline, for detailed stuff
+### Generate password
+ `pass generate Dir_name/pass_name <pass_length_int>`
+### Show password
+ `pass Directory_name/name_for_password`
+### Copy password into clipboard
+ `pass -c Directory_name/name_for_password`
+
+
+## LSM: linux security module:
  https://www.kernel.org/doc/html/latest/admin-guide/LSM/index.html
 
 Primary user of LSM is Mandatory Access Control(MAC) extensions
@@ -3941,3 +4128,109 @@ yum groupinstall "GNOME Desktop" "Graphical Administration Tools"
    Execute scan:
    Example:
   clamscan --invected --log=clamscan.log --recursive --copy=infected_files --detect-pua=yes /
+
+## xxd:
+  converts files to HEX
+  Useful when 2 same files displayed as different
+  Convert to HEX, find differences - those could be spaces, use dos2unix to fix
+  
+
+## dos2unix:
+  line ending converter
+
+
+# Kernel
+
+## Out Of Memory handling
+## Kernel OOM Killer
+## Linux OOM Killer
+
+https://www.kernel.org/doc/gorman/html/understand/understand016.html  
+https://lwn.net/Articles/317814/
+
+Flow:
+
+1. When Heap expanding (`brk()`)or memory is reallocated (`mremap()`) first System verifies that there is enough Memory available - `vm_enough_memory()` is called.  
+- `vm_enough_memory()` accepts param on number of memory Pages Required.  
+- Free pages; Cached pages; Various Swap pages are summed up and considered Available pages - `vm_enough_memory()` returns `true`
+- When Available pages are less than Pages Required function retuns `false` - so caller will know that there is no memory, and usually returns `-ENOMEM` which is [System Error](https://www-numi.fnal.gov/offline_software/srt_public_context/WebDocs/Errors/unix_system_errors.html)
+
+2. System tries to cleanup. GC probably is launched and old pages are being reclaimed.  
+If system is unable to free required Pages it calls `out_of_memory()`
+
+3. When called `out_of_memory()` it ensures that there is in fact no memory available.  
+It also makes various checks, all to ensure that memory potentially will not be available in near future.  
+At last stand it kills a process.  
+Following checks are made before look for a kill:  
+    - Is there enough swap space left (nr_swap_pages > 0) ? If yes, not OOM
+    - Has it been more than 5 seconds since the last failure? If yes, not OOM
+    - Have we failed within the last second? If no, not OOM
+    - If there hasn't been 10 failures at least in the last 5 seconds, we're not OOM
+    - Has a process been killed within the last 5 seconds? If yes, not OOM 
+
+4. `oom_kill()` is called to select process to kill  
+it calls `select_bad_process()` which calculates `badness` with `badness()` function:
+- Check amount of memory used (memory)
+- Checks how many CPU time it uses - cpu time in seconds (cpu_time)
+- Checks how long process lived - cpu time in minutes (life_lengh)  
+
+Simplified example of `badness`:  
+`badness = memory / (cpu_time * life_length)`
+It will try  **to select a process that is using a large amount of memory but is not that long lived.**
+
+>Processes which have been running a long time are unlikely to be the cause of memory shortage so this calculation is likely to select a process that uses a lot of memory but has not been running long. If the process is a root process or has CAP_SYS_ADMIN capabilities, the points are divided by four as it is assumed that root privilege processes are well behaved. Similarly, if it has CAP_SYS_RAWIO capabilities (access to raw devices) privileges, the points are further divided by 4 as it is undesirable to kill a process that has direct access to hardware.
+
+5. Killing the process  
+When task is selected(to be killed), list of processes is walked again to check who else shares same memory as selected process(task) - which means a thread: 
+   - If process(thread) is using RAWIO it receives `SIGTERM`to try gracefully release all raw input\output.  
+   - If process(thread) is not using RAWIO it receives `SIGKILL`.
+
+### find which process killed by Kernel OOM Killer
+
+https://stackoverflow.com/questions/624857/finding-which-process-was-killed-by-linux-oom-killer  
+grep -i 'killed process' /var/log/messages
+
+# cgroups
+control groups  
+limits and isolates accounts for resource usage (CPU, RAM, disk I/O, network etc.)
+
+Also controls Swapping of memory, which is , seems like, essential for docker capability to limit memory and CPU cores for container usage.
+
+## Add cgroups options:
+to allow `docker` use `--cpus` and `--memory` CGROUPS SWAPPING should be enabled. Otherwise docker will generate error:
+> docker run --cpus 1 -m 200m --rm -it busybox  
+WARNING: Your kernel does not support swap limit capabilities or the cgroup is not mounted. Memory limited without swap.
+
+=====================
+> NOTE: ALWAYS BACKUB `GRUB` file before editing  
+
+=====================  
+change `grub` configuration  
+```
+vim /etc/default/grub
+# add follosing into the variable:
+GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"
+
+# update grub
+sudo upgate-grub
+
+# restart the Docker Host:
+sudo reboot
+```
+
+now `docker` would work with CPU and Memory limitations. To check on host machine execute:
+```
+docker run --cpus 1 -m 200m --rm -it busybox   
+
+# to check CPU used by a limited by CPU or Memory container
+cat /sys/fs/cgroup/cpu/docker/534c...3a6/cpu.{shares,cfs_*}
+>1024    # cpu shares (default value)
+>100000  # cfs_period_us (100ms period length) - _us is Microseconds(aka ms)
+>100000  # cfs_quota_us (total CPU time consumable per cfs_period) - THIS IS AMOUNT OF CPU from --cpus
+
+
+# to check memory used
+cat /sys/fs/cgroup/memory/docker/534c...3a6/memory.limit_in_bytes 
+> 209715200
+
+```

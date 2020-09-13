@@ -899,6 +899,7 @@ remote:
   lists remote handles of the current repo
    Params:
   -v  - verbose, shows URLs for every remote
+        SHOW ALL REMOTES
  add:
   adds a new remote
    Sinopsys:
@@ -1046,6 +1047,10 @@ tag:
    Example:
    git tag -a <tag_name> -m 'comment_here' [hash, if not latest commit]
   tags are not Pushed automatically
+   To push tag:
+  git push origin refs/tags/pre-k8s:refs/tags/pre-k8s
+   left from `:` is local tag path in .git dir
+   right from `:` is path where to push in `origin`
   -l/--list  - lists existing tags - reqiored when passing wildcarded mask
   git show <tag_name> - will show detailed info about tag and commit
    Example:

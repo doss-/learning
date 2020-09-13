@@ -1329,11 +1329,43 @@ General info about Keys, Key Pairs, Key Storages and stuff:
   $ cp -L ~/libcurl3/usr/lib/x86_64-linux-gnu/libcurl.so.4 /usr/lib/libcurl.so.3
   $ cd && rm -rf ~/libcurl3
 
+xz:
+  similar to `gzip` and have same arguments  
+   
+
 ## tar:
   tape archive - collects all files in archive, with savin all permissions
    and user's ownership
   tar <params> <archive> <another_params> <source>
+
+  Create Arhieve:
+  ```
   tar -cvf name.tar directory
+  ```
+  List archieve or compressed archieve contents:
+  ```
+  tar tvf name.tar
+  or
+  tar ztvf name.tar.gz
+  ```
+  Compress Archieve:
+  ```
+  gzip name.tar
+  or
+  tar czvf name.tar.gz
+  ```
+  Decompress and Unarchieve:
+  ```
+  gunzip name.tar.gz
+  tar -xvf name.tar
+  or
+  zcat name.tar.gz | tar -xvf -
+  or
+  tar -zxvf name.tar.gz
+  ```
+  Unarchieve specific file:
+  ```
+  ```
    -c - create
    -v - verify\verbose
    -f - files
@@ -1350,7 +1382,7 @@ General info about Keys, Key Pairs, Key Storages and stuff:
      Example unarchive+uncompress:
     tar -zxvf tmp.tar.gz
    -j - zup but with bzip2 instead of gzip
-   -p - preserve permissions
+   -p - preserve permissions (ignored `umask` setting). used by Default when run under Supersuser
    another params:
     !! could be anywhere in the command, before or after other params
     --exclude=filename - excludes filename/dir/type from adding to archive
@@ -1406,6 +1438,10 @@ General info about Keys, Key Pairs, Key Storages and stuff:
  grep for search in .gz compressed files
 
 ## lsblk:
+  NOTE: also all Block devices would be in `/sys/block` directory  
+  NOTE2: also all devices (and Block too) __with drivers__ are in `/proc/devices` 
+  file starting with same name (and device DI in `/proc/devices`) will be in `/dev` directory
+
   List Block Devices
   list all devices mounted and not
    Example:
@@ -1427,7 +1463,8 @@ General info about Keys, Key Pairs, Key Storages and stuff:
   MAJ:MIN - block device number : number
    /proc/devices - list of ALL block device numbers
   
-  
+## lsscsi:
+  lists `scsi` devices (all disks basically)
 
 ## block device types:
  /dev/fd* - floppy drives

@@ -372,7 +372,6 @@ reset:
       Abort Merge
      git reset --hard HEAD
    Doesn't work with FilePATHs.
-  
 
   With files:
   1. --soft: skips HEAD move since HEAD is pointer to whole commit\refspec
@@ -448,6 +447,45 @@ gc:
 revert:
   creates new commit which will be added to the history
 	_after_ the commit to which user want to revert
+  -m to which parent of merge commit to revert
+   Revert Merge Commit:
+   revert to first parrent of merge commit
+     ```
+     git revert -m 1 HEAD
+     [master 2h1z6h] Revert "Merge Branch 'topic'" 
+    C2 -- C5 -- C6 -- M -- ^M  <--HEAD / master
+         \          /
+          C3 -- C4 <--topic
+     ```
+   Takes C6 commit and puts it in ^M, as if merge never happen.
+   EXCEPT: C3 and C4 will be in 'master', and consequental merge of 'topic'
+           would return 'Already up-to-date.'.
+           If commit more into 'topic'(C7) and merge branch then - only C7
+           would be visible in 'master'
+    Merge reverted branch:
+    ```
+     git checkout topic
+     vim Commit.txt
+     git add Commit.txt \ git commit -m 'This is C7'
+     git checkout master
+     git merge topic     # This is C8
+    C2 -- C5 -- C6 -- M -- ^M -- C8  <--HEAD / master
+         \          /           / 
+          C3 -- C4 -- C7 -------
+                 ^topic
+     ```
+    Unrevert aka Revert revert:
+    ```
+     git revert ^M
+    C2 -- C5 -- C6 -- M -- ^M  -- ^^M -- C8  <--HEAD / master
+         \          /                   / 
+          C3 -- C4 -- C7 ---------------
+                 ^topic
+     ```
+      M and ^M canceled out. ^^M merges in C3 and C4
+      C8 merges in C7. now 'topic' agan is fully merged into 'master'
+    
+
   Generally:
   DESIGNED FOR UNDO PUBLIC COMMITS
     Read More:
@@ -510,6 +548,7 @@ think i need to commit it first? weird
 
 diff:
   compares changed files with latest snapshot(commit)  
+  Also shows only conflicting merges. SInce merge adds merged files to Index
    Changes consist oh hunks:
     https://stackoverflow.com/questions/17995092/what-does-a-hunk-mean-in-relation-to-pushes-on-sourcetree/47431804
   By default compares Working Tree with Staging area
@@ -553,6 +592,28 @@ diff:
    --ours  - display my changes left after merge conflict fix
    --theirs  - display MERGE_HEAD (the branche i'm merging into) changes
    --base  - sum of ours and theirs changes compared to merge-base commit
+
+  Combined diff:
+  After merge conflict 'diff' would show following:
+   It will show 2 columns one for OURS one for THEIRS
+    After conflict:
+    git diff
+      def hello           
+    ++<<<<<<< HEAD          #`++` means Neither in Theirs or Ours
+     + puts 'hola world'    #right column ` +` means in Ours
+    ++=======
+    +  puts 'hello mundo'    #left column `+ ` means in Theris
+    ++>>>>>>> mundo
+      end
+  After merge conflict RESOLVED diff would show following:
+   It shows same two columns, and 'merge-resolved' changes are ++
+   def hello
+   -  puts 'hola world'    # was ours (Note `-` in 1st column)
+    - puts 'hello mundo'   # was theirs (Note `-` in 2nd column)
+   ++ puts 'hola mundo'    # only in WD - resolved conflict
+   end
+  Same  output as above for log:
+   git log --cc --patch
 
 difftool:
   same as 'git diff' but executes External diff program
@@ -630,6 +691,13 @@ log:
     Example:
    git log --oneline --patch master..topic
     patch of commits that are not in master but present in topic branch
+   git log --oneline --patch --left-right --merge
+    show only diffs that resulted in merge conflict when merge unresolved
+  -c 
+   show Theirs and Ours in log output for Merge commits
+  --cc
+   show how conflict was resolved, could be combined with --patch
+   implies -c shows only hunks where conflicts were (edits)
   -N  - N - number of commits to show
    Example:
   -S <string>  - show commits only where <string> were changed
@@ -722,12 +790,18 @@ wolves in unrelated incidents on the same night.
              \       :
               c--d   feature is Branch2
          master...feature [F, E, D, C]
-    --left-right
+  --left-right
      Example from above:
     < F
     < E
     > D
     > C
+  --merge
+    Show only conflicting commits when 'merge conflict'
+     Example:
+    git log --oneline --left-right --merge
+    < 93df3d Change line 10 to 'tenth line'
+    > fj459w Change line 10 to '10nth line'
  Search:
   git log   could be used    for:
    for finding specific commits by the content of their messages 
@@ -1258,6 +1332,16 @@ merge:
   - If automerged then it will merge and create mergecommit with resulting work
   - When conflicts, manual merge required, resulting in merge commit
 
+  Note: successfully merged files are added to Index.
+        conflicting files are left in Work Dir
+
+  Conflict looks like:
+   <<<<<<< HEAD         OURS changes from 'HEAD', conflict start
+   puts 'hola world'    OURS conflicting code
+   =======              SEPARATOR
+   puts 'hello mundo'   THEIRS conflicting code
+   >>>>>>> mundo        THEIRS changes from 'mundo' branch, conflict end
+
   BEFORE:
    - Working Directory clean (so can Undo Anything)
      Either Stash or Commit to temp branch
@@ -1278,9 +1362,27 @@ merge:
   -Xignore-all-space  - ignores whitespaces _completely_ when comparing lines
   -Xignore-space-change  - threats sequences of 1+ whitespace characters(\s)
                            as equal
+  -Xours  - merges everything that has no conflicts
+  -Xtheirs  if there are conflicts takes either Ours or Theirs changes
+            does so Automaticalle instead of marking change(hunk) as conflict
+  -s  - Strategy (default: Recursive)
+     recursive  - goes recursively through each change
+                  if Ours merged by recursive strategy non conflicting
+                  changes would be merged in, and Ours from conflicts
+     ours  - takes only ours changes it seems?
+             at least if Theirs have 1 conflicting and 1 non-conflicting 
+             change it will take only Ours changes from file, ignoring Theirs
+     theirs  - probably vice versa as Ours
+    IT SEEMS -s [strt] is less usefull(natively understood) than -Xours|theirs
+    `-s ours` is used when Theris changed are already merged?
   --verify-signatures - reject commits signed with not Truested GPG 
     Will fail to merge commits Not Signed or Signature is Not Valid
    -S  - sign the resulting merge commit too
+
+merge-file:
+  manually merge specific files
+  --ours  - take Ours changes when conflict
+  --theirs  - take Theirs changes when conflict
 
 merge-base:
   finds the original? base of branch, returns hash of the base commit

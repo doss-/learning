@@ -236,7 +236,11 @@ run:
   --dns=[] - set custom DNS for a container
   --cpus n  - `n` is number of CPU available to use for container  
   -m\--memory n  - amount of `memory` available for container. Hard limit  
+   Example:
+   `docker run -d -p 8081:80 --memory="256m" nginx`
   --memory-reservation  - amount of `memory` available. SOft limit - could be overused  
+   Example:
+   `docker run -d -p 8081:80 --memory-reservation="256m" nginx`
   > NOTE: `swapping` should be enabled in `cgroups` to allow use either `--cpus` or `--memory` params.  
 
   see: https://www.serverlab.ca/tutorials/containers/docker/how-to-limit-memory-and-cpu-for-docker-containers/ for details

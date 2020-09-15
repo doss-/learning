@@ -170,7 +170,9 @@ spec:
             - value: - the value of the env var (i.e. redis-cluster-ip-service)
 
 ## Deployment
+
 Production grade `pod`; kind of.
+`Deployment` is a `Controller` object - constantly watches over controlled objects to have desired state(the one from .yml config) be met.
 Runs set (1+) of identical `pods`(which usually run 1 container or more but really close related). Controls the heals of `pods` and resarts if necessary.  
 Basically `Deployment` objects are little `masters` to the `Pods` they create. Like `master` governs all the `Objects` in Kubernetes.
 
@@ -351,15 +353,15 @@ default - for minikube would be with `k8s.io/minikube-hostpath` provider
 
 ### ClusterIP
 
-Production grade analog of NodePort.
-`metadata:name` is used when connecting to a pod running behind the ClusterIP service  
-`ports:port` is used when connecting to the pod 
-`ports:targetPort` is where the connection to be redirected from ClusterIP into the Pod
+Production grade analog of NodePort.  
+- `metadata:name` is used when connecting to a pod running behind the ClusterIP service  
+- `ports:port` is used when connecting to the pod  
+- `ports:targetPort` is where the connection to be redirected from ClusterIP into the Pod
 
 ![clusterip_struct](img/k8s_ClusterIP_struct.jpg)
 
 Provides access to set of pods running inside a Cluster.  
-Pods are still inaccessible from outside world - this is private router for private objects inside the Cluster.
+Pods are still inaccessible from outside world - this is private router for private objects inside the Cluster.  
 
 spec: ports:
 - port:  - port number at which other services from Cluster will access this ClusterIP object to get to a Pod running behind this ClusterIP
@@ -438,8 +440,9 @@ Could access outside access for 1+ `Deployments`
 #### Types
 
 k8s has several implementations of Ingress Services:  
-1. Nginx Ingress (kubernetes made)
-
+1. Nginx Ingress (kubernetes made)  
+gets created from .yaml file describing Routing  
+is a Pod running Nginx which does the routing declared in .yaml
 ![ngix_ingress_controllers](img/k8s_nginx_ingress_controllers.jpg)
 
 2. Nginx Ingress (nginx made)

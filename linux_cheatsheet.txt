@@ -4368,3 +4368,86 @@ Consists of:
 ## System Call Interface
 Well defined and safe implementation to give access for User Space Processes to perform variety of tasks - such as work with storage and networking devices, CPI, Memory and all th eother stuff around
 Interface for POSIX Compliang and Linux Specific Applications to access Kernel functions
+
+# User Space
+
+## PAM
+__Pluggable Authentication Modules__  
+made by Sun Microsystems to extend Authentication and stuff  
+Configuration: `/etc/pam.d/` and `/etc/pam.conf`  
+Configurations consist of Rules (could `@include` other configs)  
+Rules in config files __stack__
+
+Example:
+```
+auth       required   pam_shells.so
+```
+- __Function Type__ - i.e. `auth` function that user app asks PAM to perform. _Global Goal_
+- __Control Argument__ - i.e. `required` controls what PAM does _after_ success or failure of the `Action` for current line
+- __Module__ - the module to run on the line
+
+### Function Types
+`Function Type` and `Module` forms the `Action`.
+Is a _high-end_ gol - what user application wants PAM to do.  
+Action is a specific step that PAM takes in order to reach that goal.  
+Function is executed first, than Action is made by PAM.
+
+PAM has 4 functions:
+- __auth__ - Auth the user (see if the user is who they say they are)
+- __account__ - check user acc status (i.e. is authorized to do something)
+- __session__ - perform something for current user's session only
+- __password__ - change password or other creds
+
+Module behavior could differ with different actions.  
+Example:  
+_pam_unix.so_ checks for password with __auth__ Function Type  
+_pam_unix.so_ sets password with __password__ Function Type  
+
+## Control Arguments
+Rules in configuration files stack, so all the rules in config file would run one-after-another.  
+Control Arguments decide _how_ the Rules run.
+
+### Simple Control Arguments
+
+3 major simple Control Arguments:
+- __sufficient__ - On __Success__ exits skipping other rules. On __Failure__ proceeds to other rules.
+- __requisite__ - On __Success__ proceeds to other rules. On __Failure__ exits skipping other rules.
+- __required__ - On __Success__ proceeds to other rules. On __Failure__ proceeds to other rules, but will return `FAIL` at the end anyway.
+
+Example:
+```
+# cheks if current shell is in /etc/shells, if not - fail anyway
+auth        required    pam_shells.so
+# checks if user is root - if yes exit immediately with success
+auth        sufficient  pam_rootok.so
+# include other files from /etc/pam.d directory
+@include common-auth
+@include common-account
+@include common-session
+```
+
+### Advanced Control Arguments
+there are some.
+
+## Modules
+Module stores the code which is getting executed according to `Function Type` specified.  
+
+List of known modules:
+- _pam_unix.so_ - checks(__auth__) or sets(__password__) password
+  - _nullok_ - return `success` if password is null
+  - _obscure_ - check if password to set is obscure enough(not simple, no tlike old passwors, etc)
+  - _sha512_ - algorythm to encrypt new password  
+  Example:
+    ```     
+    password  sufficient  pam_unix.so obscure sha512
+    ```
+- _pam_rootok.so_ - checks if user is `root`
+- _pam_shells.so_ - checks if current shell in `/etc/shells`
+- _pam_deny.so_ - always return `failure`
+
+Modules could take parameters.  
+Example:
+```
+# do not Fail if user password is null
+auth  sufficitnt  pam_unix.so nullok
+```

@@ -202,14 +202,27 @@ cat /proc/version - file with linux version info
 
 ## time:
   seems like calculates time of how long command takes to execute
-  like StopWatch
+  > Many shells have built-in `time`; 
+  use `/usr/bin/time` to get better time command
+
    Syntax:
   time <command\script_name>
    Example:
+  ```
   time some_script.sh
   > real 0m14.169s	#i spend 14 seconds (script uses 'read')
   > user 0m0.005s	#this two seems to calculate actual time of
   > sys	 0m0.005s	#+ calculations required, except manual intput
+  ```
+  Example:
+  ```
+dos:temp$ /usr/bin/time ls
+>0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 2528maxresident)k 
+0inputs+0outputs (0major+109minor)pagefaults 0swaps
+  ```
+  __user__  - seconds spent to run binary(or script) owns code. If short could be 0.00  
+  __system__ - seconds spent by Kernel to do the process work (i.e. read the filesystem)  
+  __elapsed__ - total number of time for process from start to finish including waiting for resources
 
 ## date:
   returns current date - weekday, day, month, year, time, time-zone
@@ -2505,8 +2518,12 @@ sudo
 
 ===Processes and Services Management
 
-top: htop:
+## top: htop:
   gives a list of processes and resources used by the OS
+  - p <PID> - List only few processes:
+  ```
+  top -p 10959 -p 10652 
+  ```
   Process could has a priority:
    20 - is the LOWEST priority
    -20 - is the HIGHEST priority
@@ -2525,12 +2542,33 @@ looks like glances can also setup a "web interface" to view.. as well as monitor
   and PPID which is Parent Process ID, so every process has parent, except PID 1  it seems
 
 ## strace:
-  shows trace of used files byt the given command - magic eh?
+  Trace systemcalls made by a command or a process(daemons too)
+  Starts after fork() systemcall is done.
    Example:
+  ```
+  strace cat /dev/null
+  ```
+  -o <file_name> - logs action of any child process that command(i.e. crummyd daemon) spawns into `file_name.pid` where `pid` is PID of child process  
+   Example:  
+  ```
+  strace -o crummyd_strace -ff crummyd
+  ```
+  Could shows trace of used files by the given command
+   Example:
+   ```
   strace -s 2000 hostnamectl |& grep ^open | tail -5
+  ```
    will return files directly opened by 'hostnamectl' tool
    still it could iteract with other services which could read from files, and this is not 
    seen here, alas.
+  
+## ltrace:
+  trace calls to Shared Libraries. Output similar to `strace`.  
+  Does not track anything on Kernel level - does it matter to me?
+  Example:
+  ```
+  ltrace cat /dev/null
+  ```
 
 ## watch:
   cool debug tool again:
@@ -2567,7 +2605,8 @@ params could be mixed, but conflicts could appear
   o, -o, --format - change columns format  
   Example:  
   `ps -o pid,ruser=RealUser -o comm=Command` - wil return 3 columns
-  named PID, RealUser and Command, with values of standard colmns
+  named PID, RealUser and Command, with values of standard colmns  
+  `ps m -o pid,tid,command` - show threads , display PID, TID and command
 
 `ps aux` - returns all processes run by all users from all terminals
     if user does not exist 'x' in case of UNIX format it could treat it
@@ -2824,17 +2863,15 @@ configure units(services)
   g or u - install selected package
 
 ## apt-get: apt:
-  stands for Advanced Package Tool
-   apt is merge of apt-get and apt-cache, for easier use, has not all functions
-   but also has some additional functions
-  main apt tool used to install or download packages
-  reads dependencies, and could install all of them
-  apt-get update - reads all the repos and updates the local packages cache
-  apt-get install - installs package(s), list delimited by space
-       or install <package-2.3.5-3ubuntu1> - installs particular version if
-		    it is compatible with distro and stuff   
-       install -f - will install .deb package with its dependencies
-		    Fix Broken Dependencies:
+  stands for Advanced Package Tool  
+   `apt` is merge of `apt-get` and `apt-cache`, for easier use, has not all functions  but also has some additional functions main apt tool used to install or download packages reads dependencies, and could install all of them  
+  `apt-get update` - reads all the repos and updates the local packages cache  
+  Update single package with `install` if it is already installed of older version  
+  `apt-get install` - installs package(s), list delimited by space
+       or `install <package-2.3.5-3ubuntu1>` - installs particular version if  
+		    it is compatible with distro and stuff     
+       install -f - will install .deb package with its dependencies  
+		    __Fix Broken Dependencies:__  
 			https://unix.stackexchange.com/questions/159094/how-to-install-a-deb-file-by-dpkg-i-or-by-apt
   apt-get upgrade - made after Update, upgrades all the packages installed to
 		    latest updates
@@ -3918,14 +3955,24 @@ server {
   check, send network packets, port monitor etc
 
 ## lsof:
+  List Opened Files, lots of them.
+  Columns:
+  - __COMMAND__ - command name of for the process that holds the file
+  - __FD__ - Purpose of the file or File Descriptor  
+    >__File Descriptor__ - Number that Process uses together with the system libraries and kernel to identify and manipulate a file.
+  - __TYPE__ - Type of file REGular file, directory, socket etc.
+  - __DEVICE__ - Major and minor number of the device that holds the file
+  - __NODE__ - file's inode number
   also checks ports, could display processes that are using
    port, and files used by the process
 
    Params:
-  -i - displays processes and ports used, and connection
+  - /path/to/file - lists everyone who uses file or DIrectory
+  - -p <PID> - list open files for PID
+  - -i - displays processes and ports used, and connection
  	with friendly names
-   - 4 - ipv4
-   - tcp - display tcp (cant use 4 and tcp in the same time, it seems)
+    - 4 - ipv4
+    - tcp - display tcp (cant use 4 and tcp in the same time, it seems)
 
 ## telnet:
   check ports open
@@ -4236,7 +4283,7 @@ It will try  **to select a process that is using a large amount of memory but is
 >Processes which have been running a long time are unlikely to be the cause of memory shortage so this calculation is likely to select a process that uses a lot of memory but has not been running long. If the process is a root process or has CAP_SYS_ADMIN capabilities, the points are divided by four as it is assumed that root privilege processes are well behaved. Similarly, if it has CAP_SYS_RAWIO capabilities (access to raw devices) privileges, the points are further divided by 4 as it is undesirable to kill a process that has direct access to hardware.
 
 5. Killing the process  
-When task is selected(to be killed), list of processes is walked again to check who else shares same memory as selected process(task) - which means a thread: 
+When task is selected(to be killed), list of processes is walked again to check who else shares same memory as selected process(task) - which means a thread(processes could be divided into threads): 
    - If process(thread) is using RAWIO it receives `SIGTERM`to try gracefully release all raw input\output.  
    - If process(thread) is not using RAWIO it receives `SIGKILL`.
 
@@ -4353,6 +4400,12 @@ All the processes are the children(or anscestors) of process with ID `1`. which 
 - __Waiting__ - waiting for an Event or a Resource
 - __Stopped__ - usually stopped by SIGnal 
 - __Zombie__ - the process is Dead, but not completely (further research required)
+
+### Threads
+Processes could be divided to Threads.  
+Threads scheduled and run similar to processes by the Kernel. Threads has own ID - TID - Thread ID  
+ALl `Threads` inside of a single Process sharetheir system resources and memory
+Due to shared resources and memory inside the Process the Threads could work faster, it also faster to spawn new Thread when some new input or output stream appears than to spaws new Process.
 
 ## Virtual FileSystem
 Consists of:

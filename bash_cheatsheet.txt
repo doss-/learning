@@ -1120,25 +1120,27 @@ case:
   check whether one of condition matches the 'word' in case, if so it
  executes code in particular case and terminates
   Syntax:
- case $word in		# value of $word will be compared against
-  <ptrn1>|<ptrn2>) cmd1 # the <pattern> and if tru command1
-	     cmd2   # and command2 will be executed
-	     ;;		# this ends particular case block
-  *) 	     exit 1     # * match anything, last case 'catch'
-     	     ;;		# ends 'catch' block values of '$word' either
-			#+ matched by previous cases or this one
-			#+ nothing is left 'case' block unmatched this way
- esac			# this ends whole case, after 1 of the cases 
-			#+ matched, or none matched
-  Example:
- while [[ -n $1 ]]; do 		#while param is not null
-  case $1 in			#check param
-	-f | --file) 	shift   #take $2 as $1 , if -f, 
-				#to get file path given with -f option
-			filename=$1
-				#save file path to $filename
-			;;
-  esac
+```
+case EXPRESSION in
+
+  PATTERN_1 | PATTERN_11)
+    STATEMENTS
+    ;;
+
+  PATTERN_2)
+    STATEMENTS
+    ;;
+
+  PATTERN_N)
+    STATEMENTS
+    ;;
+
+  *)
+    STATEMENTS
+    ;;
+esac
+```
+
  Case uses wildcards as pattern:
  ? - one character
  * - anything of any length
@@ -1369,6 +1371,11 @@ read:
   By default saves entered value into $REPLY global variable
    Synopsis:
   read [-params] [variable1 variable2 variable3 ...]
+
+Example:
+```
+read -p "Delete?:" line 
+```
 
   Accepts more than 1 variable to save keyboard input
    Default separator is space or tab or new line(\n)

@@ -2514,9 +2514,115 @@ sudo
 =====super user end
 
 
-=====user\groups management end
 
-===Processes and Services Management
+# Processes and Services Management
+
+## Memory:
+Kernel , in order to help CPU's Memory Management Unit(MMU), breaks memory into _pages_.  
+Pages real addresses are stored in the _Page Table_.  
+MMU translates virtual memory addresses into real ones based on Page Table.  
+
+---
+Process does not need all the pages to be loaded in order to run. So not all pages are loaded for a process, only the required ones:  
+_On-Demand paging_ - is allocation of new pages for a process when it requires ones (additional code r
+equired etc)
+
+---
+Demand paging steps:
+- program's code is loaded into memory pages
+- working-memory pages could be allocated by the Kernel
+- when next instruction to run is not in the loaded memory, Kernel pauses execution, loads that code into newly allocated pages and continues execution
+- when more working-memory pages are required Kernel will allocate(or free older ones - see OOM Killer) and assigns them to process
+
+### Page Faults
+If process accesses memory page and it is not ready process would trigger _page fault_. The kernel will take over control of CPU from the process in order to get page ready.
+
+Could be viewed by `time`, `ps` or `top` commands:
+Example:
+```
+$ /usr/bin/time cat > /dev/null
+0.00user 0.00system 0:03.15elapsed 0%CPU (0avgtext+0avgdata 2076maxresident)k
+72inputs+0outputs (1major+75minor)pagefaults 0swaps
+```
+`cat` is loaded first time and got 1 major fault  
+Example:
+```
+$ top
+f            # to get into __FIELDS MANAGEMENT__
+<Up>/<Down>  # to find `nMin`, `nMaj` fields for Page Faults
+Right        # to select
+<Up>/<Down>  # to move the field next to other `*` selected fields
+<Left>       # to unselect field after it was moved
+<Space>      # to mark field for display
+q            # to exit FIELDS MANAGEMENT
+PID USER      PR    VIRT    RES    SHR S  %CPU %MEM     TIME+ nMaj nMin COMMAND 
+684 systemd+  20   71856   6448   5132 S   0.0  0.2   0:03.63    5  852 systemd-resolve         
+685 systemd+  20  146136   3192   2672 S   0.0  0.1   0:00.07    3  575 systemd-timesyn  
+```
+Example:
+```
+$ ps -o pid,min_flt,maj_flt 684
+  PID  MINFL  MAJFL
+  684    852      5
+```
+Min and Maj page faults for process with PID 684
+
+#### Minor Page Fault
+Occur when:
+- new memory was allocated and MMU does not yet know of the new _page_ allocated  
+- MMU does not have more space to store existing in memory pages addresses
+
+Kernel in such cases would interfere(getting _page fault_ event) and tell about new page to MMU 
+
+#### Major Page Fault
+Occur when required memory page is not in main Memory(physical one). Kernel need to load it from disk or other slow-storage first.  
+This could happen when program is run first time so many code not in the memory yet.  
+The worst case is when low on memory - thus before loading new mages from the disk Kernel will store unused existing ones into _swap_ which is also on the slow storage(i.e. disk).
+
+## Load Averages
+average number of processes in ready-to-run (including running) state in a given time - thus using CPU
+on System with 1 Core Load Average of 1 will mean that at given time 1 process was running all the time  
+on System with Multiple Cores the Load Average of 1 would mean that only 1 Core was running process constantly, 2 - two Cores  
+Load Average of 0.01 would mean that in Given time only 1% of 1 Core of CPU was used
+
+### Load Average is High:
+- Many processes are running simultaneously, this could be 'by design' so no worries
+- Web Servers could spawn lots of short lived processes, so Load Average could not be correctly calculated
+- Low Memory - kernel could thrash or relocate memory To and From the Disk. 
+  Process could be in ready-to-run state - contribute to Load Average, but physically could not be run because of Memory is unavailable
+
+## free:
+  shows System's Memory status.  
+  Memory info could be found in `/proc/meminfo` too  
+### Params:
+- -h - human readable
+
+## vmstat:
+Virtual Memory STATistics  
+shows statistis for the system about Resources usage
+
+First line is average for whole `uptime` of the system. 
+Second line and below (shows up each 2 seconds) display stats for the time period from param(2 seconds in the example)  
+
+__Params:__  
+- -S k\K\m\M - kilobytes or megabytes (lowercase rounded to 1000)
+Example:
+```
+$ vmstat 2
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 0  2 219232 461404 159344 988640    2   14   178   120 1066 1420 23  9 66  1  0
+ 0  0 219232 460500 159404 989280    0    0   150  1120 4411 11152 14  9 68  8  0
+ 1  0 219232 460720 159404 989144    0    0     0     0  358 1058  2  1 97  0  0
+ ```
+ Sections:
+ - procs - processes
+ - memory - RAM
+ - swap - memory pages wapped to and from the disk
+ - io - input and output
+ - system - how many times kernel does something
+ - cpu - cpu statistics  
+ 
 
 ## top: htop:
   gives a list of processes and resources used by the OS
@@ -2529,6 +2635,22 @@ sudo
    -20 - is the HIGHEST priority
   PID number 1 is always 'init' command or 'systemd' in my case on ubuntu 16 and
   centos 7
+ 
+
+## uptime:
+  shows TimeNow, kernel uptime and [Load Averages](#load-averages) of 1, 5 and 15 minutes accordingly
+  Example:
+  ```
+ $ uptime
+ 19:01:52 up 17 min,  1 user,  load average: 1.49, 1.72, 1.26
+  ```
+  where:  
+  - current time is 19:01:52
+  - system is up for 17 minutes
+  - 1 user is logged in
+  - for last 1 minute 1.49 Processes were running (Occupying 1 Core and 46% of 2nd Core)
+  - for last 5 minutes 1.72 processes were running
+  - for last 15 minutes 1.26 processes were running
 
 ## glances:
  https://opensource.com/article/19/11/monitoring-linux-glances?sc_cid=70160000001273HAAQ

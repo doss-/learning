@@ -2606,6 +2606,7 @@ Second line and below (shows up each 2 seconds) display stats for the time perio
 
 __Params:__  
 - -S k\K\m\M - kilobytes or megabytes (lowercase rounded to 1000)
+- -a - active\inactive memory - displayed instead of buff\cache memory
 Example:
 ```
 $ vmstat 2
@@ -2616,13 +2617,53 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
  1  0 219232 460720 159404 989144    0    0     0     0  358 1058  2  1 97  0  0
  ```
  Sections:
- - procs - processes
- - memory - RAM
- - swap - memory pages wapped to and from the disk
- - io - input and output
- - system - how many times kernel does something
- - cpu - cpu statistics  
+  - procs - processes
+    - r - runnable processes (running or waiting for run time)
+    - b - blocked - processes in uninterruptible sleep
+  - memory - RAM
+    - swpd - amount of virtual memory used
+    - free - amount of idle memory
+    - buff - amount of memory used as buffers
+    - cache - amount of memory used as cache
+    - inact - amount of inactive memory (`-a` option)
+    - active - amount of active memory (`-a` option)
+  - swap - memory pages wapped to and from the disk
+    - si - amount of memory swapped IN from Disk ..per second?
+    - so - amount of memory swapped OUT to Disk ..per second?
+  - io - input and output
+    - bi - blocks IN from block device (Disk) ..per second?
+    - bo - blocks OUT to block device (Disk) ..per second?
+  - system - how many times kernel does something
+    - in - number of interupts per second, including the clock(what clock?)
+    - cs - number of context switches per second
+  - cpu - cpu statistics (%ntage of total CPU time)
+    - us - time spent on user code(non-kernel) - user time including nice time
+    - sy - time spent to run kernel code - system time
+    - id - idle time 
+    - wa - time waiting for I\O
+    - st - time stolen from virtual machine - wut 
  
+## iostat:
+  available in `sysstat` package for Ubuntu  
+  __Shows UPTIME average__ first time, with Interval others will be for the Interval duration  
+  Shows detailed but not overwhelming I\O statistics (see `vmstat -d` for overwhelming one)  
+  __Params__:
+  - -d - show disks only (w/o CPU average)
+  - <n> - interval in Seconds - LATEST PARAM
+  - -p ALL - displays all partitions (including partitions)  
+  Note: root device(such as `sda`) also could have I/O time, i.e. used to read the `partition table`  
+  Example:  
+  `iostat -d 2` - dont show CPU avrg, update every 2 sec  
+  `iostat -d -p mmcblk0` - show disks and partitions only for mmcblk0 block device   
+  __Fields__:
+  - tps - Data Transfers per second
+  - kB_read/s - avrg num of kiloBytes read per second
+  - kB_wrtn/s - avg num of kB written per second
+  - kB_read - total number of kB read
+  - kB_wrtn - total number of kB written
+
+## iotop:
+  shows I\O top
 
 ## top: htop:
   gives a list of processes and resources used by the OS
@@ -2651,6 +2692,23 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
   - for last 1 minute 1.49 Processes were running (Occupying 1 Core and 46% of 2nd Core)
   - for last 5 minutes 1.72 processes were running
   - for last 15 minutes 1.26 processes were running
+
+## lscpu:
+  info about CPU
+  Calculate number or CPU threads:
+  `lscpu`
+  `Thread(s) per core` * `Core(s) per socket` * `Socket(s)`
+  Example:
+  ```
+  lscpu
+  ...
+  Thread(s) per core:  1
+  Core(s) per socket:  4
+  Socket(s):           1
+  ...
+  ```
+  1 * 4 * 1 = 4 CPU Threads are available
+
 
 ## glances:
  https://opensource.com/article/19/11/monitoring-linux-glances?sc_cid=70160000001273HAAQ

@@ -576,16 +576,20 @@ dos:temp$ /usr/bin/time ls
   sorts by alphabet by default
    Synopsis:
   Sort [option] file
-   Params:
-  -r - reverse
-  -R - random sort
-  -n - sort by numbers
-  -b - ignore leading blanks i.e. '   a'
-  -f - ignore case
-  -h - sor human readable format, like 1M 1K 1G
-  -k - key i.e. -k 1, or --key=1
-	-k 5 (or --key=5) - use column 5
-	 Example: ls -l /usr/bin | sort -k 5 -rn
+   __Params:__
+  - `-r` - reverse
+  - `-R` - random sort
+  - `-n` - sort by numbers
+  - `-b` - ignore leading blanks i.e. '   a'
+  - `-f` - ignore case
+  - `-h` - sor human readable format, like 1M 1K 1G
+  - `-k` - key i.e. -k 1, or --key=1
+  - `-k` 5 (or --key=5) - use column 5
+
+	 Example:
+   ```
+   ls -l /usr/bin | sort -k 5 -rn
+   ```
 	will sort files by field 5 (size) by Numberic and Reverse
 	--key=1,1 - column from 1 to 1
 	--key=2nr  - use second column to sort groups after first key
@@ -1575,9 +1579,10 @@ xz:
   because looking at name of '/' root filesystem
 
 ## df:
-  display all MOUNTED devices with size\free\used\paths etc
+  display all MOUNTED devices(EXCEPT SWAP) with size\free\used\paths etc
     Stands for: Disk Free
   -h - human readable sizes
+  __SWAP DISKS ARE NOT MOUNTED - NOT SHOWN IN DF OUT__
     Example:
    df -h / - will show info about root partition - where / is mount point
   -T  - adds colump with FS Type
@@ -1690,6 +1695,13 @@ how to get block device name, partition, mount it and unmount after:
   `LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async`  
   labels or UUID could be taken from `blkid` command (if block device) dev names are also accepted(`/dev/sda`), but could mess around if block devices are detected in different order 
 
+  UUID:
+  ```
+  sudo lsblk -f
+  #or
+  blkid /dev/mmcblk0p3
+  ```
+
   Remount root as read-write:  
   `mount -o rw,remount /`    
 
@@ -1701,6 +1713,8 @@ how to get block device name, partition, mount it and unmount after:
   - -vvvv  - very verbose     
   - / - what to remount
   - -a  - mounts ALL from /etc/fstab
+
+  __NOTE: `none` mountpoint is in fact ignored in `fstab` if FileSystem type is `swap`__
 
   Example:
   ```
@@ -1721,7 +1735,10 @@ how to get block device name, partition, mount it and unmount after:
   `/etc/fstab` - config for filesystems
    read by `fsck`, `mount`, `unmount` at boot
   lines from this file read during `mount -a`.  
-  > check man fstab for details.   
+  > check `man fstab` for details.
+
+  NOTE:
+  `swap` partitions are not mounted since don't have mounpoint in `/etc/fstab` - it is `none`   
 
 
 
@@ -2741,6 +2758,7 @@ Second line and below (shows up each 2 seconds) display stats for the time perio
 __Params:__  
 - -S k\K\m\M - kilobytes or megabytes (lowercase rounded to 1000)
 - -a - active\inactive memory - displayed instead of buff\cache memory
+- -d - disk statistics  
 Example:
 ```
 $ vmstat 2
@@ -2775,11 +2793,16 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
     - sy - time spent to run kernel code - system time
     - id - idle time 
     - wa - time waiting for I\O
-    - st - time stolen from virtual machine - wut 
+    - st - time stolen from virtual machine - wut  
+  Device output:  
+  ```
+  vmstat -d | ( head -2; grep 'mmcblk0'; )
+  ```
+  both commands after pipe will be executed in subshell working with same output of `vmstat`, so headers and matched stuff is displayed
  
 ## iostat:
   available in `sysstat` package for Ubuntu  
-  __Shows UPTIME average__ first time, with Interval others will be for the Interval duration  
+  __Shows average for whole UPTIME time__ first time, next pages will be for the Interval duration  
   Shows detailed but not overwhelming I\O statistics (see `vmstat -d` for overwhelming one)  
   __Params__:
   - -d - show disks only (w/o CPU average)
@@ -2797,7 +2820,82 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
   - kB_wrtn - total number of kB written
 
 ## iotop:
-  shows I\O top
+  top processes using I\O, uses ThreadID instead of PID
+  main Thread ID is the PID, other threads will increment the TID  
+  > _Requires SUDO or Root_
+
+  Use Case 1 Example:
+  ```
+  # Show for a User, use PID, show accumulated I/O
+  
+  iotop --user=dmitry -P -a
+  ```
+  Use Case 2 Example:
+  ```
+  # Filter by User, show PID, show timestamp, be quiet, update every 5 seconds, only show ones using IO, accumulate IO usage
+
+  iotop --user=dmitry -P -t -qqq -d5 -o -a
+  ```
+
+  __COLUMNS:__
+  - TID - thread ID
+  - PRIO - priority, has 3 `scheduling classes`:
+    - `be/n` - Best Effort/priority - most processes are of this scheduling class - Kernel will try to evenly proiritize it with others `be`.
+    - `rt/n` - Real Time - Kernel will schedule I\O first for this class
+    - `idle` - Idle processes are served when nothing other waits, has no priority
+    - Priority is higher with lesser `n` i.e. `be/4` is scheduled _after_ `be/3`
+  - USER - username of process owner  
+
+  __Params:__
+  - -o/--only - only show processes doing IO
+  - -u USER/--user=USER - processes for the user
+  - -P/--processes - show Processes(PID) instead of Threads(TID)
+  - -a/--accumulated - accumulated IO
+  - -b/--batch - non-interactive, good for Logging
+  - -t/--time - adds timestamps, implies `--batch`
+  - -q/--quiet - decreases headers and summary (-qq\-qqq), implies `--batch`
+  - -d SEC/--delay SEC - custom delay(default is 1)
+  
+## ionice:
+  change priority (i.e. `be/4`) of a process or thread in context of I/O resources usage
+  > not usually used, probably let it be as is (same as of `nice` thing for processes and CPU)
+
+## pidstat:
+  shows good statistics about Processes
+
+  Use Case Example:
+  ```
+  # Show info for PID 5769 every second
+  pidstat -p 5769 1
+  ```
+  Use Case Example:
+  ```
+  # Show human readable Memory usage for current user for top 5(8-3) processes 
+  pidstat -U $(whoami) --human -r | (head -3; sort -h -r -k 8) | head -8
+  ```
+
+  __Modes:__
+  Could operate in different modes:
+  - Memory: `-r`
+    - `VSZ` - virtual memory (swap or mem+swap ?)
+    - `RSS` - residental set size - RAM used
+  - Disk: `-d`
+    - `kB_ccwr/s` - cancelled, by task(process), writting to disk
+  - CPU: `-u` - default mode
+    - `%user` - user space processes
+    - `%system` - kernel processes
+    - `%guest` - used by Guest(virtual machine on the Host)
+  - __and bunch of others, check `man pidstat`__
+
+  __Params:__
+  - `-C comm` - show only matched by 'comm' string, supports regex
+  - `--human` - human-readable sizes
+  - `-p PID,PID | SELF | ALL` - ALL is default - shows everything
+  - `-r` - memory pages statistics - maj\min faults, overall utilization
+  - `-T TASK | CHILD | ALL` - show individual process | it's children too | everything - tasks and children
+  - `-t` - show Processes'(tasks) Threads info too
+  - `-U USER` - filters processes of the User given, show Username instead of UID
+
 
 ## top: htop:
   gives a list of processes and resources used by the OS
@@ -2894,6 +2992,12 @@ looks like glances can also setup a "web interface" to view.. as well as monitor
 
 ## ps:
   by default returns processes run by my current user and current terminal session  
+  Use Case 1 Example:
+  ```
+  #Return 'java' processes and show header of `ps` using subshell (or { head -1; grep 'java'; } also works using Groups)
+  ps aux | (head -1; grep 'java';)
+  ```
+
   ```
   ps [-[-]]<params>   
 	   UNIX standards - -<params>  

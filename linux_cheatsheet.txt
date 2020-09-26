@@ -1475,29 +1475,36 @@ xz:
 
 ## lsblk:
   NOTE: also all Block devices would be in `/sys/block` directory  
-  NOTE2: also all devices (and Block too) __with drivers__ are in `/proc/devices` 
-  file starting with same name (and device DI in `/proc/devices`) will be in `/dev` directory
+  NOTE2: also all devices (and Block too) __with drivers__ are in `/proc/devices`  
+  file starting with same name (and device DI in `/proc/devices`) will be in `/dev` directory  
 
   List Block Devices
-  list all devices mounted and not
+  __list all devices mounted and not__
    Example:
-  lsblk -po NAME,FSTYPE,SIZE,MOUNTPOINT /dev/sda /dev/sdb
-    show only 'sda' and 'sdb'
+   ```
+    #show only 'sda' and 'sdb'
+    lsblk -po NAME,FSTYPE,SIZE,MOUNTPOINT /dev/sda /dev/sdb
+    
+   ``` 
    Params:
-  -f\--fs - list fylesystems
-  -d\--nodeps  - show only top device(w/o partitions)
+  - -f/--fs - list fylesystems
+  - -d/--nodeps  - show only top device(w/o partitions)  
    Example:
-  lsblk -d /dev/sda
-  -o Col1,Col2  - Only columns Col1 and Col2
-  -O   - all columns
-  -p   - full path of Block device
-  -e\--exclude - exclude block device number
-   Example:
-  lsblk -e7,11 -po NAME,FSTYPE,SIZE,MOUNTPOINT
+    ```
+    lsblk -d /dev/sda
+    ```
+  - -o Col1,Col2  - Only columns Col1 and Col2
+  - -O   - all columns
+  - -p   - full path of Block device
+  - -e/--exclude - exclude block device number  
+    Example:
+    ```
     excludes Loop(7) and 11th block devices (see /proc/devices)
-   Columns:
-  MAJ:MIN - block device number : number
-   /proc/devices - list of ALL block device numbers
+    lsblk -e7,11 -po NAME,FSTYPE,SIZE,MOUNTPOINT
+    ```    
+   __Columns:__  
+  - `MAJ:MIN` - block device number : number  
+    -  `/proc/devices` - list of ALL block device numbers
   
 ## lsscsi:
   lists `scsi` devices (all disks basically)

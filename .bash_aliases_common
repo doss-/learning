@@ -3,6 +3,9 @@ alias tree='tree --du -h'
 
 # show df w/o tmpfs and squashfs filesystems - stupid 'loop' and stuff
 alias dfh='df -x tmpfs -x squashfs -h'
+# exclude 'loop' block devices (see /proc/devices for id)
+# see /dev/block for all devices too
+alias lsbklh='lsblk -e7,11 -po NAME,MAJ:MIN,FSTYPE,SIZE,MOUNTPOINT'
 
 ds() {
   echo "disk space utilization"

@@ -48,7 +48,7 @@ Note: 'read' command need to be used.
     /home/dos/test.txt  
 	
 
-##Debugging:
+## Debugging:
     #!/bin/bash -x  
 will start debugging tracert - with display of all values expanded and
   lines as bash sees them and will execute them
@@ -60,7 +60,7 @@ will start debugging tracert - with display of all values expanded and
 will enable debugging tracert only between set -/+ x displaying only
  commands in between with such debug info
 
-##shell variables:
+## shell variables:
 $FUNCNAME - contains name of the function being executed(like reflection)  
 
 $PS4 env var, is Promt String for debugging tracert  
@@ -71,7 +71,7 @@ $OLDPWD - contains previous workind directory
 $RANDOM - contains random number from 1 to 32 767  
 $$ - current PID of the programs\script being executed  
 
-##Defensive programming:  
+## Defensive programming:  
 
 Make sure everything is expanded and is executed in right place:  
  Instead of:  
@@ -91,7 +91,7 @@ where:
   - echo rm * - will echo expanded by bash shell wildcard, displaying what  
 	exactly is going to happen with actual 'rm *'  
 
-##Naming Coventions:
+## Naming Coventions:
 - Variable Names:  
  Lower-case, with underscores to separate words.  
  Ex: my_variable_name  
@@ -141,7 +141,7 @@ this seems to be <current dir>/scriptname (so basically full path, which is also
   by wildcard, 'cp' will never see * itself  
   to check what * will return, execute __echo *__  
 
-##variables expansion:
+## variables expansion:
   Expansion starts when $ is encountered.  
   Escape sequences:  
   \ - will escape 1 symbol to treat it as literal and not meta symbol  
@@ -229,17 +229,25 @@ this seems to be <current dir>/scriptname (so basically full path, which is also
     in script >> echo basename $0
     will return 'some_script.sh'
 
-##dirname:
+## dirname:
   returns directory name (everything except latest nodein the path)  
-  antipod of `basename`
-   Example:
+  antipod of `basename`  
+   Use Case Example:
+    ```
+    # Get to Workdir in the script, so relative paths work
+    #!/bin/bash
+    cd "$(dirname "$0")"
+    ```
 
+   Example:  
+   ```
     cd /home/dos/directory/filename
     dirname $PWD
     > /home/dos/directory
-  
+   ```
+   
 
-##variables:
+## variables:
   AKA Global Variables - are visible everywhere in shell environment
    if 'export'ed - will be visible in subshells created from the shell  
    'local' variables are local for funcions - see below  
@@ -280,7 +288,7 @@ this seems to be <current dir>/scriptname (so basically full path, which is also
     echo "stuff is: $my_str_var"   # stuff is: string w/ spa.....
     echo 'stuff is: $my_str_var'   # stuff is: $my_str_var
 
-##arrays:
+## arrays:
   also variables, indexed from 0,   
   could have empty indexes.  
    Example declaration:  
@@ -955,7 +963,7 @@ test:
     Note that 'false' and 'true' are not commands, commands return 1 and 0
    and behavios incorrectly
 
-## let:
+##  let:
   pretty same to (( ))
    https://linuxize.com/post/bash-increment-decrement-variable/
   let 'i=i+1'
@@ -1221,7 +1229,7 @@ shell types
     will mean that is IS login shell
  
  Example for each type:
-## Interactive, non-login shell. Regular terminal
+##  Interactive, non-login shell. Regular terminal
 $ echo $-; shopt login_shell
 himBHs
 login_shell     off

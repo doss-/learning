@@ -6,16 +6,18 @@ Looks Good
 
 - things\skills that team is missing that manager is going to fill with me  
 
+- what is the current biggest point\priority
+  what is the biggest challanges team is going to face in the next year
+
+- what does success look like for this position
+
+
 - are there documentation  
   how it is created and updated  
   how is it maintained up to date
 
-- what is the current biggest point\priority
-  what is the biggest challanges team is going to face in the next year
-
 - what is the career growth paths in the company
 
-- what does success look like for this position
 
 Looks normal  
 

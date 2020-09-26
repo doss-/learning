@@ -4044,6 +4044,9 @@ server {
 
 
 # Networking
+https://www.youtube.com/watch?v=PVOuff-p420 network troubleshooting and related videos on the channel
+https://www.youtube.com/watch?v=l0QGLMwR-lY Top 10 Linux Job Interview Questions
+
 
 ## Networking relies on configuration files:
 /etc/sysconfig/network-scripts/ifcfg-<interfase_name> - this file describes 

@@ -878,25 +878,31 @@ test:
   INTEGER1 -lt INTEGER2 	INTEGER1 is numerically less than INTEGER2
    
    Test Files:
-  FILE -ef FILE1 - both files are hard links (point to same inode)
-  FILE -nt FILE1 - FILE newer than FILE1
-  FILE -ot FILE1 - FILE older than FILE1
-  -e FILE 	FILE exists.
-  -f FILE 	FILE exists and is file
-  -s FILE 	FILE exists and its size greater than 0
-  -L FILE 	exists and is soft symblic link
-  -d FILE 	FILE exists and is a directory.
+  - FILE -ef FILE1 - both files are hard links (point to same inode)
+  - FILE -nt FILE1 - FILE newer than FILE1
+  - FILE -ot FILE1 - FILE older than FILE1
+  - -e FILE 	FILE exists.
+  - -f FILE 	FILE exists and is file. USE WITH QUOTES IF VARIABLE:  
+    ```
+    [ -f $1 ] && echo "TR"   <--  will return TR if $1 is empty(first param not given)
+    [ -f "$1" ] && echo "TR" <-- will return TR as expected
+    ```
+  - -s FILE 	FILE exists and its size greater than 0
+  - -L FILE 	exists and is soft symblic link
+  - -d FILE 	FILE exists and is a directory.  
     Example:
-   if [ -d "$1" ]; then       # $1 is 1st param of script and contains Path
-     echo "this is directory"
-  -b FILE	exists and is Block device (i.e /dev/sda1)
-  -c FILE 	exists and char device
-  -r FILE 	FILE exists and the read permission is granted.
-  -s FILE 	FILE exists and it's size is greater than zero (ie. not empty).
-  -w FILE 	FILE exists and the write permission is granted.
-  -x FILE 	FILE exists and the execute permission is granted.
-  -G FILE 	exists and file belongs to existing group
-  -O FILE 	exists and belongs to existing user
+    ```
+    if [ -d "$1" ]; then       # $1 is 1st param of script and contains Path
+      echo "this is directory"
+    ```
+  - -b FILE	exists and is Block device (i.e /dev/sda1)
+  - -c FILE 	exists and char device
+  - -r FILE 	FILE exists and the read permission is granted.
+  - -s FILE 	FILE exists and it's size is greater than zero (ie. not empty).
+  - -w FILE 	FILE exists and the write permission is granted.
+  - -x FILE 	FILE exists and the execute permission is granted.
+  - -G FILE 	exists and file belongs to existing group
+  - -O FILE 	exists and belongs to existing user
   
    NOTE:
   == - does a string comparision

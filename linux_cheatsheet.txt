@@ -4079,13 +4079,45 @@ https://www.youtube.com/watch?v=l0QGLMwR-lY Top 10 Linux Job Interview Questions
  see this for details on resolving Networking issue on VMWare:
  https://superuser.com/questions/901672/centos-7-ping-8-8-8-8-connect-network-is-unreachable/901677
 
+## ping:
+uses `Internet Control Message Protocol (ICMP)` and `Domain Name Service (DNS)` system.
+
+ping sends `ICMP` echo packet(56 bytes) to a Host, asking it to return the echo packet. If remote Host gets echo and configured to return echo packets it will send it back to `ping` issuer, packet would be 56+8 bytes by default (`64`)
+
+Example:
+```
+$ ping 192.168.1.1
+PING 192.168.1.1 (192.168.1.1) 56(84) bytes of data.
+64 bytes from 192.168.1.1: icmp_seq=1 ttl=64 time=0.340 ms
+64 bytes from 192.168.1.1: icmp_seq=2 ttl=64 time=0.373 ms
+64 bytes from 192.168.1.1: icmp_seq=3 ttl=64 time=0.375 ms
+^C
+--- 192.168.1.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2050ms
+rtt min/avg/max/mdev = 0.340/0.362/0.375/0.027 ms
+```
+`icmp_seq` incremented sequence number (should numbered correctly, incorrect numberig is a sigh of bad connection - lost or slow )  
+`time` roundtrip time (from when packet leaves and until packet returns). `host unreachable` ICMP packet returned if can't reach the destinatino  
+`64` bytes are `56` sent and `56+8` returned
+
+## traceroute:
+also `ICMP` based, sends 1 or bunch of packets in parallel to every `hop` on the way to target host
+Use Case Example:
+```
+# send only 1 packet - kinda single-threaded, with 0.5 second delay
+# so less hops will ignore or filter out the packet
+traceroute -N 1 -z 0.5
+```
+
 ## tcptraceroute:
   traceroute to port 
    Example:
   sudo tcptraceroute teamcity.tideworks.com 443
 
 ## ip: 
-  link - creates network interface with name and type:
+  modern substitution for `ifconfig`, `route`, `arp` etc
+  ### ip link:
+  creates network interface with name and type:
 	also could be used if 'ifconfig' is absent
 	Example:
      ip link add br10 type bridge - will create network interface with 
@@ -4095,7 +4127,8 @@ https://www.youtube.com/watch?v=l0QGLMwR-lY Top 10 Linux Job Interview Questions
 	ip link set br10 up - will enable network interface br10
 
 
-  addr - manages ip addresses. 
+  ### ip addr:
+  manages ip addresses. 
 	in case 'ifconfig' is not available this comes handy
    add - adds gateway ip and subnet mask for device with a name
 	Example:
@@ -4112,6 +4145,52 @@ https://www.youtube.com/watch?v=l0QGLMwR-lY Top 10 Linux Job Interview Questions
 		bridge_ports dummy0	#some mock stuff
 		bridge_stp off
 		bridge fd 0 		#frame 0
+
+  ### ip route:
+    substitution for `route`
+    shows Kernel IP routing table - where packet should go whether to Gateway or inside the subnet, or to other subnet
+
+## Routing work:
+when Kernel need to send traffic via Internet it goes into `Kernel Routing Table`  
+It matches the Subnet  Mask(Genmask) to the IP address of recepient  
+If IP Address matched by more than 1 Subnet Mask then the one with longer destination prefix - bigger CIDR, since CIDR is 0-32 bytes long, the bigger is the one matched
+Example:
+```
+  0.0.0.0         _gateway        0.0.0.0         UG    100    0        0 enp5s0
+  192.168.0.0      0.0.0.0         255.255.0.0     U     0      0        0 docker0
+  192.168.1.0     0.0.0.0         255.255.255.0   U     100    0        0 enp5s0
+```
+255.255.0.0 - is CIDR /16 and in binary it's sixteen bits `11111111 11111111`  
+255.255.255.0 - is CIDR /24 and in binary it's twentyfour bits `11111111 11111111 11111111`  
+
+### Default Gateway
+If Kernel need to send package to 192.168.1.15 both networks would be matched, but 192.168.1.0/24 has longer prefix(24 ones) than 192.168.0.0/16 which is only 16. so Traffic will go to __enp5s0__ network interface, which will be caufchg by `__gateway`
+
+>Default gateway is the address under `Gateway` column of `route -n`  output.
+All traffic _not matched_ by other `Routing Rules` in the `Kernel Routing Table` will go to the `Default Gateway`
+
+## route:
+  show and manipulate routing table
+   Example:
+  ```
+  $ route
+  Kernel IP routing table
+  Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+  default         _gateway        0.0.0.0         UG    100    0        0 enp5s0
+  link-local      0.0.0.0         255.255.0.0     U     1000   0        0 enp5s0
+  172.17.0.0      0.0.0.0         255.255.0.0     U     0      0        0 docker0
+  192.168.1.0     0.0.0.0         255.255.255.0   U     100    0        0 enp5s0
+  ```
+  `U` in Flags means __UP__  
+  `G` in Flags means __Gateway__  
+  __Params:__
+  - -n - show numerical instead of symbolic names
+  ```
+  Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+  0.0.0.0         192.168.1.1     0.0.0.0         UG    100    0        0 enp5s0
+  169.254.0.0     0.0.0.0         255.255.0.0     U     1000   0        0 enp5s0
+  ```
+
 
 ## Ports checks
  read more:
@@ -4207,6 +4286,9 @@ https://www.youtube.com/watch?v=l0QGLMwR-lY Top 10 Linux Job Interview Questions
    Example:
   noslookup $(hostname -I)   - dns entry if only 1 if
 
+## host:
+could resolve `hostname` into `IP` and sometimes other way around  
+IP>hostname resolution requires 'reverse lookup' set manually on DNS - wut da fock is that?
 
 # Security
 

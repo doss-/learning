@@ -7,6 +7,9 @@ alias dfh='df -x tmpfs -x squashfs -h'
 # see /dev/block for all devices too
 alias lsbklh='lsblk -e7,11 -po NAME,MAJ:MIN,FSTYPE,SIZE,MOUNTPOINT'
 
+# traceroute, but not parallel and slow - so less hosts would ignore it
+alias traceroute='traceroute -N 1 -z 0.5'
+
 ds() {
   echo "disk space utilization"
   df -h
@@ -20,4 +23,9 @@ keymd5() {
 # Show ssh Key fingerprint in SHA256
 keyfingerprint() {
   [ -f "$1" ] && ssh-keygen -lf "$1"
+}
+
+# files count in directory based on `ls`
+fc() {
+  [ -d "$1" ] && ls -l "$1" | tail +2 | wc -l
 }

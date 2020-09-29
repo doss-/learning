@@ -618,6 +618,21 @@ dos:temp$ /usr/bin/time ls
   ls /bin /usr/bin | sort | uniq -d | less - will display only duplicated files
 	in both dirs, in sorted order
 
+## touch: 
+creates empty file or updates file's date fields
+```
+touch my_file.txt
+stat my_file.txt
+```
+
+## fallocate:
+creates file of given size
+Use Case Example:
+```
+# create file for swap of 1Gb size
+sudo fallocate -l 1G /swapfile
+```
+
 ## cat:
   concatenate, return file contents on screen. GNU
   cat <filename> <filename> - will return contents of both to screen
@@ -2601,8 +2616,87 @@ Load Average of 0.01 would mean that in Given time only 1% of 1 Core of CPU was 
 ## free:
   shows System's Memory status.  
   Memory info could be found in `/proc/meminfo` too  
+  if `Swap` row is 0B - there is no Swap enabled (see `swapon`)
 ### Params:
 - -h - human readable
+
+## Create Swap File:
+https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-18-04  
+```
+# Check swap enabled:
+sudo swapon --show
+# Double check for 0B in Swap row:
+free -h
+# Check disks (i.e. /) has enough space (4G for swap enough for HDD for RAM fallback)
+df -h
+# Create swap file and verify size
+sudo fallocate -l 1G /swapfile
+ls -lh /swapfile
+# Set readonly for Root user (security reasons)
+sudo chmod 600 /swapfile
+# Make the file to be actual swap
+sudo mkswap /swapfile
+# Enable the swap into the file
+sudo swapon /swapfile
+# Check swap changed
+sudo swapon --show
+# Permanent changes:
+sudo cp /etc/fstab /etc/fstab.bak
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+### Swappiness
+percentage at which Kernel would use Swap over RAM  
+0 - 100  
+values closer to 0 - Kernel won't swap unless absolutely neccessary  
+values closer to 100 - Kernel will try swap more to keep more RAM free  
+Default: __60__  
+Use Case Example:
+```
+# Check swappiness
+cat /proc/sys/vm/swappiness
+
+# Change temporarily until reboot
+sudo sysctl vm.swappiness=10
+
+# Change permanently
+echo "vm.swappiness=10" >> /etc/sysctl.conf
+```
+
+### Cache Pressure
+percentage at which Kernel would swap __inodes__ and __dentry__  
+It is Costly to look for and very frequently needed to look - good to cache.  
+0 - 100+   
+at 100 - the kernel will attempt to
+reclaim dentries and inodes at a "fair" rate with respect to pagecache and
+swapcache reclaim  
+at 0 the kernel will
+never reclaim dentries and inodes due to memory pressure and this can easily
+lead to out-of-memory conditions  
+```
+# Check
+cat /proc/sys/vm/vfs_cache_pressure
+
+# Change
+sudo sysctl vm.vfs_cache_pressure=50
+
+# Change permanently
+echo "vm.vfs_cache_pressure=50" >> /etc/sysctl.conf
+```
+
+## swapon:
+turns swap on.  
+Swap could be either on separate special partition or just a file.  
+Use Case Example:
+```
+$ sudo swapon --show
+NAME      TYPE       SIZE USED PRIO
+/dev/sda9 partition 15.9G 780K   -2
+
+```
+__Params:__
+- --show - shows whether swap is on, and where. __No output__ means there is no swap enabled.
+
 
 ## vmstat:
 Virtual Memory STATistics  

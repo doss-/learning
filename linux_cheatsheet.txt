@@ -155,6 +155,17 @@ cat /proc/version - file with linux version info
   -/<none>   - changes to current homedir
   ~username - changes to username homedir
 
+## pushd:
+## popd:
+changes to dir and saves it in stack
+changes(backwards) to last dir from stack, removes dir from stack
+Example:
+```
+#silent move w/o displaying full path in STDOUT
+pushd some/directory/path > /dev/null
+pushd > /dev/null
+```
+
 ## tree:
   lists directories as trees, very useful
    https://www.ostechnix.com/view-directory-tree-structure-linux/
@@ -942,6 +953,17 @@ sudo fallocate -l 1G /swapfile
 
  See More: https://www.digitalocean.com/community/tutorials/the-basics-of-using-the-sed-stream-editor-to-manipulate-text-in-linux
  https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-streams-of-text-in-a-linux-environment
+
+  Use Case Example:
+  ```
+  #rename part file
+   6 REDACT='0930_22'
+   17   redacted=$(echo $i | sed "s/...._../$REDACT/")
+   18   echo "mv $i r$redacted"
+
+  >mv IMG_20201001_001836.jpg rIMG_20200930_221836.jpg
+  ```
+
 
   sed <param> '<param1>/pattern/replacement/<param2>' <file>
   -n - supress default ouput
@@ -2024,6 +2046,17 @@ see [cron](#cron) for detailed syntax
  `34 14 15 5  /path/to/command`
   - Save the file and exit the editor.
  
+## bc:
+seems to be a Basic Calculator  
+weird  
+Use Case Example:
+```
+#Calculate binary of 192
+$> bc
+> obase=2; 192
+11000000
+```
+
 ## awk:
  stuff to worh with text, programming language kind of
   Example: 

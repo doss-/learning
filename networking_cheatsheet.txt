@@ -22,6 +22,17 @@ Computer sends requests every time it uses a domain address (example.com).
 This happens every time domain name is used.  
 For any reason - web surfing, email, internet radio, API calls etc.
 
+### Simplex
+One way communication from `Sender` to `Receiver`  
+
+### Half-Duplex
+Two way communication from `Sender` to `Receiver`  
+But only __one at a time__
+
+### Full-Duplex
+Two way communication from `Sender` to `Receiver`  
+__At the same time__
+
 ### Steps: In depth look for query
 
 1. Local DNS cache. 
@@ -59,16 +70,20 @@ recursive servers save request result from Name Server in its cache for amount o
 
 A record is returned back to the original asking computer by the Recursive server, answer is stored in local cache, reads IP address and passes it to browser. Browser opens the connection to receive the website.
 
-# MAC addresses:
+# Physicall Addressing(MAC addresses):
 
 https://www.howtogeek.com/169540/what-exactly-is-a-mac-address-used-for/
 http://www.linfo.org/mac_address.html
 https://www.youtube.com/watch?v=V2SpN-OePzc
 
 MAC is the uniq address of Network Interface Card.  
+- 48 bit long
+- 12 hexadecimal characters long
+- first 6 are Manufacturer's uniq numbers given by IEEE (institute of electricity and engineers and another E..)
+- last 6 are NIC's uniq numbers
+- uniq 6 + 6 is to decrease the chance of having two same MAC addresses
 
 MAC is lowest level in networking, below IP protocil.  
-
 MAC is used to send network packages, it is located in package header.  
 
 NIC will accept only those packages whose header contains NIC's MAC(matches).  
@@ -77,7 +92,7 @@ Routing is done on IP level.
 
 With MAC packages only could go inside the same network, if need to go through the Router the IP need to be used, wrapping package with MAC address.
 
-##Steps:
+## Steps:
 
 WHen computer wants to send a packet he checks whether target IP is in the same network. seems like ARP is used here, allows to ask all the computers in network (via Broadcast MAC ff:ff:ff:ff...) who has the IP address, only the computer with the IP will answer.   
 Answer will also contain the MAC address. This MAC will be written in the package and sent to that IP address (next hop). Info will be cached (as in DNS resolvers, seems like)
@@ -87,22 +102,83 @@ If IP is out of network, router receives the package with router's MAC in header
 Router receives packets for its own MAC, and for different(not router's) IP.  
 Then checks whether he can directly reach the target IP, if not - passes to another router(hop)
 
-# NAT  (Network Address Translation)
+# Network Protocol
+Network protocol `Internet Protocol`, second layer of socalled 'TCP/IP' stack. Or one of(which?) OSI networking model  
+Other Network protocols are:
+- IPX - Deprecated. Used by Novell back in 80s up till ~93 in `Netware` to communicate to other novell's machines, moved to `IP`
+- APPLETALK - Deprecated. Macintosh used this protocol to other macs until moved to `IP`
+- NETBIOS - IBM's and adopted by Windows network protocol, which is used for file-sharing
+
+## NAT  (Network Address Translation)
 
 http://www.internet-computer-security.com/Firewall/NAT.html
 
 There are only 32 bits of addresses or 4 billions in IPv4.  
 To workaround it NAT is created, it introduces Private IP addresses.  
 
+## IP Address
+Network protocol which allows computers on the Network to address each other.  
+Consists of 4 Octets - Oct == 8, which number of `bits` in each octet  
+```
+192.168.1.10 == 11000000.10101000.00000001.00001010
+NOTE: use 'bc' and 'obase=2; 192' to convert decimal to binary
+```
+### Logical Address and Host Address
+`IP Address` is paired with `Subnet Mask`.
+- __Logical Address__ is the similar to all hosts in the __Subnet__
+  - __Subnet mask__ determines the __Logical Address__
+- __Host Address__ is unique to each host  
+  - What is left after __Subnet Mask__ is the __Host Address__
+
+__Ranges:__
+0-255 but `0` is reserved for networks and `255` for broadcast; so:  
+1-254, which is 254 addresses (since it already includes 1)
+
+Example:  
+```
+IP: 192.168.1.10
+Subnet Mask: 255.255.255.0    <-- only last Octet could be for Host Address
+CIDR: 192.168.1.0/24         <-- CIDR Notation - 24 binary ones before the first 0
+Network Address: 192.168.1.0  <-- CIDR Network Address always ends on 0 (i.e. 192.168.0.0)
+[192.168.1] - Logical Address
+[.10] - Host Address          <-- there could be only 254 hosts on this subnet
+
+```
+
+`ARP`(`Address Resolution Protocol`) protocol used to get MAC for given IP address  
+
+
 ## Private IP addresses
 
-there are 3 classes:
+there are 3 classes of Network Masks: https://www.youtube.com/watch?v=WX5GaH5ootc&list=PLdFppKg4UodjGN8nAhojxWyncoEdwTfqf&index=8
 
-Class A: 10.0.0.0 - 10.255.255.255
+- __Class A:__ Mask: `255.0.0.0`; CIDR Notation: `/8`; 10.0.0.0/8; Range up to - 10.255.255.255
+  - First bit of First octet must be `0`. 
+  - so the decimal range of first Octet is between `0 to 126`:
+    - 0 is `00000000`, 126 is `01111110`; where as 127 is `01111111`... seemsdue to inability to use decimal `0` as first Octet?
+- __Class B:__ 172.16.0.0 - 172.31.255.255
+  - First bit of First octet must be `1`
+  - so the decimal range of first octet is between `128 to 191`:
+    - 128 is `10000000`, 191 is `10111111`
+- __Class C:__ 192.168.0.0 - 192.168.255.255 (or CIDR block [192.168.0.0/16](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks) )
+  - First bit of First octet myst be `11`
+  - so the decimal range of first octet is between `192 to 223`
+    - 192 is `11000000`, 223 is `11011111`, whereas 224 is `11100000`
+- __Class D:__  [Special] Multicast
+  - First octet: 224-239
+- __Class E:__  [Special] Experimental
+  - Fist octet: 240-255
+```
+#Calculate binary from decimal
+$ bc
+bc 1.07.1
+Copyright 1991-1994, 1997, 1998, 2000, 2004, 2006, 2008, 2012-2017 Free Software Foundation, Inc.
+This is free software with ABSOLUTELY NO WARRANTY.
+For details type `warranty'. 
+obase=2; 192
+11000000
 
-Class B: 172.16.0.0 - 172.31.255.255
-
-Class C: 192.168.0.0 - 192.168.255.255 (or CIDR block [192.168.0.0/16](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks) )
+```
 
 Within the private network - behind the Router(hop) the IP addresses would be unique. In another private network those addresses also would be unique, but could be the same in two different private networks.  
 However as long as they stay private no conflicts appears.  

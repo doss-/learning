@@ -838,7 +838,29 @@ sudo fallocate -l 1G /swapfile
   displays current network interfaces
   part of the 'net-tools' package
    /etc/network/interfaces - for interfaces(5) changes
-  -a - will display MAC also
+  -a - will display MAC also- 
+
+### Setup netowrk connection old way:
+Need to perform steps:
+- Connect device to Computer, ensure there is a driver
+  - `ifconfig -a` to display the new Kernel Network Interface
+- Set network name or password etc.
+- Add Computer IP and Net Mask to the new Network Interface - this way `Physical` and `Network` layers of OSI model can communicate between each other
+- Add any additional Routes. Including `Default Gateway`
+
+Add Computer IP and Net Mask:
+```
+ifconfig <interface> [IP addres] mask [Net Mask]
+```
+ - interface - name of the IF (i.e. eth0)
+ - IP Address - the IP addr of the current IF (network card)
+ - Net Mask - subnet mask like 255.255.255.0
+
+ Add Default Gateway:
+ ```
+ route add default gw <GateWay IP Address>
+ ```
+ GateWay IPAddress must be on the same network as the Interface - same Subnet mask and IP Address(of the network card) should match a subnet and Gateway IP
 
 ## lshw:
   list hardware, displays all the hardware detected by kernel and its state

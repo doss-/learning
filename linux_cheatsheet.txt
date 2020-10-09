@@ -817,9 +817,21 @@ sudo fallocate -l 1G /swapfile
   
 
 ## NetworkManager:
-  network management daemon
-  
-## nmcli:
+  network management daemon  
+It uses different plugins for different distros and stuff, to be more system-agnostic
+### Configuration:
+`/etc/NetworkManager`  
+`NetworkManager.conf` - main config file .ini\XDG like  
+`[main]` - section to load the Plugins  
+Plugins:  
+- ifupdown - main network plugin for Debian-like
+- ifcfg-rh - Redhat-like network plugin
+- ifcfg-suse - SuSE-like network plugins
+- keyfile - native configuration plugin support
+  - stores System-known connections under `/etc/NetworkManager/system-connections`
+
+
+### nmcli:
   network manager command line interface
    Synopsys:
   nmcli [PARAMS] OBJECT {COMMAND | help}
@@ -828,7 +840,15 @@ sudo fallocate -l 1G /swapfile
   n[etworking]    overall networking control
   r[adio]         NetworkManager radio switches
   c[onnection]    NetworkManager's connections
+  ```
+  #list all connections active and inactive
+  nocli connection show
+  ```
   d[evice]        devices managed by NetworkManager
+  ```
+  #list all network devices - real and virtual
+  nmcli device show
+  ```
   a[gent]         NetworkManager secret agent or polkit agent
   m[onitor]       monitor NetworkManager changes
    Example:
@@ -860,8 +880,7 @@ ifconfig <interface> [IP addres] mask [Net Mask]
  ```
  route add default gw <GateWay IP Address>
  ```
- GateWay IPAddress must be on the same network as the Interface - same Subnet mask and IP Address(of the network card) should match a subnet and Gateway IP
-
+ GateWay IPAddress must be on the same network as the Interface - same Subnet mask and IP Address(of the network card) should match a subnet and Gateway I
 ## lshw:
   list hardware, displays all the hardware detected by kernel and its state
   and properties
@@ -4302,13 +4321,27 @@ server {
 	Server_name also use local network IP
 	ALso i commented default 'root' not sure if this necessary
 
+# DNS
+Domain Name Server - performs resolution of Hostnames into IP addresses.  
+Works on UDP protocol.  
+Belongs to Application Layer of TCP\IP stack model.   
+
+## Name Server cache
+Routers and other machines can intercept Name Server Requests and send back 'cache'. This is to decrease traffic.
+
+__Daemons:__
+- dnsmasq
+- nscd
+- BIND - standard UNIX Name server which could act as cache
 
 # Networking
 https://www.youtube.com/watch?v=PVOuff-p420 network troubleshooting and related videos on the channel
 https://www.youtube.com/watch?v=l0QGLMwR-lY Top 10 Linux Job Interview Questions
 
-
 ## Networking relies on configuration files:
+
+### ifcfg-rh:
+Main Network Manager plugin for Redhat-like systems  
 /etc/sysconfig/network-scripts/ifcfg-<interfase_name> - this file describes 
 	how network interface works, every interface has its own file.
 	Settings of the interface are stored in here
@@ -4326,11 +4359,25 @@ https://www.youtube.com/watch?v=l0QGLMwR-lY Top 10 Linux Job Interview Questions
 	NETWORKING=yes
 	HOSTNAME=centos7
 	GATEWAY=10.0.0.1
-/etc/resolv.conf - something like 'hosts' in Windows, it seems, store default DNS here
-	 Example:
-	nameserver 8.8.8.8   - default google's DNS
+
+### ifupdown:
+Main Network Manager plugin for Debian-like systems  
+
+`/etc/resolv.conf` - store default DNS here
+Also has list of domains(`search`) to look for when 'incomplete' hostname is used - i.e. 'seasc' from seasc.usa.int would work if 'usa.int' is in resolv.conf  
+If `127.0.0.1` is in resolv.conf it means that local machine has Name Server cache set up (see dnsmasq ) 
+	 Example:  
+  ```
+  search usa.int
+	nameserver 8.8.8.8
+  ```
  see this for details on resolving Networking issue on VMWare:
  https://superuser.com/questions/901672/centos-7-ping-8-8-8-8-connect-network-is-unreachable/901677
+
+`/etc/nsswitch.conf` - Name Server Switch.  
+- `hosts` - entry is for Hostnames resolution
+  - `files` is set first - to check /etc/hosts first
+  - `dns` is set afterwards to setup dns check (resolv.conf)
 
 ## ping:
 uses `Internet Control Message Protocol (ICMP)` and `Domain Name Service (DNS)` system.

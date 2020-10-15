@@ -400,12 +400,25 @@ Wireless Access POint could prevent someone to getting from wireless network int
 ## Update WAP Firmware
 download if trom official website and install on the WIfi Router
 
-# OCI Model
-https://www.youtube.com/watch?v=3b_TAYtzuho
-https://www.youtube.com/watch?v=i9RL5jD9cTI
+# OSI Model
+Open Systems Interconnection model  
+Videos:  
+[Video: Lection 'OSI and TCP IP Models - Best Explanation'](https://www.youtube.com/watch?v=3b_TAYtzuho)  
+[Video: F5 Networks 'OSI and TCP/IP Model Overview'](https://www.youtube.com/watch?v=i9RL5jD9cTI)  
+[Text: Cisco 'Troubleshooting TCP/IP'](https://www.cisco.com/en/US/docs/internetworking/troubleshooting/guide/tr1907.html)
 
 7 layers of moving data from User viewabale state to Network transportable state and send it out - Encapsulating  
 getting data from network and presenting to the User in viewable state is called Decapsulating  
+
+| OSI  | TCP\IP  | Protocols Used | Addresses<br>Uniq ID | PDU  | Devices Used | Diagnose Tools  |
+|---|---|---|---|---|---|---|
+| Application   | Application     | DNS<br> BOOTP; DHCP<br> SMTP; POP; IMAP<br> HTTP; HTTPS<br> FTP; TFP|   | Data  | AppFirewall; SSL-VPN; Proxies; AppDeliveryControllers  |   |
+| Presentation  | ---             |   |   | ---  |   |   |
+| Session       | ---             |   |   | ---  |   |   |
+| Transport     | Transport       |TCP; UDP   | Port  | Segment  | LoadBalancers; NetworkFirewalls  |   |
+| Network       | Internetwork    | IP; NAT<br> ARP <br> ICMP<br> Routing: RIP; OSPF; EIGRP; BGP   | IP  | Packet  | Routers  | ping; traceroute  |
+| Data Link     | Network Access  | ARP; PPP; Ethernet<br> Interface Drivers | MAC  | Frame  | Switches; Bridges  |   |
+| Physical      | ---             |   | RJ45 etc.  | Bitstream  | Interfaces; Cables<br> Optical stuff<br> Antennas  |   |
 
 > All layers produce some units - `PDU`, but each layer call unit differently.  
 `PDU` - `Protocol Data Unit` - which is in __binary form__ - 000101010011  
@@ -413,16 +426,17 @@ getting data from network and presenting to the User in viewable state is called
 
 Example: Network Layer produce a `Packet` which is broke down in several `Frames` on Data Link Layer, which are become some `Bitstream` in Physical Layer - and then those are _reassembled_ on the other side
 
-7. Application
+7.__Application__  
 
-6. Presentation
+6.__Presentation__  
 
-5. Session  
+5.__Session__   
+
 ----
 >__TCP/IP calls 7,6,5 layers as `Application` layer__  
 It produces `Protocol Data Units` or `PDU`  
 
-4. __Transport__  
+4.__Transport__  
 `Applications` make requests; `Services` receive them.  
 `Port addresses` are used to identify and distinguish __Applications__ and __Services__ one from another:  
 __Source__  and __Destination__  ports  
@@ -448,7 +462,7 @@ __Protocol Data Unit__ on TCP layer is called `Segment` (`Datagrams` for UDP) - 
 > __TCP/IP calls level 4 as `Transport` layer__  
 It produces `Segments` (or `Datagrams` for UDP)  
 
-3. __Network__  
+3.__Network__    
 `PDU` on this Layer called `Packet`  
  __IP addresses__ are used to identify one host from another  
 __Source__ and __Destination__ addresses are stamped on each Packet too.  
@@ -460,14 +474,14 @@ __Source__ and __Destination__ addresses are stamped on each Packet too.
 It produces `Packets`  
     
 
-2. Data Link
+2.__Data Link__  
 `PDU` on this Layer is called a `Frame`  
 `Frame` has __Header__ and __Trailer__
 
     Uses `Ethernet` standard.  
     __Source__ and __Destination__ addresses are burned into the NIC.
 
-1. Physical
+1.__Physical__  
 This layer converts virtual stuff from all other layers above into a `real` stuff which person could Hear, Feel, Taste, Touch.  
 This layer converts `digital bits 10101001` into a `Signal` - eletricity, light etc.
 WiFi operates on 2.4 GHz frequency and could be heard (except human ear does not hear it - which is GOOD)

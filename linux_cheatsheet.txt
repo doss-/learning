@@ -4401,7 +4401,14 @@ rtt min/avg/max/mdev = 0.340/0.362/0.375/0.027 ms
 `64` bytes are `56` sent and `56+8` returned
 
 ## traceroute:
-also `ICMP` based, sends 1 or bunch of packets in parallel to every `hop` on the way to target host
+also `ICMP` based(Windoes) or UDP(others) based, sends 1 or bunch of packets in parallel to every `hop` on the way to target host
+
+Could show Several IP addresses for 1 Hop -  if 2+ routers could server the path to next Hop.
+```
+ 7  google.cr-2.g50.kiev.volia.net (82.144.192.137)  7.522 ms  7.389 ms  7.354 ms
+ 8  108.170.248.130 (108.170.248.130)  17.181 ms 108.170.248.146 (108.170.248.146)  7.683 ms 108.170.248.130 (108.170.248.130)  9.053 ms
+```
+
 Use Case Example:
 ```
 # send only 1 packet - kinda single-threaded, with 0.5 second delay

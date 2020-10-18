@@ -4554,23 +4554,59 @@ All traffic _not matched_ by other `Routing Rules` in the `Kernel Routing Table`
  https://www.cyberciti.biz/faq/how-do-i-find-out-what-ports-are-listeningopen-on-my-linuxfreebsd-server/
  https://www.maketecheasier.com/check-open-ports-linux/
 
+## /etc/services:
+local list of Well Known Ports on linux system  
+Online registry and List of ports, as well as Standartization document is located at iana.org, RFC6335
+
+## Ephemeral Ports
+## Dynamic Ports
+list of ports which are generated for 1 session and used by TCP protocol.  
+__Internet Assigned Numbers Authority(IANA):__  
+- 0-1023 - Well Known Ports (0 is reserved so from 1)
+  > Ports well known for all, to start Applicatoin or service listening on Well Known port `sudo` is required  
+- 1024-49151 - Registered Ports 
+  > List of ports that are used by custom software to work on
+- 49152-65535 - Ephemeral or Dynamic Ports
+  > Ports used by TCP protocol to establish the connection - Adopted by BSD, Windows
+
+__Linux Kernel:__
+- 1-1023 - only Superuser can start application to listen on those ports
+- 32768-60999 - Ephemeral or Dynamic ports
+  > Linux uses different set of Dynamic ports than IANA standard
+
 ## netstat:
-  find open ports
+  find open ports  
   Find port on machine:  https://www.tecmint.com/find-open-ports-in-linux/
-   Params:
-  -l / --listen - displays ports that are in LISTEN state (lots of)
-  -vatn - opened ports and established TCP connections
-   - v - ?
+  Use Case Example:
+  ```
+  # show opened ports - On which someone listening
+  netstat -tulpn
+  ```
+  Use Case Example:
+  ```
+  # Check ports 9211, 8685 opened on local machine for #tcp\udp for IPv4 and IPv6:
+   netstat -lntu | egrep "9211|8685"
+  ```
+  __Params:__
+  - -l / --listen - displays ports that are in LISTEN state (lots of)  
+  ```
+  # opened ports and established TCP connections 
+  netstat -vatn
+  ```
+   - v - verbose
    - a - All - show all sockets
    - t - TCP connections
    - u - UDP connections
-   - n - short DNS hostname. will display dns names/ports w/o it
+   - n - numbers instead of DNS hostnames. Does not try to resolve DNS
    - p - show related PID and Program Name
   Example:
-   netstat -vat - display used porta and established connections
-   sudo netstat -tulw - will display all ports for local machine
-  Check ports 9211, 8685 opened on local machine for tcp\udp for IPv4 and IPv6:
-   netstat -lntu | egrep "9211|8685"
+  ```
+   #display used porta and established connections
+   netstat -vat 
+   #will display all ports for local machine
+   sudo netstat -tulw 
+  ```
+  
 
 ## ss:
   netstat could be outdated on some systems, use it instead

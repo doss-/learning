@@ -3960,16 +3960,27 @@ __Linux Netfilter Packets Flow:__
 
 
 ## iptables:
-  a generic table structure for the definition of rulsets
-  basically ruleset of Linux kernel firewall
-  it is a tool to get daemon(service) install other app:
-   Centos - iptables-services
-   Ubuntu\Debian - ufw(probably goes with iptables pkg)
-   RHEL - iptables
+  a generic table structure for the definition of rulsets  
+  basically ruleset of Linux kernel firewall  
+  it is a tool to get daemon(service) install other app:   
+   __Centos__ - iptables-services(firewalld)  
+   __Ubuntu__ \ __Debian__ - ufw(probably goes with iptables pkg)  
+   __RHEL__ - iptables  
    
   
-  -L - list all rules currently installed on the system
-  -A <section> - ADD
+  - -L - list all rules currently installed on the system
+  - -A CHAIN_NAME - Append Rule at the end of Chain  
+    Example:  
+    `iptables -A INPUT -s 127.0.0.1 -j ACCEPT` - accept my own traffic to myself (throught loopback interface)
+    `iptables -A INPUT -p icmp -j ACCEPT` - append rule to INPUT Chain to accept ICMP traffic   
+    `iptables -A INPUT -p tcp '!' --syn -j ACCEPT` - append rule to INPUT Chain to ACCEPT all TCP protocol traccif which is NOT `SYN` packets (used to establish TCP connection) - so outside can't establish connection with me  
+    `iptables -A INPUT -p udp --source-port 53 -s 192.168.1.1 -j ACCEPT` - accept UDP traffic FROM 53 port (DNS) from Name Server 192.168.1.1  
+    `iptables -A INPUT -p tcp --source-port 22 -j ACCEPT` - accept TCP traffic TO port 22
+  - -I CHAIN_NAME N - Insert rule at the top, or at N line in Chain
+  - -D CHAIN_NAME N - Delete rule in Chain at N line
+  - -P CHAIN_NAME POLICY - set given `POLICY` to Chain  
+    Example:  
+    `iptables -P INPUT DROP` - drop everything by default(not matched by rules)
 
 Service uses loads default config file when starts, applying some 
 default rules, /etc/sysconfig/iptables for CentOS 7

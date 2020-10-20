@@ -177,7 +177,6 @@ This is free software with ABSOLUTELY NO WARRANTY.
 For details type `warranty'. 
 obase=2; 192
 11000000
-
 ```
 
 Within the private network - behind the Router(hop) the IP addresses would be unique. In another private network those addresses also would be unique, but could be the same in two different private networks.  
@@ -185,6 +184,98 @@ However as long as they stay private no conflicts appears.
 
 Routers are the Gateways with real IP address purchased from the ISP (internet service provider). And this purchased address would be Public and unique.  
 Routers are the 'real' sources for other services in the internet, and those services would address their packets only to Router, and Router will then translate (using routing tables) and substitute info in the package to send it to original sender inside the private network.
+
+## Subnetting
+[VIDEO: Subnetting playlist](https://www.youtube.com/watch?v=BWZ-MHIhqjM&list=PLIFyRwBY_4bQUE4IB5c4VPRyDoLgOdExE&index=1)  
+Subnetting is dividing network into Subnetworks  
+
+__10.0.0.x__  
+```
+_____  
+0     |  Net ID: 10.0.0.0
+.     |  
+.     |
+. /24 |
+.     |  SubnetMask: 255.255.255.128
+.     |  IPs: 128(effective 126)
+_____ |  Broadcast IP: 10.0.0.127
+______
+.     | Net ID: 10.0.0.128
+.     | 
+. /27 | SubnetMask: 255.255.255.224
+.     | IPs: 32 (effective 30)
+. ____| Broadcast IP: 10.0.0.159
+.
+. /27
+______
+.     | Net ID: 10.0.0.173
+.     |
+.     |
+. /26 |
+.     | SubnetMask: 255.255.255.191
+.     | IPs: 64 (effective 62)
+255___| Broadcast IP: 10.0.0.255
+
+```  
+
+
+Seven attributes of subnetting:  
+- __Network ID__ - First IP Address of a Subnet
+  - Used to identify the Subnetwork 
+  - IP is reserved
+- __Broadcast IP__ - Last IP Address of a Subnet
+  - Used to Broadcast to all machines in this Subnetwork
+  - IP is reserved
+- __First Host IP__ - first usable IP from Subnet
+  - IP Address _AFTER_ Network ID 
+- __Last Host IP__ - last usable IP from Subnet
+  - IP Address _BEFORE_ Broadcast IP
+- __Next Network__ - Network ID of Next sub-network in current network (yeah..)
+  - IP Address _AFTER_ Broadcast IP
+- __Number of IPs__ -  number of IP Addresses in Subnetwork
+- __CIDR/Subnet__ - Range from which Number of IPs is calculated
+  - __10.0.0.128/27__ would be .128 -.159 range of IPs with First and Last Host IP .129 and .158. SUbnet mask would be __255.255.255.224__
+
+### CheatSheet:
+Calc to train on cheatsheet https://subnetipv4.com/
+
+Start at 1 and Double it from RIght to Left  
+substract 256 1st Row to get 2nd Row value  
+if Group Size > Subnet then 255-(GP/256) i.e. 255-(512/256)=253  
+Group Size: 16384  512   256 128  64  32  16   8   4   2   1  
+Subnet:     191.0  253.0 0   128 192 224 240 248 252 254 255  
+CIDR:       /19    /23   /24 /25 /26 /27 /28 /29 /30 /31 /32  
+
+Example:  
+```
+#1 
+153.107.236.51 /26
+/26 - 64 Size, .192 Subnet
+start at .0 of appropriate Octet and iterate by Size
+Until the host IP is _PASSED_
+.0
+.64
+Network ID: 153.107.236.0
+First Host: 153.107.236.1
+Last Host: 153.107.236.62
+Broadcast: 153.107.236.63
+Next Subnet: 153.107.236.64
+
+#2
+162.175.33.107 / 23
+/23 - 512 size (or 2 of 3rd octet numbers). 255.255.253.0
+0.0; 2.0; 4.0; 6.0; 8.0; .... 30.0; 32.0; 34;0
+Network ID: 162.175.32.0
+First Host: 162.175.32.1
+Last Host: 162.175.33.254
+Broadcast: 162.175.33.255
+Next Subnet: 162.175.34.0
+```
+
+## VLAN
+[VIDEO: Native VLAN definitive illustration](https://www.youtube.com/watch?v=Fmq1E1Qr2W4)  
+Virtual Local Area Network  
+LAN but could contain machines from different switches, or some machines from a switch  
 
 ## NAT types:
 

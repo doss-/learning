@@ -123,6 +123,7 @@ Consists of 4 Octets - Oct == 8, which number of `bits` in each octet
 192.168.1.10 == 11000000.10101000.00000001.00001010
 NOTE: use 'bc' and 'obase=2; 192' to convert decimal to binary
 ```
+
 ### Logical Address and Host Address
 `IP Address` is paired with `Subnet Mask`.
 - __Logical Address__ is the similar to all hosts in the __Subnet__
@@ -152,22 +153,25 @@ Network Address: 192.168.1.0  <-- CIDR Network Address always ends on 0 (i.e. 19
 
 there are 3 classes of Network Masks: https://www.youtube.com/watch?v=WX5GaH5ootc&list=PLdFppKg4UodjGN8nAhojxWyncoEdwTfqf&index=8
 
-- __Class A:__ Mask: `255.0.0.0`; CIDR Notation: `/8`; 10.0.0.0/8; Range up to - 10.255.255.255
+> Only Class A; B and C can be Divided into Sub Networks - Subnetted.
+
+- __Class A:__  Mask: `255.0.0.0`; CIDR Notation: `/8`; 10.0.0.0/8; Range up to - 10.255.255.255
   - First bit of First octet must be `0`. 
   - so the decimal range of first Octet is between `0 to 126`:
     - 0 is `00000000`, 126 is `01111110`; where as 127 is `01111111`... seemsdue to inability to use decimal `0` as first Octet?
-- __Class B:__ 172.16.0.0 - 172.31.255.255
+- __Loopback:__ Anything within 127.0.0.0 - 127.255.255.254 - i can ping it, it would reply.
+- __Class B:__ First Octet: 128-191;172.16.0.0 - 172.31.255.255
   - First bit of First octet must be `1`
   - so the decimal range of first octet is between `128 to 191`:
     - 128 is `10000000`, 191 is `10111111`
-- __Class C:__ 192.168.0.0 - 192.168.255.255 (or CIDR block [192.168.0.0/16](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks) )
+- __Class C:__ First Octet: 192-223; 192.168.0.0 - 192.168.255.255 (or CIDR block [192.168.0.0/16](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks) )
   - First bit of First octet myst be `11`
   - so the decimal range of first octet is between `192 to 223`
     - 192 is `11000000`, 223 is `11011111`, whereas 224 is `11100000`
 - __Class D:__  [Special] Multicast
   - First octet: 224-239
 - __Class E:__  [Special] Experimental
-  - Fist octet: 240-255
+  - Fist octet: 240-255 - up to 255.255.255.254; Since 255.255.255.255 is Broadcast on All networks
 ```
 #Calculate binary from decimal
 $ bc
@@ -188,6 +192,18 @@ Routers are the 'real' sources for other services in the internet, and those ser
 ## Subnetting
 [VIDEO: Subnetting playlist](https://www.youtube.com/watch?v=BWZ-MHIhqjM&list=PLIFyRwBY_4bQUE4IB5c4VPRyDoLgOdExE&index=1)  
 Subnetting is dividing network into Subnetworks  
+
+> Not any Numbers in 4 Octets could be a Subnet Mask!
+Only ones that are consecutive ones:
+Correct subnet masks:
+- 11111111.11111111.11111110.00000000 - /23 - 255.255.254.0
+- 11111111.11111111.11000000.00000000 - /18 - 255.255.192.0
+- 11111111.11110000.00000000.00000000 - /12 - 255.240.0.0
+
+Any mask that have some 1 after any 0 is incorrect:
+- 11111111.11111111.11111110.00000100 - Incorrect
+- 11111111.11111111.11000100.00000000 - Incorrect
+- 11111111.11110100.00000000.00000001 - Incorrect
 
 __10.0.0.x__  
 ```
@@ -219,7 +235,7 @@ ______
 ```  
 
 
-Seven attributes of subnetting:  
+### Seven attributes of subnetting:  
 - __Network ID__ - First IP Address of a Subnet
   - Used to identify the Subnetwork 
   - IP is reserved
@@ -236,46 +252,86 @@ Seven attributes of subnetting:
 - __CIDR/Subnet__ - Range from which Number of IPs is calculated
   - __10.0.0.128/27__ would be .128 -.159 range of IPs with First and Last Host IP .129 and .158. SUbnet mask would be __255.255.255.224__
 
+### Octet calculation:
+Octet is 8 bits, which are 0 or 1 - means Off and On
+```
+/25   /26   /27   /28 /29  /30 /31 /32 <--- CIDR
+
+
+128   64    32    16    8   4   2   1  <--- This is also Group Size
+i.e. 127.11.56.254 would be:    
+0     1     1     1     1   1   1   1  = 127 (64+32+16+8+4+2+1)  
+0     0     0     0     1   0   1   1  = 11 (8+2+1)  
+0     0     1     1     1   0   0   0  = 56 (32+16+8)
+1     1     1     1     1   1   1   0  = 254 (128+64+32+16+8+4+2)
+
+127.11.56.254 = 01111111.00001011.00111000.11111110
+
+```
+
 ### CheatSheet:
-Calc to train on cheatsheet https://subnetipv4.com/
+> CIDR - Classless Inter Domain Routing
+[Calc to train on cheatsheet](https://subnetipv4.com/)
 
-Start at 1 and Double it from RIght to Left  
-substract 256 1st Row to get 2nd Row value  
-if Group Size > Subnet then 255-(GP/256) i.e. 255-(512/256)=253  
-Group Size: 16384  512   256 128  64  32  16   8   4   2   1  
-Subnet:     191.0  253.0 0   128 192 224 240 248 252 254 255  
-CIDR:       /19    /23   /24 /25 /26 /27 /28 /29 /30 /31 /32  
 
-Example:  
-```
-#1 
-153.107.236.51 /26
-/26 - 64 Size, .192 Subnet
-start at .0 of appropriate Octet and iterate by Size
-Until the host IP is _PASSED_
-.0
-.64
-Network ID: 153.107.236.0
-First Host: 153.107.236.1
-Last Host: 153.107.236.62
-Broadcast: 153.107.236.63
-Next Subnet: 153.107.236.64
+How to get Network ID and other Attributes from IP + SUbnetMask\CIDR
 
-#2
-162.175.33.107 / 23
-/23 - 512 size (or 2 of 3rd octet numbers). 255.255.253.0
-0.0; 2.0; 4.0; 6.0; 8.0; .... 30.0; 32.0; 34;0
-Network ID: 162.175.32.0
-First Host: 162.175.32.1
-Last Host: 162.175.33.254
-Broadcast: 162.175.33.255
-Next Subnet: 162.175.34.0
-```
+Use __Octet Calculation__ from above.
+
+CIDR is bunch of CONSECUTIVE Turned On Bits - Ones (1)  
+IP is 32 bits long, so there are 32 CIDRs  
+Every valid Subnet mask possible could be converted into CIDR.  
+
+i.e. __176.46.117.174/28__
+
+1. Find in which Octet all 1s ending. I.e. in /28 Ones will end in 4th Octet.  
+WHich means that all Octets on the Left are from __Network ID__.  
+
+2. Write down the last Network ID Octet in Binary:  
+for /28 it would be 11111111.11111111.11111111.11110000 - `11110000 is Last octet`
+
+3. Write down the Decimal number from that Octet in Binary. All Bits from that Octet which are __turned on__ in Subnet Mask would be Network ID:  
+174     = `1 0 1 0 1 1 1 0`  
+Subnet  = `1 1 1 1 0 0 0 0`   - last 4 bits in the Octet are left for Host addresses; First 4 bits are for Subnet Mask  
+Net ID  = `1 0 1 0 0 0 0 0`  or 160 in Decimal since First 4 bits of Octet is for Subnet Mask  
+SInce first 4 Bits are enabled (1s) and first 4 bits of number 174 is 1010 in 10101110   
+
+__Network ID__ `176.46.117.160`
+
+4. Last 1 in Last Subnet Octet would be Group Size:  
+`11110000` last 1 is `10000` = `16` Decimal  
+__NUmber of IPs in SUbnetwork__ is `16`
+
+5. __Next Subnet__ is NetID + Group SIze  
+Nest SUbnet is `176.46.117.176`
+
+6. Broadcast IP is Next Subnet -1  
+BroadcastIP is `176.46.117.175`
+
+7. First Host IP is Network ID +1  
+`176.46.117.161`  
+
+8. Last Host IP is Broadcast IP -1  
+`176.46.117.174`
+
+9. SUbnet Mask is Decimal representation of CIDR:  
+/28 is 28 ones , so 8 ones + 8 ones + 8 ones + 4 ones 4 zeros  
+`11110000` is 240
+__Subnet Mask__ is `255.255.255.240`
+
+
 
 ## VLAN
 [VIDEO: Native VLAN definitive illustration](https://www.youtube.com/watch?v=Fmq1E1Qr2W4)  
+[VIDEO: What is a VLAN?](https://youtu.be/oo-hejIq3iQ)
+[VIDEO: MicroNugget: VLANs Explained CBT Nuggets](https://www.youtube.com/watch?v=fRuBHSf3Hac)
+
+[VIDEO: IPv4 Addressing Lesson 1](https://www.youtube.com/watch?v=ddM9AcreVqY) <--- THIS IS IT
+
+
 Virtual Local Area Network  
 LAN but could contain machines from different switches, or some machines from a switch  
+
 
 ## NAT types:
 

@@ -328,9 +328,24 @@ __Subnet Mask__ is `255.255.255.240`
 
 [VIDEO: IPv4 Addressing Lesson 1](https://www.youtube.com/watch?v=ddM9AcreVqY) <--- THIS IS IT
 
+[TEXT: VLAN and Native VLAN](https://www.practicalnetworking.net/stand-alone/vlans/)
+[TEXT: 4 functions of Switch](https://www.practicalnetworking.net/series/packet-traveling/host-to-host-through-a-switch/#switch-functions)
+- Learning - when Switch receivese Layer2 Frame it writes down Source MAC into Switcing Table next to Switch Port number(from which the Frame came)
+- Flooding - if Switch does not know where to send Frame it will send to all ports - Device received the Frame will answer, and Switch will `Learn` it
+- Forwarding - Switch uses what it `Learned` to forward Frames to its destination, probably will `Flood` if can't `Forward`
+  - Store And Forward - Frame is checked for erros, stored into Memory and sent - slowest but most reliable way. Due to modern high speed the Most Common method
+  - Cut-Through - dont check just send  - fastest and most unreliable
+  - Fragment Free - only 64 bytes of Frame is checked for erros, usually enough - mix of Speed and Reliability, good enough.
+- Filtering - do not send Frame back the sender's Switch Port. Usually when `Flooding` the Frame will go to all the Switch ports except the sender's one.
 
 Virtual Local Area Network  
 LAN but could contain machines from different switches, or some machines from a switch  
+
+Ports:
+- Access Port(Untagged Port) - port on Switch which belongs to ONLY 1 VLAN  
+  - does not scale well (10 vlans on 24 port switch would require 10 ports used to connect every VLAN to other switches )
+- Trunk Port - Switch Port that could belong to Many different VLANs
+  - scalable - 1 port to connect switches no matter how many VLANs are there
 
 
 ## NAT types:

@@ -206,6 +206,10 @@ Any mask that have some 1 after any 0 is incorrect:
 - 11111111.11110100.00000000.00000001 - Incorrect
 
 __10.0.0.x__  
+
+> !!!NETWORKS CAN NOT BE PARTED IN SUBNETS OF DIFFERENT SIZE!!!
+It seems.  
+
 ```
 _____  
 0     |  Net ID: 10.0.0.0
@@ -341,11 +345,35 @@ __Subnet Mask__ is `255.255.255.240`
 Virtual Local Area Network  
 LAN but could contain machines from different switches, or some machines from a switch  
 
-Ports:
+__Ports:__
 - Access Port(Untagged Port) - port on Switch which belongs to ONLY 1 VLAN  
+  - Traffic leaves from those ports `Untagged`
+  - Traffic comes on such ports (from Access devices i.e. PC) and become `Tagged`
   - does not scale well (10 vlans on 24 port switch would require 10 ports used to connect every VLAN to other switches )
 - Trunk Port - Switch Port that could belong to Many different VLANs
-  - scalable - 1 port to connect switches no matter how many VLANs are there
+  - scalable - 1 port to connect switches no matter how many VLANs are there 
+  - Traffic leaves from those ports With Tags (`Tagged`)
+  - Traffic comes on such ports (i.e. from other Switches) as already `Tagged`
+
+> see Frame captured in Wireshark of when:  
+- Frame arrives to Switch from Access Port from Source PC
+- Frame leaves the Switch through Trunk Port to Destination Trunk Switch
+- Frame arrives to Switch from Trunk Port of Destinatino Trunk Switch
+- Frame leaves the Switch fhrough Access Port to Source PC
+
+__Native VLAN:__  
+Default VLAN , usually ID 1. 
+The Native VLAN is the answer to how a switch processes traffic it receives on a Trunk port which does not contain a VLAN Tag.
+
+Without the tag, the switch will not know what VLAN the traffic belongs to, therefore the switch associates the untagged traffic with what is configured as the Native VLAN. Essentially, the Native VLAN is the VLAN that any received untagged traffic gets assigned to on a Trunk port.
+
+- Comes from Native Vlan into Trunk Port Switch - Native VLAN ID by default is 1, so all ports w/o VLANS goes to Native VLAN.
+- Leaves the Trunk Port  thowards other Switch - Sent w/o Tag, Destination Switch receives, looks into its Native VLAN default ID and sends traffick there. Should have Same Native VLAN ID  (i.t. also default 1) - IF VLANs ARE DIFFERENT TRAFFIC WILL BE SENT TO WRONG VLAN with Destination absent at all.
+
+`Access\Untagged Ports` for end-host devices connections (pc, printer etc).  
+`Trunk\Tagged Ports` for inter-switch connection.
+
+Most __end-host devices do not understand__ the concepts of VLANs. In fact, if they received __frames with a VLAN tag inserted__ in the middle of the Ethernet header, they are likely __to drop them__ under the assumption that they were malformed frames.
 
 
 ## NAT types:
@@ -640,8 +668,28 @@ It produces `Packets`
 `PDU` on this Layer is called a `Frame`  
 `Frame` has __Header__ and __Trailer__
 
-    Uses `Ethernet` standard.  
+    Uses `Ethernet` protocol.  
     __Source__ and __Destination__ addresses are burned into the NIC.
+
+`Ethernet Type II Frame` structure:  
+Payload size could be up to 1500 bytes, whole `Frame` is from 64 up to 1518 bytes:
+- 14 bytes Header(service info of `Data Link` layer):
+  - Destination MAC address - 6 bytes (FF FF FF FF FF FF)
+  - Source MAC address - 6 bytes (FF FF FF FF FF FF)
+  - 802.1q tag - 4 bytes (32 bits)
+    - TPID Tag Protocol Identifier - 16 bits
+    - TCI Tag Control Information - 16 bits
+      - PCP Priority Control Point - 3 bits - 802.1p - traffic priority mark
+      - DEI Drop Eligible Identificator- 1 bit - marker to drop frames if load too high
+      - VDI `VLAN ID` - 12 bits 
+        - so max VLAN id is 4094 since first(hex: 0x000) and last(hex: 0xFFF) are reserved
+          - 0x000 - is a _Priority_ tag
+          - 0x001 - is Default VLAN ID (since Native VLAN by default)
+          - 0xFFF - reserved for implementation use (kind of wildcard match..)
+  - EtherType - 2 bytes (for IPv4: 08 00)
+- Payload (46-1500 bytes)  
+  This is incapsulated package of `Network`(Internetwork in TCP\IP) layer (ARP, IP, etc.)
+- CRC Checksum - 4 bytes (FF FF FF FF)
 
 1.__Physical__  
 This layer converts virtual stuff from all other layers above into a `real` stuff which person could Hear, Feel, Taste, Touch.  
@@ -655,3 +703,313 @@ WiFi operates on 2.4 GHz frequency and could be heard (except human ear does not
 > __TCP/IP calls level 2 and 1 as `Physical` or `Network Access` layer__  
 It produces `Frames` on `Data Link` layer 
 It produces `Bitstream` on `Physical` layer of OCI model
+
+# Cisco
+[TEXT: Сети для самых маленьких](https://habr.com/ru/post/136056/)
+
+
+## Cisco Packet Tracker:
+To download https://www.netacad.com/portal/node/488 use pass_cisco.com for auth
+
+
+## Command Prompt
+- `Router>` is regular user prompt  
+- `Router#` is privileged user prompt  
+  - use `enable` to get into this regime
+- `Router(config)#` is global configurationsl regime
+
+## Hot Keys:
+Same to `Terminal` navigation (ctrl+P - previous command, ctrl+A to line start, ctrl+K delete from cursor to end line)  
+- CTRL+C - exit current regime
+- CTRL+Z - apply current command end exite regime
+
+
+# Privilege Level
+`16` levels in total numbering 0-15  
+- `0` - basic level with commands which will work in any Mode
+  - `disable`, `enable`, `exit`, `help` and `logout`
+- `1` - Unprivileged user (`Router>` prompt)
+- `2-14` - custom and unconfigured levels
+- `15` - `root`-level permission level
+
+> The commands from particular custom `2-14` Priv Levels are added to the list of unprivileged (`1`) user commands
+
+
+## Configure Privilege levels
+
+ Assign default privilege level for line Virtual Terminal(`vty`) 0-4 Priv lvl of 15(`root`)
+```
+Router>enable
+Router#configure terminal 
+Router(config)#line vty 0 4
+Router(config-line)privilege level 15
+......
+Router#show running-config  | section level
+ privilege level 15
+```
+
+Create user with privilege level and create that privilege level:  
+```
+# Create user with 'pooruser' name , priv lvl2 and encrypted pass 'poorpass'
+Router(config)#username pooruser privilege 2 secret poorpass
+
+# Allow lvl2 priv execute 'show running-config' command
+#Router(config)#priv
+#Router(config)#privilege exe
+Router(config)#privilege exec level 2 show running-config
+
+# Enable encrypted password for Priv lvl2 'l2poorpass'
+#Router(config)#enabl
+#Router(config)#enable sec
+#Router(config)#enable secret lev
+Router(config)#enable secret level 2 l2poorpass
+```
+
+# Cisco Commands usecases:
+
+## Change Hostname:
+```
+Switch(config)#hostname msk-arbat-asw3
+```
+
+## Add description to Port:
+```
+msk-arbat-asw3(config)#interface FastEthernet 0/1
+msk-arbat-asw3(config-if)#descriptio
+msk-arbat-asw3(config-if)#description PTO
+```
+
+## Set port as Access and add it to VLAN:
+```
+msk-arbat-asw3(config-if)#switchport mode access 
+msk-arbat-asw3(config-if)#switchport access vlan 101
+```
+
+## Create VLAN with Name:
+```
+msk-arbat-asw3(config)#vlan 101
+msk-arbat-asw3(config-vlan)#name PTO
+```
+
+## Set port as Trunk and pass VLANs through:
+> `switchport mode trunk` will allow ALL vlans through the Trunk port  
+`switchport trunk allowed vlan 101` will allow ONLY vlan 101 and will drop others!
+```
+msk-arbat-asw3(config)#interface GigabitEthernet 0/1
+msk-arbat-asw3(config-if)#description msk-arbat-dsw1
+msk-arbat-asw3(config-if)#switchport trunk allowed vlan 2,101-104
+msk-arbat-asw3(config-if)#switchport mode trunk
+# Port will got rebooted (down>up)
+```
+
+## Add VLANs to Trunk port:
+```
+msk-arbat-dsw1(config-if)#switchport trunk allowed vlan add 105
+```
+
+## Create Virtual Interface with VLAN and IP address:
+```
+msk-arbat-asw3(config)#interface vlan 2
+msk-arbat-asw3(config-if)#description Management
+msk-arbat-asw3(config-if)#ip address 172.16.1.5 255.255.255.0
+```
+
+# Cisco Commands:
+All commands could be shortened until Short version is unique.  
+Example:  
+`sh run` - same to `show running-config`  
+`s run` - will error out due t ambiguous `s` due to `ssh` and `show`.
+
+
+## Filter output aka grep:
+add Pipe `|` after the command and add one of the filters:
+- begin - show all lines after the matched line
+- section - show only Sections with matched lines
+- include - show only lines with matched string
+- exclude - show all lines except ones with matched string  
+Example:  
+```
+Router#show r | include ip
+ip cef
+no ipv6 cef
+ no ip address
+ no ip address
+ no ip address
+ip classless
+ip flow-export version 9
+```
+
+
+## ?:
+displays all commands available to current user
+
+## >enable:
+enables Privileged regime  
+
+## (config)# enable:
+sets password for `enable` command if used from remote session - `vty`  
+- `secret` - store encrypted password (unline `password` which is plain text)
+- `cisco` is a password
+Example:  
+```
+Router(config)#enable secret cisco
+```
+
+## #show:
+shows something, use `?` for options  
+Example:  
+`show ?` - will return list of available commands
+
+## #show running-config:
+shows whole Router configuration
+
+## #configure terminal:
+Available only in `Privileged` mode.  
+Some commands doesn't work, like `show running-config` or `ping`.  
+`do` adds the ability to use those.  
+Example:  
+```
+Router(config)#do show r | section ip
+ip cef
+no ipv6 cef
+ no ip address
+ no ip address
+ no ip address
+ip classless
+ip flow-export version 9
+```
+`no` inverts the command  
+Example:  
+```
+Router(config-if)#no shutdown 
+
+Router(config-if)#
+%LINK-5-CHANGED: Interface FastEthernet0/0, changed state to up
+```
+
+
+## interface:
+configuration of given interface  
+Example:  
+Configure FastEthernet 0/0 Port:  
+```
+Router(config)#interface fa0/0
+Router(config-if)#
+```
+
+## shutdown:
+shuts interface down  
+Example:
+Enable interface:  
+```
+```
+
+## ip address:
+set IP address of the port geing configured (see `interface` above)
+```
+ip address 192.168.1.1 255.255.255.0
+```
+
+## line:
+set ups line connections? kins..
+
+Sets up(Enable) Virtual Terminal for `telnet` and `ssh` connections:  
+- using `?` to get more help for command groups and command parameters
+- `0-4` - setup first 5 Virtual terminals
+- `password` sets plain password
+- `login` - does something important..
+```
+Router(config)#line ?
+  <2-499>  First Line number
+  aux      Auxiliary line
+  console  Primary terminal line
+  tty      Terminal controller
+  vty      Virtual terminal
+  x/y/z    Slot/Subslot/Port for Modems
+Router(config)#line v
+Router(config)#line vty ?
+  <0-15>  First Line number
+Router(config)#line vty 0 4
+Router(config-line)#
+Router(config-line)#password cisco
+Router(config-line)#login
+```
+
+Configure SSH connection with a Encrypted key:
+```
+# Change hostname on DIFFERENT FROM `Router` MUST HAVE FOR SECURITY:
+Router(config)#hostname R0
+
+# Something important
+R0(config)#ip domain-name cisco-dmn
+
+# Generate encryption key of RSA hashing, with bit-length of at least 768 to get SSHv2
+R0(config)# crypto key generate rsa
+The name for the keys will be: R0.cisco-dmn
+Choose the size of the key modulus in the range of 360 to 2048 for your
+  General Purpose Keys. Choosing a key modulus greater than 512 may take
+  a few minutes.
+How many bits in the modulus [512]: 768
+
+# Enable SSH for `vty` 0 4 line of connection
+R0(config)#line vty 0 4
+*Mar 1 0:14:39.551: %SSH-5-ENABLED: SSH 1.99 has been enabled
+#R0(config-line)#tran
+#R0(config-line)#transport inp
+
+# Allow only SSH remote connections 
+R0(config-line)#transport input ssh
+
+# SAVE CHANGES!
+# Exit into enabled priveleged mode
+R0(config-line)#exit
+R0(config)#exit
+
+# Write into memory
+R0#write memory 
+Building configuration...
+[OK]
+
+```
+
+
+## password:
+sets password
+
+## secret:
+sets secret, which is encrypted password:  
+```
+Router#show running-config | section enable
+enable secret 5 $1$mERr$hx5rVt7rPNoS4wqbXKX7m0
+```
+
+## login:
+TBD
+
+## username:
+Creates new Username;  With AAA model enabled, but no RADIUS server Auth, it will use local database.
+> NOTE: Local database is preffered over `vty` setup with `password` and `login` command. REQUIRE USERS CREATED   
+
+Example:  
+Enable AAA Model and Create user with plain password
+```
+Router#configure terminal 
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#aaa new-model 
+Router(config)#username admin password 1234
+```
+Use secret encrypted password:  
+This is unsecure, better to use `secret`:
+```
+Router#show run | section username
+username admin password 0 1234
+...
+Router(config)#no username admin password 1234
+Router(config)#username admin secret 1234
+...
+Router#show running-config | section username
+username admin secret 5 $1$mERr$4dpRATIgxQacPVK0CfNV4/
+```
+
+## hostname:
+change Router's hostname - default is `Router`

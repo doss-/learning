@@ -724,6 +724,9 @@ Same to `Terminal` navigation (ctrl+P - previous command, ctrl+A to line start, 
 - CTRL+Z - apply current command end exite regime
 
 
+----------
+
+
 # Privilege Level
 `16` levels in total numbering 0-15  
 - `0` - basic level with commands which will work in any Mode
@@ -775,8 +778,14 @@ Switch(config)#hostname msk-arbat-asw3
 ## Add description to Port:
 ```
 msk-arbat-asw3(config)#interface FastEthernet 0/1
-msk-arbat-asw3(config-if)#descriptio
 msk-arbat-asw3(config-if)#description PTO
+```
+OR
+```
+msk-arbat-asw3(config)#interface range fastEthernet 0/6 — 10
+msk-arbat-asw3(config-if-range)#description FEO
+msk-arbat-asw3(config-if-range)#switchport mode access 
+msk-arbat-asw3(config-if-range)#switchport access vlan 102
 ```
 
 ## Set port as Access and add it to VLAN:
@@ -784,6 +793,7 @@ msk-arbat-asw3(config-if)#description PTO
 msk-arbat-asw3(config-if)#switchport mode access 
 msk-arbat-asw3(config-if)#switchport access vlan 101
 ```
+
 
 ## Create VLAN with Name:
 ```
@@ -814,6 +824,15 @@ msk-arbat-asw3(config-if)#description Management
 msk-arbat-asw3(config-if)#ip address 172.16.1.5 255.255.255.0
 ```
 
+## Save:
+```
+Switch#copy running-config startup-config 
+```
+
+
+----------
+
+
 # Cisco Commands:
 All commands could be shortened until Short version is unique.  
 Example:  
@@ -839,6 +858,20 @@ ip classless
 ip flow-export version 9
 ```
 
+## Enable interface
+> ALWAYS ENABLE PHYSICAL PORT
+
+``
+msk-arbat-gw1(config-if)#do show running-config | section 0/0
+interface FastEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ shutdown  <--------- THIS MEANS TURNED OFF
+
+msk-arbat-gw1(config-if)#no shutdown 
+``
+
 
 ## ?:
 displays all commands available to current user
@@ -862,6 +895,15 @@ Example:
 
 ## #show running-config:
 shows whole Router configuration
+```
+show running config | secion FastEthernet 0/0
+```
+
+## #show ip route:
+shows routing table on the Router
+```
+show ip route
+```
 
 ## #configure terminal:
 Available only in `Privileged` mode.  
@@ -897,6 +939,30 @@ Router(config)#interface fa0/0
 Router(config-if)#
 ```
 
+## subinterface:
+ROUTER is VLAN Terminator - Frames going through VLAN will die here:
+- Frame comes to Router to get onto another Subnet
+- Frame headers are thrown away, IP Packet is taken
+- Dest IP is analized and Route decision is made from Routing table
+- New Frame is created with that IP Packet and sent into new Network
+- If SubInterface exists all particular VLAN traffic will go to and from it.
+- this way Tagged packages are moved through the routers and keep their VLAN
+Routers don't use Trunk ports, only Access ports.  
+TO GET TRAFFIC TAGGED use Sub-Interfaces:  
+```
+# create Subinterface `2` on physical interface FastEthernet 0/0
+msk-arbat-gw1(config)#interface FastEthernet 0/0.2
+msk-arbat-gw1(config-if)#description Management
+# Encapsulate Layer 3(IP) into Level 2(Frames) using 802.1q headers
+# mark VLAN ID as 2
+msk-arbat-gw1(config-if)#encapsulation dot1Q 2 
+# Set IP Address and mask for this SUB-Interface - it is Gateway for VLAN 2 now
+msk-arbat-gw1(config-if)#ip address 172.16.1.1 255.255.255.0
+```
+
+For Every VLAN separate SUB Interface need to be created.  
+For consistency SUB Interface number is equal to VLAN ID.  
+
 ## shutdown:
 shuts interface down  
 Example:
@@ -909,6 +975,25 @@ set IP address of the port geing configured (see `interface` above)
 ```
 ip address 192.168.1.1 255.255.255.0
 ```
+
+
+## #(config)ip route:
+
+Set Route into 172.16.16.0 Network with 255.255.255.0 Subnet Mask, through Hop(Router) with address 172.16.2.2 - which also should be routed(or Directly Connected - which is shown in `show ip route` command)
+```
+ip route 172.16.16.0 255.255.255.0 172.16.2.2
+```
+
+### Gateway of last resort 
+### Default Gateway
+```
+ip route 0.0.0.0 0.0.0.0 172.16.2.1
+```
+WHere:
+- first 0.0.0.0 is Network ID
+- second 0.0.0.0 is Subnet Mask
+- 172.16.2.1 is where to route the traffic - to which Hop(Router)
+
 
 ## line:
 set ups line connections? kins..

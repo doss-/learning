@@ -900,9 +900,53 @@ show running config | secion FastEthernet 0/0
 ```
 
 ## #show ip route:
+[VIDEO: IP Routing Explained](https://www.youtube.com/watch?v=8qtKpZGoNdI)  
 shows routing table on the Router
 ```
 show ip route
+```
+
+## show ip interface brief:
+shows all the interfaces, their statuses and IP addresses assigned
+
+## show ip arp:
+shows router ARP table
+
+## ping:
+Either regular ping, or Interactive ping `sender IP could be changed` To another IP on the router's Interfaces (other RJ-45 connected, or virtual Interfaces - either on that RF45s or VLANs?)
+```
+# Router has address '172.16.2.6` but uses 17.1 which is gateway on its other port. ALSO COULD BE DIFFERENT ADDRESS FROM BEHIND THE ROUTER
+spb-ozerki-gw1#ping
+Protocol [ip]:
+Target IP address: 172.16.3.1
+Repeat count [5]:
+Datagram size [100]:
+Timeout in seconds [2]:
+Extended commands [n]: y                   <---- Extended commands
+Source address or interface: 172.16.17.1   <---- NEW SOURCE ADDRESS
+Type of service [0]:
+Set DF bit in IP header? [no]:
+Validate reply data? [no]:
+Data pattern [0xABCD]:
+Loose, Strict, Record, Timestamp, Verbose[none]:
+Sweep range of sizes [n]:
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 172.16.3.1, timeout is 2 seconds:
+Packet sent with a source address of 172.16.17.1
+```
+
+
+## traceroute:
+regular traceroute with less params  
+see params with `?`  
+
+> TO WORK WELL ROUTING MUST BE SET ON ALL ROUTERS  
+ROUTE MUST BE SET IN BOTH WAYS:  
+   so Echo requests will know where to go  
+   and Echo Replies will know where to go BACK  
+
+```
+traceroute 172.16.3.3
 ```
 
 ## #configure terminal:
@@ -983,6 +1027,12 @@ Set Route into 172.16.16.0 Network with 255.255.255.0 Subnet Mask, through Hop(R
 ```
 ip route 172.16.16.0 255.255.255.0 172.16.2.2
 ```
+REMOVE Route:
+```
+enable
+configure terminal
+no ip route 172.16.16.0 255.255.255.0 172.16.2.2
+```
 
 ### Gateway of last resort 
 ### Default Gateway
@@ -996,7 +1046,7 @@ WHere:
 
 
 ## line:
-set ups line connections? kins..
+sets up line connections? kind of..
 
 Sets up(Enable) Virtual Terminal for `telnet` and `ssh` connections:  
 - using `?` to get more help for command groups and command parameters

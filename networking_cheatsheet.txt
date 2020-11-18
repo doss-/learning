@@ -595,7 +595,9 @@ Open Systems Interconnection model
 Videos:  
 [Video: Lection 'OSI and TCP IP Models - Best Explanation'](https://www.youtube.com/watch?v=3b_TAYtzuho)  
 [Video: F5 Networks 'OSI and TCP/IP Model Overview'](https://www.youtube.com/watch?v=i9RL5jD9cTI)  
-[Text: Cisco 'Troubleshooting TCP/IP'](https://www.cisco.com/en/US/docs/internetworking/troubleshooting/guide/tr1907.html)
+[Text: Cisco 'Troubleshooting TCP/IP'](https://www.cisco.com/en/US/docs/internetworking/troubleshooting/guide/tr1907.html)  
+[VIDE: Encapsulation](https://www.youtube.com/watch?v=g_-vbdv-wT4)
+
 
 7 layers of moving data from User viewabale state to Network transportable state and send it out - Encapsulating  
 getting data from network and presenting to the User in viewable state is called Decapsulating  
@@ -901,9 +903,24 @@ show running config | secion FastEthernet 0/0
 
 ## #show ip route:
 [VIDEO: IP Routing Explained](https://www.youtube.com/watch?v=8qtKpZGoNdI)  
+[VIDEO: Routing Process](https://www.youtube.com/watch?v=C5YfkR8LGm0)
 shows routing table on the Router
 ```
 show ip route
+```
+
+Narrow output for single network:
+```
+show ip route 172.16.17.0
+```
+Or single IP Address - next Hop is shown
+```
+msk-arbat-gw1#show ip route 172.16.17.20
+Routing entry for 172.16.16.0/21
+Known via "static", distance 1, metric 0
+  Routing Descriptor Blocks:
+  * 172.16.2.2
+      Route metric is 0, traffic share count is 1
 ```
 
 ## show ip interface brief:
@@ -913,6 +930,10 @@ shows all the interfaces, their statuses and IP addresses assigned
 shows router ARP table
 
 ## ping:
+
+>Ping will NOT WORK between Networks if ANY from the two machines DOES NOT HAVE `Default Gateway` set.  
+Presumably `echo request` or `echo reply` will not be able to sent packet OUT of own network.
+
 Either regular ping, or Interactive ping `sender IP could be changed` To another IP on the router's Interfaces (other RJ-45 connected, or virtual Interfaces - either on that RF45s or VLANs?)
 ```
 # Router has address '172.16.2.6` but uses 17.1 which is gateway on its other port. ALSO COULD BE DIFFERENT ADDRESS FROM BEHIND THE ROUTER
@@ -939,6 +960,8 @@ Packet sent with a source address of 172.16.17.1
 ## traceroute:
 regular traceroute with less params  
 see params with `?`  
+
+Escape sequence: `CTRL+SHIFT+6` - Interrupts traceroute(like if ctrl+c is not enough)
 
 > TO WORK WELL ROUTING MUST BE SET ON ALL ROUTERS  
 ROUTE MUST BE SET IN BOTH WAYS:  

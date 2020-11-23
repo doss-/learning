@@ -796,8 +796,20 @@ msk-arbat-asw3(config-if)#switchport mode access
 msk-arbat-asw3(config-if)#switchport access vlan 101
 ```
 
+## Create Virtual Interface with VLAN and IP address:
+to create use `interface vlan N` where N is VLAN (w/o `interface` VLAN will be created instead of the VInterface)  
+Used for:
+- The interface will be member of given VLAN
+- The interface could be Gateway (if L3-Switch is used only?)
+```
+msk-arbat-asw3(config)#interface vlan 2
+msk-arbat-asw3(config-if)#description Management
+msk-arbat-asw3(config-if)#ip address 172.16.1.5 255.255.255.0
+```
+
 
 ## Create VLAN with Name:
+to create use `vlan N` where N is VLAN (using `interface` Virtual Interface will be created, see above)
 ```
 msk-arbat-asw3(config)#vlan 101
 msk-arbat-asw3(config-vlan)#name PTO
@@ -817,13 +829,6 @@ msk-arbat-asw3(config-if)#switchport mode trunk
 ## Add VLANs to Trunk port:
 ```
 msk-arbat-dsw1(config-if)#switchport trunk allowed vlan add 105
-```
-
-## Create Virtual Interface with VLAN and IP address:
-```
-msk-arbat-asw3(config)#interface vlan 2
-msk-arbat-asw3(config-if)#description Management
-msk-arbat-asw3(config-if)#ip address 172.16.1.5 255.255.255.0
 ```
 
 ## Save:
@@ -1043,6 +1048,10 @@ set IP address of the port geing configured (see `interface` above)
 ip address 192.168.1.1 255.255.255.0
 ```
 
+
+## ip routing:
+enable Routing (i.e. on L3-Switch)
+> on L3-Switches if Point-to-POint network is required (255.255.255.252 or cidr /4) the port connected to that network need to be in Routing mode - `no switchport`, and then be appointed with IP and /4 cidr.
 
 ## #(config)ip route:
 

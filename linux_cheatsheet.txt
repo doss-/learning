@@ -784,7 +784,7 @@ sudo fallocate -l 1G /swapfile
     WHich is usefull for automation
     Same goes with 'ps'
 
-## Troubleshooting:
+# Troubleshooting:
  Debian:
   /var/log/syslog
   /var/log/auth.log
@@ -855,9 +855,35 @@ sudo fallocate -l 1G /swapfile
    00:0c.0 Network controller: Intel Corporation Device 31dc (rev 03)
   the part with 'Intel Corporation Device 31dc' is the device that need to 
   has correct drivers. 
-  
 
-## NetworkManager:
+## Nvidia drivers troubleshooting:
+[Drivers uninstall](https://linuxconfig.org/how-to-uninstall-the-nvidia-drivers-on-ubuntu-20-04-focal-fossa-linux)  
+```
+$ sudo dpkg -P $(dpkg -l | grep nvidia-driver | awk '{print $2}')
+$ sudo apt autoremove
+```
+[Drivers Install](https://www.cyberciti.biz/faq/ubuntu-linux-install-nvidia-driver-latest-proprietary-driver/)  
+```
+sudo apt install nvidia-driver-390
+```
+
+Install\Reinstall problems
+if any file gets unexpected lock during Drivers install check who locks it:
+```
+lsof | grep /var/cache/debconf/config.dat
+OR
+fuser /var/cache/debconf/config.dat
+```
+Check for command the locking process tries to execute, I.e. it tries to confirm addition of another Key into UEFI keys database (MOK), that need to be killed and re-executed; then reboot: [Secure boot Fix](https://superuser.com/questions/1493050/update-secureboot-policy-enroll-key-running-on-every-new-startup-eating-reso)
+
+### Secure boot work
+[Secure Boot on Ubuntu](https://wiki.ubuntu.com/UEFI/SecureBoot#How_UEFI_Secure_Boot_works_on_Ubuntu)
+
+### Enroll new keys required for signed Drivers to work 
+[Enrolling the Keys with the UEFI MOK](https://documentation.commvault.com/commvault/v11/article?p=118661.htm)
+
+
+# NetworkManager:
   network management daemon  
 It uses different plugins for different distros and stuff, to be more system-agnostic
 ### Configuration:
@@ -932,6 +958,7 @@ ifconfig <interface> [IP addres] mask [Net Mask]
     Example:
    lshw -C network - will display all info about network adapters and their
                     state, together with drivers and info related
+   lshw -C display - graphics drivers
 
 ## hdparm:
   lists HDD info
@@ -3091,6 +3118,15 @@ looks like glances can also setup a "web interface" to view.. as well as monitor
   #execute 'hostnamectl' and new entry will be added 
   > root     11003     1  0 02:51 ?        00:00:00 /lib/systemd/systemd-hostnamed
 
+## pstree:
+lists tree of all the processes, squashes same sub-processes
+Example:
+```
+pstree -l 2499
+```
+ - -p - display process PIDs
+
+
 ## ps:
   by default returns processes run by my current user and current terminal session  
   Use Case 1 Example:
@@ -3365,7 +3401,18 @@ configure units(services)
   dpackage - debian packages manager, fully console, installs only package
   -i - install a package
      only package , no dependencies - generate error with dependencies required
-  -l - list of all installed packages(use grep for specific packages)
+  -l - list of all installed packages(use grep for specific packages)  
+    First 3 lines of output descripes first 3 +++ on every line , like `ii` or `rc`
+    [Interpret Status](https://linuxprograms.wordpress.com/2010/05/11/status-dpkg-list/):  
+    - ii - Desired state: Installed; Status state: Installed
+      - which means successfully installed
+    - rc - Desired state: Remove; Status state: Cfg-files
+      - which means package marked for deletion and only config files are left after uninstall
+    Remove packages marked for removal:
+    ```
+    dpkg --list |grep "^rc" | cut -d " " -f 3 | xargs sudo dpkg --purge
+    ```
+
   -L <package> - list of all the files that were created during package 
 		 installation
   -S <filename> - similar to 'yum provides' but only for Installed packages
@@ -4682,8 +4729,20 @@ __Linux Kernel:__
 ## netcat:
   check, send network packets, port monitor etc
 
+## fuser:
+ identify processes using files or sockets
+similar to lsof | grep /loced/file/path
+
+Example:  
+```
+sudo fuser -v /var/cache/debconf/config.dat
+```
+
+
+
 ## lsof:
   List Opened Files, lots of them.
+  Use `sudo` or become 
   Columns:
   - __COMMAND__ - command name of for the process that holds the file
   - __FD__ - Purpose of the file or File Descriptor  
@@ -4692,7 +4751,12 @@ __Linux Kernel:__
   - __DEVICE__ - Major and minor number of the device that holds the file
   - __NODE__ - file's inode number
   also checks ports, could display processes that are using
-   port, and files used by the process
+   port, and files used by the process  
+
+  Example:  
+  ```
+  sudo lsof | grep /var/cache/debconf/config.dat
+  ```
 
    Params:
   - /path/to/file - lists everyone who uses file or DIrectory

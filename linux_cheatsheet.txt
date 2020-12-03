@@ -155,6 +155,17 @@ cat /proc/version - file with linux version info
   -/<none>   - changes to current homedir
   ~username - changes to username homedir
 
+## pushd:
+## popd:
+changes to dir and saves it in stack
+changes(backwards) to last dir from stack, removes dir from stack
+Example:
+```
+#silent move w/o displaying full path in STDOUT
+pushd some/directory/path > /dev/null
+pushd > /dev/null
+```
+
 ## tree:
   lists directories as trees, very useful
    https://www.ostechnix.com/view-directory-tree-structure-linux/
@@ -202,14 +213,27 @@ cat /proc/version - file with linux version info
 
 ## time:
   seems like calculates time of how long command takes to execute
-  like StopWatch
+  > Many shells have built-in `time`; 
+  use `/usr/bin/time` to get better time command
+
    Syntax:
   time <command\script_name>
    Example:
+  ```
   time some_script.sh
   > real 0m14.169s	#i spend 14 seconds (script uses 'read')
   > user 0m0.005s	#this two seems to calculate actual time of
   > sys	 0m0.005s	#+ calculations required, except manual intput
+  ```
+  Example:
+  ```
+dos:temp$ /usr/bin/time ls
+>0.00user 0.00system 0:00.00elapsed 100%CPU (0avgtext+0avgdata 2528maxresident)k 
+0inputs+0outputs (0major+109minor)pagefaults 0swaps
+  ```
+  __user__  - seconds spent to run binary(or script) owns code. If short could be 0.00  
+  __system__ - seconds spent by Kernel to do the process work (i.e. read the filesystem)  
+  __elapsed__ - total number of time for process from start to finish including waiting for resources
 
 ## date:
   returns current date - weekday, day, month, year, time, time-zone
@@ -285,26 +309,50 @@ cat /proc/version - file with linux version info
   egrep '^(AAA|BBB|CCC)'   - will match either AAA BBB or CCC on the beginning
 	of the line
 
+## stderr stdin stdout
+
+redirection   
+stdout:  
+```
+echo "text to file" > file.txt
+```
+
+stderr:
+```
+find . -size 33c  2>/dev/null
+```
+
+stderr & stdout:
+```
+find . -size 33c  2&>/dev/null
+```
+
+stdin:
+```
+cat < file.txt
+```
 
 ## stat: 
   returns status info about given file, if it dir, or file, when it was changed,  its size and stuff
    man 2 stat - for details
 
 ## find:
-  find <path> <params> <name mask>
-   !!!	ORDER IS IMPORTANT
+  `find <path> <params> <name mask>  `
+   __!!!	ORDER IS IMPORTANT__
    Example:
   find / -type f -name "one.tx*" <-ls>
 
    Operations:
-  -ls - will output results as in 'ls -l'
-  -delete - delete found file. Better check first with -print, then -delete
-  -print - prints full path to stdout, Default operation
-  -print0 - changes delimiter to null character (0 code in ASCII), useful for 
+  - -ls - will output results as in 'ls -l'
+  - -delete - delete found file. Better check first with -print, then -delete
+  - -print - prints full path to stdout, Default operation
+  - -print0 - changes delimiter to null character (0 code in ASCII), useful for 
 	filenames with spaces, when need to use another delimiter. 
-	Together with 'xargs' with --null, will go fine:
-	 find -name '*.jpg' -print0 | xargs --null ls -l
-    Example:
+
+	Together with 'xargs' with --null, will go fine:  
+	 `find -name '*.jpg' -print0 | xargs --null ls -l`  
+    _Example_:
+   ``` 
     Effective:
    find /u01/app/oracle/product/db11g/rdbms/audit/ -type f -print0 | xargs -0 rm
     Ineffective:
@@ -315,38 +363,43 @@ cat /proc/version - file with linux version info
     would run a couple of time with many files on the rm command at onces.
      The find -print0 and xargs -0 option uses the nul character instead of 
     the default newline character to terminate items. This means it will work with file names with spaces or other white space.
-  -quit - quits after first match
-  -regex - will search with regex, whole path need to be matched in order
+  ```
+  - -quit - quits after first match
+  - -regex - will search with regex, whole path need to be matched in order
 	to find it:
-	 Example:
+	 _Example_:  
+   ```
 	find . -regex '.*[^-_./0-9a-zA-Z].*'
 	 will match whole path(.* at both sides), where files have spaces
 	 (spaces are not in [^....] group - files in the group are acceptable
 	 in a filename)
-  -ok - ask before execution, same as exec, see below
-  -exec command '{}' \; - executes a command for _EVERY_ match, so 100 matches
+   ```
+  - -ok - ask before execution, same as exec, see below
+  - -exec command '{}' \; - executes a command for _EVERY_ match, so 100 matches
 	is 100 times executed commands, substitutes found value in {}
-	with ; as a command end delimiter.
-	{} and ; are special for Bash, so need to be escaped by '' or \ 
-	 Use + instead of ; in the end to concatenate results and execute 
-	command just once
-	 Also instead of + 'xargs' command could be used
+	with ; as a command end delimiter.  
+	`{}` and `;` are special for Bash, so need to be escaped by `''` or `\` 
+	 Use `+` instead of `;` in the end to concatenate results and execute 
+	command just once  
+	 Also instead of `+` `'xargs'` command could be used  
  	 This could be helpful as command line has limit on arguments (xargs
-	restarts when arguments limit is reached until everything done)
-    Example:
-   find . -name "test*" -exec stat '{}' \;
+	restarts when arguments limit is reached until everything done)  
+    __Example__:  
+   `find . -name "test*" -exec stat '{}' \;`  
     will find files and folders and display results of hashed 'stat' for 
-    every matched item
-    Example:
-   find . -name "test*" -exec stat '{}' +
+    every matched item  
+    __Example__:  
+   `find . -name "test*" -exec stat '{}' +`  
     will do the same as above, but 'stat' will be executed only once with list
-    of found files - stat testmatch1 testmatch2 testmatch3
-     Example mass rename:
-    find . -depth -name "*" -exec sh -c 'f="{}"; mv -- "$f" "${f%}.txt"' \;
-     rename files w/o extention into files with .txt extention
-     Example:
-   find . -name "test*" | xargs stat
-     Example:
+    of found files - stat testmatch1 testmatch2 testmatch3  
+     __Example__ mass rename:  
+    `find . -depth -name "*" -exec sh -c 'f="{}"; mv -- "$f" "${f%}.txt"' \;`  
+     rename files w/o extention into files with `.txt` extention  
+     __Example__:  
+   `find . -name "test*" | xargs stat`  
+    __Example__:  
+  
+  ```
     Effective remove:
     instead of this:
    find /u01/app/oracle/product/db11g/rdbms/audit/ -type f -name '*' -mtime +1 -exec rm {} \;
@@ -359,70 +412,75 @@ cat /proc/version - file with linux version info
      The find -print0 and xargs -0 option uses the nul character instead of 
     the default newline character to terminate items. This means it will work 
     with file names with spaces or other white space.
+  ```
+    
 
    Checks:
-  -type f:
-	d - dir
-	f - file
-	l - sym link
-	b - block device (like /dev/sda)
-	c - char device (also in /dev , dunno what it is tho)
-  -name "name*" - name or wildcard in "" - to prevent bash expansion
-  -iname "Name*" - case Insensitive
-  -size nM:
-	b - block, default,            512 bytes
-	c - char(byte)			 1 byte
-	w - words (two bytes)		 2 bytes
-	k - kilobytes, block         1 024 bytes
-	M - megagytes, block     1 048 576 bytes
-	G - gigabytes, block 1 073 741 824 bytes
-    Example:
-   find . -size +10M  - will find with size more than 10 megabytes
-   find . -size 10M - will find exactly of 10 megabytes
-   find . -size -10M - will find with size less than 10 megabytes
-   find . -size +1G -exec mv {} delme/. \; - move everything more than 1Gb into another dir 'delme'
-  -cmin n - files\dirs with attrs\contents changed exactly n minutes ago
+  - -type f:
+	  - d - dir
+	  - f - file
+	  - l - sym link
+	  - b - block device (like /dev/sda)
+	  - c - char device (also in /dev , dunno what it is tho)
+  - -name "name*" - name or wildcard in "" - to prevent bash expansion
+  - -iname "Name*" - case Insensitive
+  - -size nM:
+	  - b - block, default,            512 bytes
+	  - c - char(byte)			 1 byte
+	  - w - words (two bytes)		 2 bytes
+	  - k - kilobytes, block         1 024 bytes
+	  - M - megagytes, block     1 048 576 bytes
+	  - G - gigabytes, block 1 073 741 824 bytes  
+    __Example:__
+    ```    
+      find . -size +10M  - will find with size more than 10 megabytes
+      find . -size 10M - will find exactly of 10 megabytes
+      find . -size -10M - will find with size less than 10 megabytes
+      find . -size +1G -exec mv {} delme/. \; - move everything more than 1Gb into another dir 'delme' 
+    ```
+  - -cmin n - files\dirs with attrs\contents changed exactly n minutes ago
 	supports +\ \- like -size
-  -mmin n - files\dirs whos contents changed n minutes ago
-  -cnewer name: files\dirs with attrs\contents changed later than 
+  - -mmin n - files\dirs whos contents changed n minutes ago
+  - -cnewer name: files\dirs with attrs\contents changed later than 
 	given file name
-  -newer name: files\dirs with contents changed later than given
+  - -newer name: files\dirs with contents changed later than given
 	file name
-  -ctime n - same as cmin, but n*24 hours is used
-  -mtime n - same as mmin
-  -empty - will match empty files and dirs
-  -inum n - search for files with inode n, useful to search for hard links
-  -samefile name - works same with -inum
-  -user name - files\dirs owned by given user
-  -nouser - files\dirs owned by noone, like deleted user
-  -group group_name - will search for files\dirs owned by given group
-  -nogroup - same but for groups
-  -perm 777 - search by permission
+  - -ctime n - same as cmin, but n*24 hours is used
+  - -mtime n - same as mmin
+  - -empty - will match empty files and dirs
+  - -inum n - search for files with inode n, useful to search for hard links
+  - -samefile name - works same with -inum
+  - -user name - files\dirs owned by given user  
+  `find . -size 33c -user bandit7 -group bandit6 -print 2>/dev/null` - size 33bytes `bandit7:bandit6`, stderr to null
+  - -nouser - files\dirs owned by noone, like deleted user
+  - -group group_name - will search for files\dirs owned by given group
+  - -nogroup - same but for groups
+  - -perm 777 - search by permission
 
-    Operands:
+    __Operands:__
    Operands glues Checks\Operands and Groups of Checks:
-  -and\-a - logical AND - default value
-  -or\-o - OR
-  -not\-! - NOT
-  ( ) - group of Checks. Need to be Escaped, as per is special for bash.
-	By default checks goes from left to right, so
-    ORDER IS IMPORTANT
-   Example: 
-  find . \( -type l -or -type d \) -a \(-name "this" -or -name "that" \)
-   Example:
-  find . -type f -name "*.bak" -print
-   all files with name *.bak will be printed
-  find . -print -type f -name "*.bak"
-   print everytghint
+  - -and\-a - logical AND - default value
+  - -or\-o - OR
+  - -not\-! - NOT
+  - ( ) - group of Checks. Need to be Escaped, as per is special for bash.
+	By default checks goes from left to right, so  
+    __ORDER IS IMPORTANT__  
+   __Example: __  
+  `find . \( -type l -or -type d \) -a \(-name "this" -or -name "that" \)`  
+   __Example:__  
+  `find . -type f -name "*.bak" -print`  
+   all files with name *.bak will be printed  
+  `find . -print -type f -name "*.bak"`  
+   print everytghint  
 
-    Params:
-  -depth - process files first, then directories, Default for -delete
-  -maxdepth levels_number - how deep to dig
-  -mindepth levels_humber - go that deep before perform search
+    __Params:__
+  - -depth - process files first, then directories, Default for -delete
+  - -maxdepth levels_number - how deep to dig
+  - -mindepth levels_humber - go that deep before perform search
 	seems like value 2 will ignore current dir, and 1 will not
-  -mount - do not search in mounted directories
+  - -mount - do not search in mounted directories
 	but still searches if explicitly set to search inside mounted dir
-  -noleaf - do not optimize search assuming its Unix filesystem
+  - -noleaf - do not optimize search assuming its Unix filesystem
 	required for DOS\WIndows CD-ROM systems
 	But works fine without in on NTFS, probably required for exactly CD?
   
@@ -529,6 +587,13 @@ cat /proc/version - file with linux version info
 	python3 entry
   See here: 
    http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/
+ Update EDITOR:
+  sudo update-alternatives --install /usr/bin/editor editor /usr/bin/vim 10  
+   where /usr/bin/editor  - the entrypoint link used when 'editor' is called  
+         editor  - name  
+         /usr/bin/vim  - real path which will be used when /usr/bin/editor is called by 'editor' name  
+         10  - priority
+  sudo update-alternatives --config editor   # pick vim editor which was  just installed
 
 ## shuf:
  shuffles the deck lol
@@ -545,16 +610,20 @@ cat /proc/version - file with linux version info
   sorts by alphabet by default
    Synopsis:
   Sort [option] file
-   Params:
-  -r - reverse
-  -R - random sort
-  -n - sort by numbers
-  -b - ignore leading blanks i.e. '   a'
-  -f - ignore case
-  -h - sor human readable format, like 1M 1K 1G
-  -k - key i.e. -k 1, or --key=1
-	-k 5 (or --key=5) - use column 5
-	 Example: ls -l /usr/bin | sort -k 5 -rn
+   __Params:__
+  - `-r` - reverse
+  - `-R` - random sort
+  - `-n` - sort by numbers
+  - `-b` - ignore leading blanks i.e. '   a'
+  - `-f` - ignore case
+  - `-h` - sor human readable format, like 1M 1K 1G
+  - `-k` - key i.e. -k 1, or --key=1
+  - `-k` 5 (or --key=5) - use column 5
+
+	 Example:
+   ```
+   ls -l /usr/bin | sort -k 5 -rn
+   ```
 	will sort files by field 5 (size) by Numberic and Reverse
 	--key=1,1 - column from 1 to 1
 	--key=2nr  - use second column to sort groups after first key
@@ -576,18 +645,25 @@ cat /proc/version - file with linux version info
 	will sort by 7th column using : as field separator
 
 ## uniq:
-  deletes duplicates from SORTED output
-   Params: 
-  -d - displays only duplicets (kinda inversion)
-  -c - displays number of matches and line (displays all lines) 
+  deletes duplicates from __SORTED__ output  
+  Uniq match only neighbour lines, so need to SORT all lines first and then search for uniquenness  
+  __Use Case Example:__
+  ```
+  #Find unique line :
+  #SORT OUTPUT FIRST
+   sort data.txt | uniq -u
+  ```
+   __Params: __
+  - -d - displays only duplicets (kinda inversion)
+  - -c - displays number of matches and line (displays all lines) 
 	 Example:
-	sort test.txt | uniq -c
+	`sort test.txt | uniq -c`
 	will return lines in format '<tab><duplicate count> <duplicate line>'
-  -f n - ignore(forward to) n fields in each line, 
+  - -f n - ignore(forward to) n fields in each line, 
 	delimiter is as in 'sort' but CANNOT be changed
-  -i - ignore case
-  -s n - skip n symbols in line
-  -u - unique lines only
+  - -i - ignore case
+  - -s n - skip n symbols in line
+  - -u - unique lines only
  
   !Note: to get comparable output use 'sort' otherwice could display stuff in a
 	way whcih will be not comparable. see ls examples below 
@@ -597,6 +673,21 @@ cat /proc/version - file with linux version info
 	both directories, in sorted order
   ls /bin /usr/bin | sort | uniq -d | less - will display only duplicated files
 	in both dirs, in sorted order
+
+## touch: 
+creates empty file or updates file's date fields
+```
+touch my_file.txt
+stat my_file.txt
+```
+
+## fallocate:
+creates file of given size
+Use Case Example:
+```
+# create file for swap of 1Gb size
+sudo fallocate -l 1G /swapfile
+```
 
 ## cat:
   concatenate, return file contents on screen. GNU
@@ -693,7 +784,7 @@ cat /proc/version - file with linux version info
     WHich is usefull for automation
     Same goes with 'ps'
 
-## Troubleshooting:
+# Troubleshooting:
  Debian:
   /var/log/syslog
   /var/log/auth.log
@@ -769,12 +860,50 @@ cat /proc/version - file with linux version info
    00:0c.0 Network controller: Intel Corporation Device 31dc (rev 03)
   the part with 'Intel Corporation Device 31dc' is the device that need to 
   has correct drivers. 
-  
 
-## NetworkManager:
-  network management daemon
-  
-## nmcli:
+## Nvidia drivers troubleshooting:
+[Drivers uninstall](https://linuxconfig.org/how-to-uninstall-the-nvidia-drivers-on-ubuntu-20-04-focal-fossa-linux)  
+```
+$ sudo dpkg -P $(dpkg -l | grep nvidia-driver | awk '{print $2}')
+$ sudo apt autoremove
+```
+[Drivers Install](https://www.cyberciti.biz/faq/ubuntu-linux-install-nvidia-driver-latest-proprietary-driver/)  
+```
+sudo apt install nvidia-driver-390
+```
+
+Install\Reinstall problems
+if any file gets unexpected lock during Drivers install check who locks it:
+```
+lsof | grep /var/cache/debconf/config.dat
+OR
+fuser /var/cache/debconf/config.dat
+```
+Check for command the locking process tries to execute, I.e. it tries to confirm addition of another Key into UEFI keys database (MOK), that need to be killed and re-executed; then reboot: [Secure boot Fix](https://superuser.com/questions/1493050/update-secureboot-policy-enroll-key-running-on-every-new-startup-eating-reso)
+
+### Secure boot work
+[Secure Boot on Ubuntu](https://wiki.ubuntu.com/UEFI/SecureBoot#How_UEFI_Secure_Boot_works_on_Ubuntu)
+
+### Enroll new keys required for signed Drivers to work 
+[Enrolling the Keys with the UEFI MOK](https://documentation.commvault.com/commvault/v11/article?p=118661.htm)
+
+
+# NetworkManager:
+  network management daemon  
+It uses different plugins for different distros and stuff, to be more system-agnostic
+### Configuration:
+`/etc/NetworkManager`  
+`NetworkManager.conf` - main config file .ini\XDG like  
+`[main]` - section to load the Plugins  
+Plugins:  
+- ifupdown - main network plugin for Debian-like
+- ifcfg-rh - Redhat-like network plugin
+- ifcfg-suse - SuSE-like network plugins
+- keyfile - native configuration plugin support
+  - stores System-known connections under `/etc/NetworkManager/system-connections`
+
+
+### nmcli:
   network manager command line interface
    Synopsys:
   nmcli [PARAMS] OBJECT {COMMAND | help}
@@ -783,7 +912,15 @@ cat /proc/version - file with linux version info
   n[etworking]    overall networking control
   r[adio]         NetworkManager radio switches
   c[onnection]    NetworkManager's connections
+  ```
+  #list all connections active and inactive
+  nocli connection show
+  ```
   d[evice]        devices managed by NetworkManager
+  ```
+  #list all network devices - real and virtual
+  nmcli device show
+  ```
   a[gent]         NetworkManager secret agent or polkit agent
   m[onitor]       monitor NetworkManager changes
    Example:
@@ -793,8 +930,29 @@ cat /proc/version - file with linux version info
   displays current network interfaces
   part of the 'net-tools' package
    /etc/network/interfaces - for interfaces(5) changes
-  -a - will display MAC also
+  -a - will display MAC also- 
 
+### Setup netowrk connection old way:
+Need to perform steps:
+- Connect device to Computer, ensure there is a driver
+  - `ifconfig -a` to display the new Kernel Network Interface
+- Set network name or password etc.
+- Add Computer IP and Net Mask to the new Network Interface - this way `Physical` and `Network` layers of OSI model can communicate between each other
+- Add any additional Routes. Including `Default Gateway`
+
+Add Computer IP and Net Mask:
+```
+ifconfig <interface> [IP addres] mask [Net Mask]
+```
+ - interface - name of the IF (i.e. eth0)
+ - IP Address - the IP addr of the current IF (network card)
+ - Net Mask - subnet mask like 255.255.255.0
+
+ Add Default Gateway:
+ ```
+ route add default gw <GateWay IP Address>
+ ```
+ GateWay IPAddress must be on the same network as the Interface - same Subnet mask and IP Address(of the network card) should match a subnet and Gateway I
 ## lshw:
   list hardware, displays all the hardware detected by kernel and its state
   and properties
@@ -805,6 +963,7 @@ cat /proc/version - file with linux version info
     Example:
    lshw -C network - will display all info about network adapters and their
                     state, together with drivers and info related
+   lshw -C display - graphics drivers
 
 ## hdparm:
   lists HDD info
@@ -898,6 +1057,15 @@ cat /proc/version - file with linux version info
   -x  - decode. show the facility and level as human-readable prefixes 
    to each line.
 
+## tr:
+translates or delete Characters  
+gets from STDIN outputs in STDOUT  
+
+__Use Case Example:__
+```
+# ROT13 Encode and Decode back
+echo 'fooman@example.com' | tr 'A-Za-z' 'N-ZA-Mn-za-m' | tr 'N-ZA-Mn-za-m' 'A-Za-z'
+```
 
 ## sed:
   text stream editor, using RegEx for search\edit in stream(STDIN) line by line,
@@ -912,6 +1080,17 @@ cat /proc/version - file with linux version info
 
  See More: https://www.digitalocean.com/community/tutorials/the-basics-of-using-the-sed-stream-editor-to-manipulate-text-in-linux
  https://www.digitalocean.com/community/tutorials/intermediate-sed-manipulating-streams-of-text-in-a-linux-environment
+
+  Use Case Example:
+  ```
+  #rename part file
+   6 REDACT='0930_22'
+   17   redacted=$(echo $i | sed "s/...._../$REDACT/")
+   18   echo "mv $i r$redacted"
+
+  >mv IMG_20201001_001836.jpg rIMG_20200930_221836.jpg
+  ```
+
 
   sed <param> '<param1>/pattern/replacement/<param2>' <file>
   -n - supress default ouput
@@ -1010,6 +1189,16 @@ wildcards(not a command:
   :digit: - digits (\d in regex)
   :lower: - lowercase
   :upper: - uppercase
+
+## mktemp:
+makes temp file or directory with obfuscated hard-to-guess name  
+files and dirs are created in `/tmp`  
+- -d - make directory, not a file
+- --dry-run - dry run  
+__Example__:
+```
+mktemp -d
+```
 
 ## cp:
   copy stuff
@@ -1177,6 +1366,18 @@ wildcards(not a command:
   du <params> <file/dir name>
    Does not accept input from pipe, seems like
     use 'xargs'
+    
+```
+  Where to look for used space:
+  du -hs /var/log/journal/
+  du -hs ~/deja-dup
+```
+  Cleanup `systemd` journals:
+read more: https://ma.ttias.be/clear-systemd-journal/
+```
+journalctl --vacuum-time=10d
+```
+
   du -hs dirname
    -h - human readable
 	Example:
@@ -1310,6 +1511,7 @@ General info about Keys, Key Pairs, Key Storages and stuff:
    Source or Receiver MUST be local, BOTH Remotes NOT WORK
     Params:
   -a - archive, recursive and saves files attributes
+  -A - preserve ACLs
   -v - verbose
   --delete - remove files that are in Receiver but not in SOurce
   --rsh=<shell> - remote shell, i.e. ssh - will transfer files via network
@@ -1337,11 +1539,43 @@ General info about Keys, Key Pairs, Key Storages and stuff:
   $ cp -L ~/libcurl3/usr/lib/x86_64-linux-gnu/libcurl.so.4 /usr/lib/libcurl.so.3
   $ cd && rm -rf ~/libcurl3
 
+xz:
+  similar to `gzip` and have same arguments  
+   
+
 ## tar:
   tape archive - collects all files in archive, with savin all permissions
    and user's ownership
   tar <params> <archive> <another_params> <source>
+
+  Create Arhieve:
+  ```
   tar -cvf name.tar directory
+  ```
+  List archieve or compressed archieve contents:
+  ```
+  tar tvf name.tar
+  or
+  tar ztvf name.tar.gz
+  ```
+  Compress Archieve:
+  ```
+  gzip name.tar
+  or
+  tar czvf name.tar.gz
+  ```
+  Decompress and Unarchieve:
+  ```
+  gunzip name.tar.gz
+  tar -xvf name.tar
+  or
+  zcat name.tar.gz | tar -xvf -
+  or
+  tar -zxvf name.tar.gz
+  ```
+  Unarchieve specific file:
+  ```
+  ```
    -c - create
    -v - verify\verbose
    -f - files
@@ -1358,7 +1592,7 @@ General info about Keys, Key Pairs, Key Storages and stuff:
      Example unarchive+uncompress:
     tar -zxvf tmp.tar.gz
    -j - zup but with bzip2 instead of gzip
-   -p - preserve permissions
+   -p - preserve permissions (ignored `umask` setting). used by Default when run under Supersuser
    another params:
     !! could be anywhere in the command, before or after other params
     --exclude=filename - excludes filename/dir/type from adding to archive
@@ -1414,28 +1648,40 @@ General info about Keys, Key Pairs, Key Storages and stuff:
  grep for search in .gz compressed files
 
 ## lsblk:
+  NOTE: also all Block devices would be in `/sys/block` directory  
+  NOTE2: also all devices (and Block too) __with drivers__ are in `/proc/devices`  
+  file starting with same name (and device DI in `/proc/devices`) will be in `/dev` directory  
+
   List Block Devices
-  list all devices mounted and not
+  __list all devices mounted and not__
    Example:
-  lsblk -po NAME,FSTYPE,SIZE,MOUNTPOINT /dev/sda /dev/sdb
-    show only 'sda' and 'sdb'
+   ```
+    #show only 'sda' and 'sdb'
+    lsblk -po NAME,FSTYPE,SIZE,MOUNTPOINT /dev/sda /dev/sdb
+    
+   ``` 
    Params:
-  -f\--fs - list fylesystems
-  -d\--nodeps  - show only top device(w/o partitions)
+  - -f/--fs - list fylesystems
+  - -d/--nodeps  - show only top device(w/o partitions)  
    Example:
-  lsblk -d /dev/sda
-  -o Col1,Col2  - Only columns Col1 and Col2
-  -O   - all columns
-  -p   - full path of Block device
-  -e\--exclude - exclude block device number
-   Example:
-  lsblk -e7,11 -po NAME,FSTYPE,SIZE,MOUNTPOINT
+    ```
+    lsblk -d /dev/sda
+    ```
+  - -o Col1,Col2  - Only columns Col1 and Col2
+  - -O   - all columns
+  - -p   - full path of Block device
+  - -e/--exclude - exclude block device number  
+    Example:
+    ```
     excludes Loop(7) and 11th block devices (see /proc/devices)
-   Columns:
-  MAJ:MIN - block device number : number
-   /proc/devices - list of ALL block device numbers
+    lsblk -e7,11 -po NAME,FSTYPE,SIZE,MOUNTPOINT
+    ```    
+   __Columns:__  
+  - `MAJ:MIN` - block device number : number  
+    -  `/proc/devices` - list of ALL block device numbers
   
-  
+## lsscsi:
+  lists `scsi` devices (all disks basically)
 
 ## block device types:
  /dev/fd* - floppy drives
@@ -1466,9 +1712,10 @@ General info about Keys, Key Pairs, Key Storages and stuff:
   because looking at name of '/' root filesystem
 
 ## df:
-  display all MOUNTED devices with size\free\used\paths etc
+  display all MOUNTED devices(EXCEPT SWAP) with size\free\used\paths etc
     Stands for: Disk Free
   -h - human readable sizes
+  __SWAP DISKS ARE NOT MOUNTED - NOT SHOWN IN DF OUT__
     Example:
    df -h / - will show info about root partition - where / is mount point
   -T  - adds colump with FS Type
@@ -1557,56 +1804,76 @@ how to get block device name, partition, mount it and unmount after:
 
 ## mount:
   mount drive (disk, usb, floppy etc)
+  __Troubleshooting:__
+  - `tail -f /var/log/syslog` or `/var/log/messages`
+  - use `-v` or `-vvvv` params with `mount` command
 
-  USE CASE:
-    #ssh into Network machine with mountable share
-    vim /etc/exports  # add line like '/u01/app/mainsail       i-tpt-dv-db111(rw,no_root_squash)'
-    exportfs -a       # reload /etc/exports   <-- otherwise get 'mount.nfs: mount(2): Permission denied' error 
-    vim /etc/fstab    # add mount like 'i-tpt-dv-ms:/u01/app/mainsail        /u01/app/mainsail       nfs     rw,bg,hard,nointr,rsize=32768,wsize=32768,tcp,actimeo=0,vers=3,timeo=600    0 0'
-    mount -a -vvvv    # mount all lines added to /etc/fstab, doing it verbose
+  USE CASES:  
+  ssh into Network machine with mountable share  
+  `vim /etc/exports`  
+  > add line like `/u01/app/mainsail       i-tpt-dv-db111(rw,no_root_squash)`  
 
-  USE CASE 2:
-   Example:
-  Usecase for mount network dir:
-   Source(hostname i-pct-dv-ms):
-    /etc/exports:
-   /u01/app/mainsail	i-tpt-dv-db191(rw,no_root_squash)
-   # Recheck everything is correct there, if not - correct and run:
-    exportfs -r
-     which will reexport and update all local entries
-   Target(hostname i-tpt-dv-db191):
-    /etc/fstab:
-   i-pct-dv-ms:/u01/app/mainsail        /u01/app/mainsail       nfs     rw,bg,hard,nointr,rsize=32768,wsize=32768,tcp,actimeo=0,vers=3,timeo=600    0 0
-   mount -vvvv /u01/app/mainsail/
-   df -h
-    Now will show the mount since it is MOUNTED now
+  `exportfs -ar`       
+  > reload /etc/exports   <-- otherwise get 'mount.nfs: mount(2): Permission denied' error  
+  Where:
+  > - `-r` is reexport
+  > - `-a` is export or UNexport `all` directories in `/etc/exports`
 
+  `vim /etc/fstab`    
+  > add mount like `i-tpt-dv-ms:/u01/app/mainsail        /u01/app/mainsail       nfs     rw,bg,hard,nointr,rsize=32768,wsize=32768,tcp,actimeo=0,vers=3,timeo=600    0 0`  
+  `mount -a -vvvv`    
+  > mount all lines added to /etc/fstab, doing it verbose
 
-  mount -o rw,remount /
-   -o - dunno.. TODO
-   -vvvv  - verbose
-   rw - seems to be read\write
-   remount - pretty clear at first glance
-   / - what to remount
+  simply add automount of HDD from old windows:  
+  `LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async`  
+  labels or UUID could be taken from `blkid` command (if block device) dev names are also accepted(`/dev/sda`), but could mess around if block devices are detected in different order 
 
-    Example:
-   lsblk -f     - view all devices
-   mount /dev/sda5 /path/to/mount/point - mount device
-   umount /dev/sda5   - unmount (Notice N letter absent in commnad name)
-    Example:
-    mount ISO image
+  UUID:
+  ```
+  sudo lsblk -f
+  #or
+  blkid /dev/mmcblk0p3
+  ```
+
+  Remount root as read-write:  
+  `mount -o rw,remount /`    
+
+  Params:  
+  - -o - options like `rw,remount` and so on
+    - rw - seems to be read\write  
+    - remount - pretty clear at first glance  
+  - -v - verbose  
+  - -vvvv  - very verbose     
+  - / - what to remount
+  - -a  - mounts ALL from /etc/fstab
+
+  __NOTE: `none` mountpoint is in fact ignored in `fstab` if FileSystem type is `swap`__
+
+  Example:
+  ```
+  #view all devices:
+   lsblk -f  
+  #mount device
+   mount /dev/sda5 /path/to/mount/point 
+  #unmount (Notice N letter absent in commnad name)
+   umount /dev/sda5  
+  ```
+
+  Example:
+  ```
+  #mount ISO image
    mount -t iso9660 -o loop image.iso /path/to/mountpoint
+  ```
 
-  -a  - mounts ALL from /etc/fstab
+  `/etc/fstab` - config for filesystems
+   read by `fsck`, `mount`, `unmount` at boot
+  lines from this file read during `mount -a`.  
+  > check `man fstab` for details.
 
-  
-  /etc/fstab - config for filesystems
-   read by fsck, mount, unmount
-  lines from this file read during 'mount -a'.
-   check man fstab for details. 
-  simply add automount of HDD from old windows:
-  LABEL=Juli      /otherHDD/Juli  ntfs rw,suid,exec,auto,user,async
-  labels or UUID could be taken from 'blkid' command
+  NOTE:
+  `swap` partitions are not mounted since don't have mounpoint in `/etc/fstab` - it is `none`   
+
+
 
 ## ntfs-config:
   Enable/disable write support for any NTFS devices
@@ -1662,46 +1929,54 @@ how to get block device name, partition, mount it and unmount after:
   secure copy using ssh protocol
    could copy to or copy from remote location.
   copy to remote:
+  ```
   scp <params> <file_path> <receiving_username>@<address>:<receiving_file_path>
+  ```
   copy from remote:
+  ```
   scp <params> <remote_username>@<address(ip\name)>:<remote_local_path> <path>
+  ```
   params:
   -v - verbose  
 
-sshd(openssh)
-  daemon config location:
-   /etc/ssh/sshd_config
-  sftp enable switch is located there, could be commented out and sshd restart
-  to disable it
-   /etc/ssh/ssh_config
-    LogLevel DEBUG3
-     Enables detailed logs
-     useful when got ssh logon issues
-  some another config
-  ==
-   Options important:
-  PermitRootLogin:
-    “yes”, “prohibit-password”, “without-password”, “forced-commands-only”, or “no”
-  ==
+## sshd(openssh):
+  daemon config location:  
+  `/etc/ssh/sshd_config`  
+   - sftp enable switch is located there, could be commented out and sshd restart to disable it  
+   - LogLevel DEBUG3  
+     - Enables detailed logs useful when got ssh logon issues  
+  
+### Options important:
+ __PermitRootLogin:__   
+  - “yes”,
+  - “prohibit-password”
+  - “without-password”
+  - “forced-commands-only”
+  - “no”
+  
   RSA keys for ssh authentication generation process:
-  https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7
-  Passwordless:
+  https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-centos7  
+  Passwordless:  
   to add security ssh login with Password could be disabled, to login
-  only with keypair:
+  only with keypair:  
   https://linuxize.com/post/how-to-setup-passwordless-ssh-login/#disabling-ssh-password-authentication
   https://help.ubuntu.com/community/SSH/OpenSSH/Keys
-   Log files of sshd:
-  RHEL:
-   /var/log/secure
+   Log files of sshd:  
+  RHEL:  
+   `/var/log/secure`
     Example:
+  ```
    tail -f -n 500 /var/log/secure | grep 'sshd'
     If getting errors like:
    'ROOT LOGIN REFUSED FROM 10.253.0.28 port 34318'
     the Root login is disabled
    PermitRootLogin yes
+  ```
   Other:
+  ```
     /var/log/auth.log
    tail -f -n 500 /var/log/auth.log | grep 'sshd'
+  ```
 
 ## ssh:
   remote connect via ssh protocol
@@ -1749,8 +2024,43 @@ sshd(openssh)
     Example:
  Get fingerprint:
   ssh-keygen -lf ~/.ssh/keyname[.pub]
- GitHub: Get fingerprint in hashed\hex format:
-  ssh-keygen -E md5 -lf ~/.ssh/git_key[.pub]
+ ### GitHub: Get fingerprint in hashed\hex format:
+ ```
+  ssh-keygen -E md5 -lf ~/.ssh/git_key[.pub]  
+ ```
+
+ #### GitHub troubleshoot:  
+ verbose connect to github with `git` user  
+ `ssh -vT git@github.com`  
+ Expected output:  
+ ```
+debug1: Connecting to github.com [140.82.121.4] port 22.
+debug1: Connection established.
+debug1: identity file /home/dos/.ssh/id_rsa type 0
+...
+debug1: Offering public key: RSA SHA256:JZ.......On8 /home/dos/.ssh/id_rsa
+debug1: Authentications that can continue: publickey
+debug1: Trying private key: /home/dos/.ssh/id_dsa
+debug1: Trying private key: /home/dos/.ssh/id_ecdsa
+debug1: Trying private key: /home/dos/.ssh/id_ed25519
+debug1: No more authentication methods to try.
+```
+`id_rsa` is not the key GitHub knows.
+Check which keys `ssh-agent` knows - it is auth tool used.
+```
+#start the agent
+ eval "$(ssh-agent -s)"
+#list md5 of all known keys
+ ssh-add -l -E md5
+```
+> only returned keys are used for auth  
+Add key if not listed:  
+```
+#add key
+ ssh-add ~/.ssh/other_key_rsa
+#recheck
+ ssh-add -l -E md5
+```
 
 ## ssh-copy-id:
   copies public keys securely to remote machine for paswordless login
@@ -1787,6 +2097,19 @@ sshd(openssh)
   get <remote_filename> <new_local_name>
  ls also works, ALIASES from bashrc do not work
 
+## f5fpc:
+ F5 Linux CLI (command line interface ) Edge Client Installer
+ work machine: D:\devops\BigIP
+ home machine: somewhere in 'vpn'
+ Install:
+ 1. chmod +x Install.sh
+ 2. bash Install.sh
+ Aliases:
+ alias vpn-go="sudo f5fpc -s -t seapop.tideworks.com -u 'usa\twuser' -x"
+ alias vpn-info="sudo f5fpc -i"
+ alias vpn-stop="sudo f5fpc -o"
+
+
 ## shutdown:
  shutdown or reboot or halt etc the computer
   by default shutdowns in 1 minute, also could be scheduled:
@@ -1797,37 +2120,74 @@ sshd(openssh)
   shutdown now - shutdown now
 
 ## at:
- need to be installed, daemon
- schedules to do something _at_ some time:
- There are three ways to use it:
-  Example 1:
- echo "shutdown" | at now + 1 min - will execute what echo will return
-  	at time of now + 1 minute - echo will return stuff in ''
-  Example 2:
+ need to be installed, daemon  
+ schedules to do something _at_ some time  
+ Example:
+ ` 
+ There are three ways to use it:  
+  ### Example 1:  
+execute what echo will return	at time of now + 1 minute - echo will return stuff in ''  
+``` 
+echo "shutdown" | at now + 1 min
+```
+  ### Example 2:  
+redirect STDIN from cmd.txt , will read	from there, and shutdown 
+```
  echo "shutdown" > cmd.txt
- at now + 1 min < cmd.txt - it will redirect STDIN from cmd.txt , will read
-	from there, and shutdown 
-  Example 3: 
- at now + 1 min
- at> shutdiwn     - will wait for input in STDIN
- ctrl+d           - to exit, and wait given time before execute shutdown
+ at now + 1 min < cmd.txt 
+```
+  ### Example 3:  
+wait for input in STDIN
+```
+ at 22:30
+ at> shutdown
+ ```
+ `CTRL+D` to exit, and wait given time before execute shutdown
 
-  Time could be like:
- [[CC]YY]MMDDhhmm[.ss]
+  Time could be like:  
+ `[[CC]YY]MMDDhhmm[.ss]`  
   Example: 
+ ```
  at -t 201403142134.12 < script.sh
+ ```
+ ```
+ # September 30 2015 at 22:30
+ at 22:30 30.09.15
+ ```
  
 ## crontab:
-  list cron schedules
- Exacmple:
-  crontab -u <username> -l
-    will list all rules for a user
-    need sudo
+  list cron schedules;
+  System crontab location `/etc/crontab`
+  usage:	
+
+  `crontab [-u user] file`  
+	`crontab [ -u user ] [ -i ] { -e | -l | -r }`  
+
+- `-u` list all rules for a user:  
+`crontab -u <username> -l`  
+- `-e` edit current user crontab file
+- `-r` remove current crontab
+- `-i` as `-r` but with confirmation
+- `-u username file.txt` install crontab file from file.txt
+ 
+### Crontab file syntax
+- System crontab `/etc/crontab` and `/etc/crontab.d` files can set UID to execute cron job  
+- Cron job STDOUT and STDERR could be redirected to file or null or email  
+
+Example:  
+run every day at 6:42 as a `superuser`; `stdout` and `stderr` to `null`:
+```
+42 6 * * * root /usr/local/bin/cleansystem > /dev/null 2>&1
+```
+
+see [cron](#cron) for detailed syntax
+    
 
 ## cron:
  task scheduler
+ ```
 
- *     *     *     *     *  command to be executed
+ *     *     *     *     *  command >> stdouterr.txt (or /dev/null)
  -     -     -     -     -
  |     |     |     |     |
  |     |     |     |     +----- day of week (0 - 6) (Sunday=0)
@@ -1835,24 +2195,31 @@ sshd(openssh)
  |     |     +--------- day of month (1 - 31)
  |     +----------- hour (0 - 23)
  +------------- min (0 - 59)
+ ```
+
 
  So, for example, this will run ls every day at 14:04:
  
- 04 14 * * * ls
+ `04 14 * * * ls`
  
  To set up a cronjob for a specific date:
  
-     Create a new crontab by running crontab -e. This will bring up a window of 
-	your favorite text editor.
+  - Create a new crontab by running crontab -e. This will bring up a window of your favorite text editor. 
+  - Add this line to the file that just opened. This particular example will run at 14:34 on the 15th of March every 5th year if that day is a Friday (so, OK, it might run more than once):  
+ `34 14 15 5  /path/to/command`
+  - Save the file and exit the editor.
  
-     Add this line to the file that just opened. This particular example will 
-	run at 14:34 on the 15th of March 2014 if that day is a Friday (so, OK,
- 	it might run more than once):
- 
-     34 14 15 5  /path/to/command        
- 
-     Save the file and exit the editor.
- 
+## bc:
+seems to be a Basic Calculator  
+weird  
+Use Case Example:
+```
+#Calculate binary of 192
+$> bc
+> obase=2; 192
+11000000
+```
+
 ## awk:
  stuff to worh with text, programming language kind of
   Example: 
@@ -2278,13 +2645,25 @@ root# passwd username - create password for the user
     groupmod -n managers manager - change group 'manager' to 'managers'
 
   
-## passwd:
-  change password for current user
-   or for given user
-  passwd [username]
-  located in /usr/bin/passwd - ubuntu
-             /bin/passwd - centos/red hat
-  has 'setuid' thing..
+## passwd:  
+  ![Strength](img/password_strength.jpg)
+  change password for current user or for given user  
+  `passwd [username]`  
+  located in 
+  - `/usr/bin/passwd` - ubuntu  
+  - `/bin/passwd` - centos/red hat  
+
+  has `setuid` bit which allows unprivileged users to use 'root' owned files.  
+  I.e - `passwd`, `sudo`, `su`  
+
+### check for setuid:
+```
+ls -la `which passwd`
+-rwsr-xr-x 1 root root 59640 Mar 22  2019 /usr/bin/passwd*
+```
+The `s` implies that the executable bit (`x`) is set, otherwise you would see a capital `S`. This happens when the `setuid` or `setgid` bits are set, but the executable bit is not, showing the user an inconsistency: the `setuid` and `setgit` bits have no effect if the executable bit is not set.   
+The `setuid` bit has no effect on directories. 
+_Setuid_: see [setuid](#setuid:-setgid:) for details
 
 
 ## gpasswd:
@@ -2309,24 +2688,7 @@ root# passwd username - create password for the user
   delete group
   groupdel [params] <groupname>
 
-## setuid and setgid:
- setuid:
-  Attribute of a file that allows unprivileged user to have level of permission
-  of original owner of the file. 
-  For example passwd executable is owned by Root user. But unprivileged user 
-  could execute it and the passwd binary will made the changes into /etc/passwd 
-  and /etc/shadow file(contains some related to passwords stuff too), and those 
-  both files also are owned by root user.
-  In the same time passwd used by unprivileged user accepts no params - means
-  user can not change other users passwords
- setgid:
-  Attribute of file\directory inherited byu sub dirs\files, so subdirs inherit 
-  parent's attributes. 
-  Gives access  equal to group owning the file to unprivileged user executing 
-  the file.
-  Unprivileged user executes file Under the privileges granted to the user group  owner of that file.
-
-whoami:
+## whoami:
  returns username of currently logged user
 
 # Super User
@@ -2370,17 +2732,361 @@ sudo
 =====super user end
 
 
-=====user\groups management end
 
-===Processes and Services Management
+# Processes and Services Management
 
-top: htop:
+## Memory:
+Kernel , in order to help CPU's Memory Management Unit(MMU), breaks memory into _pages_.  
+Pages real addresses are stored in the _Page Table_.  
+MMU translates virtual memory addresses into real ones based on Page Table.  
+
+---
+Process does not need all the pages to be loaded in order to run. So not all pages are loaded for a process, only the required ones:  
+_On-Demand paging_ - is allocation of new pages for a process when it requires ones (additional code r
+equired etc)
+
+---
+Demand paging steps:
+- program's code is loaded into memory pages
+- working-memory pages could be allocated by the Kernel
+- when next instruction to run is not in the loaded memory, Kernel pauses execution, loads that code into newly allocated pages and continues execution
+- when more working-memory pages are required Kernel will allocate(or free older ones - see OOM Killer) and assigns them to process
+
+### Page Faults
+If process accesses memory page and it is not ready process would trigger _page fault_. The kernel will take over control of CPU from the process in order to get page ready.
+
+Could be viewed by `time`, `ps` or `top` commands:
+Example:
+```
+$ /usr/bin/time cat > /dev/null
+0.00user 0.00system 0:03.15elapsed 0%CPU (0avgtext+0avgdata 2076maxresident)k
+72inputs+0outputs (1major+75minor)pagefaults 0swaps
+```
+`cat` is loaded first time and got 1 major fault  
+Example:
+```
+$ top
+f            # to get into __FIELDS MANAGEMENT__
+<Up>/<Down>  # to find `nMin`, `nMaj` fields for Page Faults
+Right        # to select
+<Up>/<Down>  # to move the field next to other `*` selected fields
+<Left>       # to unselect field after it was moved
+<Space>      # to mark field for display
+q            # to exit FIELDS MANAGEMENT
+PID USER      PR    VIRT    RES    SHR S  %CPU %MEM     TIME+ nMaj nMin COMMAND 
+684 systemd+  20   71856   6448   5132 S   0.0  0.2   0:03.63    5  852 systemd-resolve         
+685 systemd+  20  146136   3192   2672 S   0.0  0.1   0:00.07    3  575 systemd-timesyn  
+```
+Example:
+```
+$ ps -o pid,min_flt,maj_flt 684
+  PID  MINFL  MAJFL
+  684    852      5
+```
+Min and Maj page faults for process with PID 684
+
+#### Minor Page Fault
+Occur when:
+- new memory was allocated and MMU does not yet know of the new _page_ allocated  
+- MMU does not have more space to store existing in memory pages addresses
+
+Kernel in such cases would interfere(getting _page fault_ event) and tell about new page to MMU 
+
+#### Major Page Fault
+Occur when required memory page is not in main Memory(physical one). Kernel need to load it from disk or other slow-storage first.  
+This could happen when program is run first time so many code not in the memory yet.  
+The worst case is when low on memory - thus before loading new mages from the disk Kernel will store unused existing ones into _swap_ which is also on the slow storage(i.e. disk).
+
+## Load Averages
+average number of processes in ready-to-run (including running) state in a given time - thus using CPU
+on System with 1 Core Load Average of 1 will mean that at given time 1 process was running all the time  
+on System with Multiple Cores the Load Average of 1 would mean that only 1 Core was running process constantly, 2 - two Cores  
+Load Average of 0.01 would mean that in Given time only 1% of 1 Core of CPU was used
+
+### Load Average is High:
+- Many processes are running simultaneously, this could be 'by design' so no worries
+- Web Servers could spawn lots of short lived processes, so Load Average could not be correctly calculated
+- Low Memory - kernel could thrash or relocate memory To and From the Disk. 
+  Process could be in ready-to-run state - contribute to Load Average, but physically could not be run because of Memory is unavailable
+
+## free:
+  shows System's Memory status.  
+  Memory info could be found in `/proc/meminfo` too  
+  if `Swap` row is 0B - there is no Swap enabled (see `swapon`)
+### Params:
+- -h - human readable
+
+## Create Swap File:
+https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-18-04  
+```
+# Check swap enabled:
+sudo swapon --show
+# Double check for 0B in Swap row:
+free -h
+# Check disks (i.e. /) has enough space (4G for swap enough for HDD for RAM fallback)
+df -h
+# Create swap file and verify size
+sudo fallocate -l 1G /swapfile
+ls -lh /swapfile
+# Set readonly for Root user (security reasons)
+sudo chmod 600 /swapfile
+# Make the file to be actual swap
+sudo mkswap /swapfile
+# Enable the swap into the file
+sudo swapon /swapfile
+# Check swap changed
+sudo swapon --show
+# Permanent changes:
+sudo cp /etc/fstab /etc/fstab.bak
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+### Swappiness
+percentage at which Kernel would use Swap over RAM  
+0 - 100  
+values closer to 0 - Kernel won't swap unless absolutely neccessary  
+values closer to 100 - Kernel will try swap more to keep more RAM free  
+Default: __60__  
+Use Case Example:
+```
+# Check swappiness
+cat /proc/sys/vm/swappiness
+
+# Change temporarily until reboot
+sudo sysctl vm.swappiness=10
+
+# Change permanently
+echo "vm.swappiness=10" >> /etc/sysctl.conf
+```
+
+### Cache Pressure
+percentage at which Kernel would swap __inodes__ and __dentry__  
+It is Costly to look for and very frequently needed to look - good to cache.  
+0 - 100+   
+at 100 - the kernel will attempt to
+reclaim dentries and inodes at a "fair" rate with respect to pagecache and
+swapcache reclaim  
+at 0 the kernel will
+never reclaim dentries and inodes due to memory pressure and this can easily
+lead to out-of-memory conditions  
+```
+# Check
+cat /proc/sys/vm/vfs_cache_pressure
+
+# Change
+sudo sysctl vm.vfs_cache_pressure=50
+
+# Change permanently
+echo "vm.vfs_cache_pressure=50" >> /etc/sysctl.conf
+```
+
+## swapon:
+turns swap on.  
+Swap could be either on separate special partition or just a file.  
+Use Case Example:
+```
+$ sudo swapon --show
+NAME      TYPE       SIZE USED PRIO
+/dev/sda9 partition 15.9G 780K   -2
+
+```
+__Params:__
+- --show - shows whether swap is on, and where. __No output__ means there is no swap enabled.
+
+
+## vmstat:
+Virtual Memory STATistics  
+shows statistis for the system about Resources usage
+
+First line is average for whole `uptime` of the system. 
+Second line and below (shows up each 2 seconds) display stats for the time period from param(2 seconds in the example)  
+
+__Params:__  
+- -S k\K\m\M - kilobytes or megabytes (lowercase rounded to 1000)
+- -a - active\inactive memory - displayed instead of buff\cache memory
+- -d - disk statistics  
+Example:
+```
+$ vmstat 2
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 0  2 219232 461404 159344 988640    2   14   178   120 1066 1420 23  9 66  1  0
+ 0  0 219232 460500 159404 989280    0    0   150  1120 4411 11152 14  9 68  8  0
+ 1  0 219232 460720 159404 989144    0    0     0     0  358 1058  2  1 97  0  0
+ ```
+ Sections:
+  - procs - processes
+    - r - runnable processes (running or waiting for run time)
+    - b - blocked - processes in uninterruptible sleep
+  - memory - RAM
+    - swpd - amount of virtual memory used
+    - free - amount of idle memory
+    - buff - amount of memory used as buffers
+    - cache - amount of memory used as cache
+    - inact - amount of inactive memory (`-a` option)
+    - active - amount of active memory (`-a` option)
+  - swap - memory pages wapped to and from the disk
+    - si - amount of memory swapped IN from Disk ..per second?
+    - so - amount of memory swapped OUT to Disk ..per second?
+  - io - input and output
+    - bi - blocks IN from block device (Disk) ..per second?
+    - bo - blocks OUT to block device (Disk) ..per second?
+  - system - how many times kernel does something
+    - in - number of interupts per second, including the clock(what clock?)
+    - cs - number of context switches per second
+  - cpu - cpu statistics (%ntage of total CPU time)
+    - us - time spent on user code(non-kernel) - user time including nice time
+    - sy - time spent to run kernel code - system time
+    - id - idle time 
+    - wa - time waiting for I\O
+    - st - time stolen from virtual machine - wut  
+  Device output:  
+  ```
+  vmstat -d | ( head -2; grep 'mmcblk0'; )
+  ```
+  both commands after pipe will be executed in subshell working with same output of `vmstat`, so headers and matched stuff is displayed
+ 
+## iostat:
+  available in `sysstat` package for Ubuntu  
+  __Shows average for whole UPTIME time__ first time, next pages will be for the Interval duration  
+  Shows detailed but not overwhelming I\O statistics (see `vmstat -d` for overwhelming one)  
+  __Params__:
+  - -d - show disks only (w/o CPU average)
+  - <n> - interval in Seconds - LATEST PARAM
+  - -p ALL - displays all partitions (including partitions)  
+  Note: root device(such as `sda`) also could have I/O time, i.e. used to read the `partition table`  
+  Example:  
+  `iostat -d 2` - dont show CPU avrg, update every 2 sec  
+  `iostat -d -p mmcblk0` - show disks and partitions only for mmcblk0 block device   
+  __Fields__:
+  - tps - Data Transfers per second
+  - kB_read/s - avrg num of kiloBytes read per second
+  - kB_wrtn/s - avg num of kB written per second
+  - kB_read - total number of kB read
+  - kB_wrtn - total number of kB written
+
+## iotop:
+  top processes using I\O, uses ThreadID instead of PID
+  main Thread ID is the PID, other threads will increment the TID  
+  > _Requires SUDO or Root_
+
+  Use Case 1 Example:
+  ```
+  # Show for a User, use PID, show accumulated I/O
+  
+  iotop --user=dmitry -P -a
+  ```
+  Use Case 2 Example:
+  ```
+  # Filter by User, show PID, show timestamp, be quiet, update every 5 seconds, only show ones using IO, accumulate IO usage
+
+  iotop --user=dmitry -P -t -qqq -d5 -o -a
+  ```
+
+  __COLUMNS:__
+  - TID - thread ID
+  - PRIO - priority, has 3 `scheduling classes`:
+    - `be/n` - Best Effort/priority - most processes are of this scheduling class - Kernel will try to evenly proiritize it with others `be`.
+    - `rt/n` - Real Time - Kernel will schedule I\O first for this class
+    - `idle` - Idle processes are served when nothing other waits, has no priority
+    - Priority is higher with lesser `n` i.e. `be/4` is scheduled _after_ `be/3`
+  - USER - username of process owner  
+
+  __Params:__
+  - -o/--only - only show processes doing IO
+  - -u USER/--user=USER - processes for the user
+  - -P/--processes - show Processes(PID) instead of Threads(TID)
+  - -a/--accumulated - accumulated IO
+  - -b/--batch - non-interactive, good for Logging
+  - -t/--time - adds timestamps, implies `--batch`
+  - -q/--quiet - decreases headers and summary (-qq\-qqq), implies `--batch`
+  - -d SEC/--delay SEC - custom delay(default is 1)
+  
+## ionice:
+  change priority (i.e. `be/4`) of a process or thread in context of I/O resources usage
+  > not usually used, probably let it be as is (same as of `nice` thing for processes and CPU)
+
+## pidstat:
+  shows good statistics about Processes
+
+  Use Case Example:
+  ```
+  # Show info for PID 5769 every second
+  pidstat -p 5769 1
+  ```
+  Use Case Example:
+  ```
+  # Show human readable Memory usage for current user for top 5(8-3) processes 
+  pidstat -U $(whoami) --human -r | (head -3; sort -h -r -k 8) | head -8
+  ```
+
+  __Modes:__
+  Could operate in different modes:
+  - Memory: `-r`
+    - `VSZ` - virtual memory (swap or mem+swap ?)
+    - `RSS` - residental set size - RAM used
+  - Disk: `-d`
+    - `kB_ccwr/s` - cancelled, by task(process), writting to disk
+  - CPU: `-u` - default mode
+    - `%user` - user space processes
+    - `%system` - kernel processes
+    - `%guest` - used by Guest(virtual machine on the Host)
+  - __and bunch of others, check `man pidstat`__
+
+  __Params:__
+  - `-C comm` - show only matched by 'comm' string, supports regex
+  - `--human` - human-readable sizes
+  - `-p PID,PID | SELF | ALL` - ALL is default - shows everything
+  - `-r` - memory pages statistics - maj\min faults, overall utilization
+  - `-T TASK | CHILD | ALL` - show individual process | it's children too | everything - tasks and children
+  - `-t` - show Processes'(tasks) Threads info too
+  - `-U USER` - filters processes of the User given, show Username instead of UID
+
+
+## top: htop:
   gives a list of processes and resources used by the OS
+  - p <PID> - List only few processes:
+  ```
+  top -p 10959 -p 10652 
+  ```
   Process could has a priority:
    20 - is the LOWEST priority
    -20 - is the HIGHEST priority
   PID number 1 is always 'init' command or 'systemd' in my case on ubuntu 16 and
   centos 7
+ 
+
+## uptime:
+  shows TimeNow, kernel uptime and [Load Averages](#load-averages) of 1, 5 and 15 minutes accordingly
+  Example:
+  ```
+ $ uptime
+ 19:01:52 up 17 min,  1 user,  load average: 1.49, 1.72, 1.26
+  ```
+  where:  
+  - current time is 19:01:52
+  - system is up for 17 minutes
+  - 1 user is logged in
+  - for last 1 minute 1.49 Processes were running (Occupying 1 Core and 46% of 2nd Core)
+  - for last 5 minutes 1.72 processes were running
+  - for last 15 minutes 1.26 processes were running
+
+## lscpu:
+  info about CPU
+  Calculate number or CPU threads:
+  `lscpu`
+  `Thread(s) per core` * `Core(s) per socket` * `Socket(s)`
+  Example:
+  ```
+  lscpu
+  ...
+  Thread(s) per core:  1
+  Core(s) per socket:  4
+  Socket(s):           1
+  ...
+  ```
+  1 * 4 * 1 = 4 CPU Threads are available
+
 
 ## glances:
  https://opensource.com/article/19/11/monitoring-linux-glances?sc_cid=70160000001273HAAQ
@@ -2394,12 +3100,33 @@ looks like glances can also setup a "web interface" to view.. as well as monitor
   and PPID which is Parent Process ID, so every process has parent, except PID 1  it seems
 
 ## strace:
-  shows trace of used files byt the given command - magic eh?
+  Trace systemcalls made by a command or a process(daemons too)
+  Starts after fork() systemcall is done.
    Example:
+  ```
+  strace cat /dev/null
+  ```
+  -o <file_name> - logs action of any child process that command(i.e. crummyd daemon) spawns into `file_name.pid` where `pid` is PID of child process  
+   Example:  
+  ```
+  strace -o crummyd_strace -ff crummyd
+  ```
+  Could shows trace of used files by the given command
+   Example:
+   ```
   strace -s 2000 hostnamectl |& grep ^open | tail -5
+  ```
    will return files directly opened by 'hostnamectl' tool
    still it could iteract with other services which could read from files, and this is not 
    seen here, alas.
+  
+## ltrace:
+  trace calls to Shared Libraries. Output similar to `strace`.  
+  Does not track anything on Kernel level - does it matter to me?
+  Example:
+  ```
+  ltrace cat /dev/null
+  ```
 
 ## watch:
   cool debug tool again:
@@ -2409,38 +3136,87 @@ looks like glances can also setup a "web interface" to view.. as well as monitor
   #execute 'hostnamectl' and new entry will be added 
   > root     11003     1  0 02:51 ?        00:00:00 /lib/systemd/systemd-hostnamed
 
-## ps:
-  by default returns processes run by my current user and current terminal 
-  session
-  ps [-[-]]<params> 
-	   UNIX standards - -<params>
-	   BSD standards - <params>
-	   GNU standards - --<params>
-	params could be mixed, but conflicts could appear
-   a - list all processes that has terminal attached: ps a
-   x - list all processes owned my you(same EUID as ps)
-   ax - list all processes(less columns)
-   u - user oriented format
-   p <pidlist> (-p, --pid)- select process by id (or just PID, == --pid <PID>)
-   -C <cmdlist> - select by command name(COMMAND column)
-   t <ttylist> - select by tty
-   U, -U, -u, --user - selects by user name or EUID(RUID for -U), different 
-		selections by user , will output different stuff
-   -j - jobs format
-   j - job control format
-   -H - hierarhy(tree\forest format)
-   l - long format
-   -l long format , -y good with this
-   -f - full format listing
-   f - ASCII art process hierarchy (forest)
-   o, -o, --format - change columns format
-  	i.e. ps -o pid,ruser=RealUser -o comm=Command - wil return 3 columns
-		named PID, RealUser and Command, with values of standard colmns
+## pstree:
+lists tree of all the processes, squashes same sub-processes
+Example:
+```
+pstree -l 2499
+```
+ - -p - display process PIDs
 
-  ps aux - returns all processes run by all users from all terminals
-	    if user does not exist 'x' in case of UNIX format it could treat it
-	    in BSD format
-  ps axjf - formatted method of processes with parents in tree view
+
+## ps:
+  by default returns processes run by my current user and current terminal session  
+  Use Case 1 Example:
+  ```
+  #Return 'java' processes and show header of `ps` using subshell (or { head -1; grep 'java'; } also works using Groups)
+  ps aux | (head -1; grep 'java';)
+  ```
+
+  ```
+  ps [-[-]]<params>   
+	   UNIX standards - -<params>  
+	   BSD standards - <params>  
+	   GNU standards - --<params>  
+  ```
+params could be mixed, but conflicts could appear  
+  a - list all processes that has terminal attached: ps a  
+  x - list all processes owned my you(same EUID as ps)  
+  ax - list all processes(less columns)  
+  u - user oriented format  
+  p <pidlist> (-p, --pid)- select process by id (or just PID, == --pid <PID>)  
+  -C <cmdlist> - select by command name(COMMAND column)  
+  t <ttylist> - select by tty  
+  U, -U, -u, --user - selects by user name or EUID(RUID for -U), different selections by user , will output different stuff  
+  -j - jobs format  
+  j - job control format  
+  -H - hierarhy(tree\forest format)  
+  l - long format  
+  -l long format , -y good with this  
+  -f - full format listing  
+  f - ASCII art process hierarchy (forest)  
+  o, -o, --format - change columns format  
+  Example:  
+  `ps -o pid,ruser=RealUser -o comm=Command` - wil return 3 columns
+  named PID, RealUser and Command, with values of standard colmns  
+  `ps m -o pid,tid,command` - show threads , display PID, TID and command
+
+`ps aux` - returns all processes run by all users from all terminals
+    if user does not exist 'x' in case of UNIX format it could treat it
+    in BSD format
+`ps axjf` - formatted method of processes with parents in tree view
+
+Example:
+```
+ps -eo pid,euser,ruser,comm
+```
+will show effective user(`euid`) and real user(`ruid`) and command executed
+
+## setuid: setgid:
+  executable bit from permissions set:  
+  The `setuid` bit has no effect on directories. 
+  `rwx` but for `x` it would be `s` in owner permissions  
+  `setuid` - SETs User ID
+  `setgid` - SETs Group ID
+  Runs program with permissions of the owner but not executor.  
+  `EUID` - effective user ID - id of Executable file Owner  
+  `RUID` - real user ID - id of User who executed the Executable file
+
+  But better to have them all the same (default behavior of `sudo`) - `EUID` usually set to all others `IDs`  (or `RUID` if setuid file owned not by `root` user) 
+  To change the behavior add following into `/etc/sudoers` file:
+  ```
+  Defaults    stay_setuid
+  ```
+  Setup setuid:
+  ```
+  root@host [~]# touch myfile
+  root@host [~]# chmod u+s myfile 
+## capital `S` because no Executable(x) permissions for owner
+##-rwSrw-r-- 1 test test 0 Mar 2 17:59 myfile
+root@host [~]#  chmod u+x myfile 
+## now it is as expected - lowercase `s`
+##-rwsrw-r-- 1 test test 0 Mar 2 17:59 myfile
+  ```
 
 ## pgrep:
   process grep , could find process id (PID) by process name, like
@@ -2491,7 +3267,10 @@ nice: renice:
   nice -n 20 /bin/bash - will start New(-n) process from /bin/bash binary, with
    priority of 20(the lowest one)
    
-=====Service controllers
+=====Init
+
+The Tragedy of systemd (Jan 24, 2019; linux.conf.au) - 
+https://www.youtube.com/watch?v=o_AIw9bGogo
 
 
 sysvinit, systemd, upstart
@@ -2565,12 +3344,36 @@ configure units(services)
   cli for systemd service controller
   it is called by 'service' command for backwards and cross compatibility reasons
 
+### list-units:
+  list of active units on the system  
+  Default command of Systemctl
+
+### reload:
+### daemon-reload:
+  NOTE: Need to be called if Unit configuration has been changed during Runtime
+  Reolads either 1 unit if passed to `reload`  
+  or all of the units if `daemon-reload` is called (it is paremeterless)  
+   Example:  
+  ```
+  systemctl reload NetworkManager.service  # reloads only Network Manager unit
+  systemctl daemon-reload # reloads all the services
+  ```
+
+### list-jobs:
+  lists jobs (Jobs is different kind of units)
+
 ## journalctl:
   displays logs
    Params
   -u - show logs for Unit
    Example:
+  ```
   sudo journalctl -u sshd.service
+  ```
+    OR:
+  ```
+  journalctl _SYSTEMD_UNIT=NetworkManager.service
+  ```
 
 ## hostnamectl:
   cli of systemd service controller related to hostname changes and management
@@ -2616,7 +3419,18 @@ configure units(services)
   dpackage - debian packages manager, fully console, installs only package
   -i - install a package
      only package , no dependencies - generate error with dependencies required
-  -l - list of all installed packages(use grep for specific packages)
+  -l - list of all installed packages(use grep for specific packages)  
+    First 3 lines of output descripes first 3 +++ on every line , like `ii` or `rc`
+    [Interpret Status](https://linuxprograms.wordpress.com/2010/05/11/status-dpkg-list/):  
+    - ii - Desired state: Installed; Status state: Installed
+      - which means successfully installed
+    - rc - Desired state: Remove; Status state: Cfg-files
+      - which means package marked for deletion and only config files are left after uninstall
+    Remove packages marked for removal:
+    ```
+    dpkg --list |grep "^rc" | cut -d " " -f 3 | xargs sudo dpkg --purge
+    ```
+
   -L <package> - list of all the files that were created during package 
 		 installation
   -S <filename> - similar to 'yum provides' but only for Installed packages
@@ -2633,17 +3447,15 @@ configure units(services)
   g or u - install selected package
 
 ## apt-get: apt:
-  stands for Advanced Package Tool
-   apt is merge of apt-get and apt-cache, for easier use, has not all functions
-   but also has some additional functions
-  main apt tool used to install or download packages
-  reads dependencies, and could install all of them
-  apt-get update - reads all the repos and updates the local packages cache
-  apt-get install - installs package(s), list delimited by space
-       or install <package-2.3.5-3ubuntu1> - installs particular version if
-		    it is compatible with distro and stuff   
-       install -f - will install .deb package with its dependencies
-		    Fix Broken Dependencies:
+  stands for Advanced Package Tool  
+   `apt` is merge of `apt-get` and `apt-cache`, for easier use, has not all functions  but also has some additional functions main apt tool used to install or download packages reads dependencies, and could install all of them  
+  `apt-get update` - reads all the repos and updates the local packages cache  
+  Update single package with `install` if it is already installed of older version  
+  `apt-get install` - installs package(s), list delimited by space
+       or `install <package-2.3.5-3ubuntu1>` - installs particular version if  
+		    it is compatible with distro and stuff     
+       install -f - will install .deb package with its dependencies  
+		    __Fix Broken Dependencies:__  
 			https://unix.stackexchange.com/questions/159094/how-to-install-a-deb-file-by-dpkg-i-or-by-apt
   apt-get upgrade - made after Update, upgrades all the packages installed to
 		    latest updates
@@ -3042,6 +3854,9 @@ second 3 - user's group permissions
   i.e.
   chmod a+rwx <filename> - give all the permissions of read/write/execute
 
+  _Setuid_: see [setuid](#setuid:-setgid:)
+
+
   binary mode:
   4 - read
   2 - write
@@ -3073,26 +3888,67 @@ second 3 - user's group permissions
   i.e. 
   chattr +u file1 - adds undeletable attr to file1
 
-# IPTables / Linux kernel Firewall(not d)
+# IPTables / Linux kernel Firewall(not d) 
  read more:
  https://www.unixmen.com/iptables-vs-firewalld/
  https://linuxacademy.com/cp/socialize/index/type/community_post/id/15473
 
-!!!!!!!!!!!!!!!!
-!!  WHen using SSH configure SSH rules first BEFORE changing 
-!!    the policies of the chains in the Filter table. 
-!!  !!    TO DO NOT LOCK MYSELF OUT OF THE MACHINE  !!  !!   !!   !!
-!!  CentOS 7 applies the rules right after entering the command
-!!  even if Service IS stopped.
-!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!  
+!!  WHen using SSH configure SSH rules first BEFORE changing   
+!!    the policies of the chains in the Filter table.   
+!!  !!    TO DO NOT LOCK MYSELF OUT OF THE MACHINE  !!  !!   !!   !!  
+!!  CentOS 7 applies the rules right after entering the command  
+!!  even if Service IS stopped.  
+!!!!!!!!!!!!!!!  
 
-///Iptables is a tool to work with Netilter Framework, kind of firewall
-/There are different services on different Linux distributions such as:
-Ubuntu - ufw(Uncomplicated Firewall) service for Ubuntu, which uses IPtables
-Centos7 - firewalld - firewall daemon which uses iptables
-generic? - iptables-services - firewall service that uses iptables, generic 
-	   it seems
+__Iptables is a tool to work with Netilter Framework, kind of firewall__
+/There are different services on different Linux distributions such as:  
+- Ubuntu - ufw(Uncomplicated Firewall) service for Ubuntu, which uses IPtables  
+- Centos7 - firewalld - firewall daemon which uses iptables  
+- generic? - iptables-services - firewall service that uses iptables, generic it seems
 
+## Packet Flow:
+[VIDEO: iptables: Packet Processing](https://www.youtube.com/watch?v=yE82upHCxfU)  
+Expose Docker port w/o `-p` using only Iptables chains in tables - PREROUTING\FORWARD chains: 
+[VIDEO: How Linux processes your network packet - Elazar Leibovich](https://www.youtube.com/watch?v=3Ij0aZRsw9w&t=2s)  
+Packet from Network arrives (__INGRESS__):
+- __PREROUTING__ - DO stuff _before_ checking whether to Route the package:
+  - __raw__ table - check whether to _bypass_ the firewall
+  - __mangle__ table - makes changes to packet (mangles it) [what is mangle](https://serverfault.com/questions/467756/what-is-the-mangle-table-in-iptables)
+  - __nat__ table - implement Network Address Translation
+- __INPUT__ \ __FORWARD__ - IS this host the destination?
+  - __INPUT__: 
+    - __mangle__ - again mangle packet headers
+    - __filter__ - main Table where actuall Firewalling usually occurs
+    - __security__ - Mandatory Access Control(MAC) implemented here(SELinux and stuff)
+    - When done packet is passed to `Network Socket`(TCP Port) of the Host application
+  - __FORWARD__:
+    - __mangle__  - arcane stuff with a packet
+    - __filter__ - check conditions on whether to keep forward
+    - __security__ - Mandatory Access Control
+    - Is packet still forwardable?(is there anything listening for it?)
+      - NO: apply some actions (Default: __DROP__)
+      - YES: 
+        - __POSTROUTING__:
+          - __mangle__ - mangle stuff here when packet is Forwarded
+          - __nat__ - apply NAT rules such as 'destination' IP\PORT change
+          - Packet is sent to DataLink layer and to destination Network Interface
+Packet generated by Local process(__EGRESS__ \ __OUTBOUND__):  
+- __OUTPUT__ Chain processing:
+  - __raw__ table - check whether to bypass FW
+  - __mangle__ table 
+  - __filter__ table - actual work is here usually
+  - __security__ table
+  - Is packet still routable?
+    - NO: drop the packet
+    - YES: 
+      - __POSTROUTING__:
+        - __mangle__ table
+        - __nat__ table
+        - The packet is set to Data Link Layer of Outbound interface
+
+__Linux Netfilter Packets Flow:__  
+![Linux Netfilter Packets Flow](img/iptables-inbound-outbound-packets-flow.jpg)
 
 ## Main three groups or something
 ### Tables:
@@ -3109,35 +3965,35 @@ generic? - iptables-services - firewall service that uses iptables, generic
  -t\--table - parameter to specify a table
 
 ### Chains:
- Tables contain set of chains.
- Chains group rules on different points of process.
- Chains could be Built-in or User defined.
-  INPUT - Filter. input packets
-  OUTPUT - Filter output packets
-  FORWARD - Filter. going through packets
- -N\--new-chain - adds user defined chain
- -X (--delete-chain) - delete chain
+ Tables contain set of chains.  
+ Chains group rules on different points of process.  
+ Chains could be Built-in or User defined.  
+ -  INPUT - Filter. input packets
+ -  OUTPUT - Filter output packets
+ -  FORWARD - Filter. going through packets
+ - -N\--new-chain - adds user defined chain
+ - -X (--delete-chain) - delete chain
 
 ### Rules:
- Defined as a set of matches and a target. 
- Are listed in chains and followed by order until a match is found, then packet
- is handled by the target specified by the rule.
- -A (--append) - add new rule
- -D (--delete) - delete rule along with the chain in which is contained
- -L (--list) - list rules
- -S (--list-rules) - same list but in command format, as if the commands
+ Defined as a set of matches and a target.   
+ Are listed in chains and followed by order until a match is found, then packet  
+ is handled by the target specified by the rule.  
+ - -A (--append) - add new rule
+ - -D (--delete) - delete rule along with the chain in which is contained
+ - -L (--list) - list rules
+ - -S (--list-rules) - same list but in command format, as if the commands
 		     that were used to add rule is saved and displayed here
 
 
 ### Matches:
-   if match is true the packet will be processed by iptables.
-   Following matches exist(not full list):
-   -s (--source) - source of the packe(IP, hostname or network IP)
-   -d (--destination) - destination of the packet(IP, hostname or network IP)
-   -p (--protocol) - protocol(tcp/udp/all , all - default if none specified)
-   -i (--in-interface) - interface that receives(left side of ifconfig output)
-   -o (--out-interface) - output interface
-   ! - Not. Match everything that is not in the match.
+   if match is true the packet will be processed by iptables.  
+   Following matches exist(not full list):  
+   - -s (--source) - source of the packe(IP, hostname or network IP)
+   - -d (--destination) - destination of the packet(IP, hostname or network IP)
+   - -p (--protocol) - protocol(tcp/udp/all , all - default if none specified)
+   - -i (--in-interface) - interface that receives(left side of ifconfig output)
+   - -o (--out-interface) - output interface
+   - ! - Not. Match everything that is not in the match.
 
   Protocols has also its own matches, like 
    --dport - destination port(22 for ssh) is match for TCP protocol
@@ -3151,34 +4007,45 @@ generic? - iptables-services - firewall service that uses iptables, generic
 	Default TARGET(Default policy) will be applied.
 
 ### Targets:
-  Determines the action to be taken if packet is Matched.
-  -j (--jump) - specify Target
-  There are 4 built-in Targets:
-   ACCEPT - no checks , just accept packet
-   DROP - refuse packet, do not send a response(simply ignore it)
-   QUEUE - sends the packet to user space
-   RETURN - returns to previous chain, or handle by Chain policy(Default?)
+  Determines the action to be taken if packet is Matched.  
+  - -j (--jump) - specify Target
+  There are 4 built-in Targets:  
+   - ACCEPT - no checks , just accept packet
+   - DROP - refuse packet, do not send a response(simply ignore it)
+   - QUEUE - sends the packet to user space
+   - RETURN - returns to previous chain, or handle by Chain policy(Default?)
 
 ### Default Policies:
   When packet is not matched by any Rule on the Chain - it is handled by the
-  target specified in the policy of that chain.
+  target specified in the policy of that chain.  
   Two main approaches:
-   Accept everything by default, and add rules to refuse access
-   Refuse everything by default, and add rules for accept
-  -P (--policy) <chain> <target> - set default policy for a chain with target
+   - Accept everything by default, and add rules to refuse access
+   - Refuse everything by default, and add rules for accept
+  - -P (--policy) <chain> <target> - set default policy for a chain with target
 
 
 ## iptables:
-  a generic table structure for the definition of rulsets
-  basically ruleset of Linux kernel firewall
-  it is a tool to get daemon(service) install other app:
-   Centos - iptables-services
-   Ubuntu\Debian - ufw(probably goes with iptables pkg)
-   RHEL - iptables
+  a generic table structure for the definition of rulsets  
+  basically ruleset of Linux kernel firewall  
+  it is a tool to get daemon(service) install other app:   
+   __Centos__ - iptables-services(firewalld)  
+   __Ubuntu__ \ __Debian__ - ufw(probably goes with iptables pkg)  
+   __RHEL__ - iptables  
    
   
-  -L - list all rules currently installed on the system
-  -A <section> - ADD
+  - -L - list all rules currently installed on the system
+  - -A CHAIN_NAME - Append Rule at the end of Chain  
+    Example:  
+    `iptables -A INPUT -s 127.0.0.1 -j ACCEPT` - accept my own traffic to myself (throught loopback interface)
+    `iptables -A INPUT -p icmp -j ACCEPT` - append rule to INPUT Chain to accept ICMP traffic   
+    `iptables -A INPUT -p tcp '!' --syn -j ACCEPT` - append rule to INPUT Chain to ACCEPT all TCP protocol traccif which is NOT `SYN` packets (used to establish TCP connection) - so outside can't establish connection with me  
+    `iptables -A INPUT -p udp --source-port 53 -s 192.168.1.1 -j ACCEPT` - accept UDP traffic FROM 53 port (DNS) from Name Server 192.168.1.1  
+    `iptables -A INPUT -p tcp --source-port 22 -j ACCEPT` - accept TCP traffic TO port 22
+  - -I CHAIN_NAME N - Insert rule at the top, or at N line in Chain
+  - -D CHAIN_NAME N - Delete rule in Chain at N line
+  - -P CHAIN_NAME POLICY - set given `POLICY` to Chain  
+    Example:  
+    `iptables -P INPUT DROP` - drop everything by default(not matched by rules)
 
 Service uses loads default config file when starts, applying some 
 default rules, /etc/sysconfig/iptables for CentOS 7
@@ -3631,10 +4498,27 @@ server {
 	Server_name also use local network IP
 	ALso i commented default 'root' not sure if this necessary
 
+# DNS
+Domain Name Server - performs resolution of Hostnames into IP addresses.  
+Works on UDP protocol.  
+Belongs to Application Layer of TCP\IP stack model.   
+
+## Name Server cache
+Routers and other machines can intercept Name Server Requests and send back 'cache'. This is to decrease traffic.
+
+__Daemons:__
+- dnsmasq
+- nscd
+- BIND - standard UNIX Name server which could act as cache
 
 # Networking
+https://www.youtube.com/watch?v=PVOuff-p420 network troubleshooting and related videos on the channel
+https://www.youtube.com/watch?v=l0QGLMwR-lY Top 10 Linux Job Interview Questions
 
 ## Networking relies on configuration files:
+
+### ifcfg-rh:
+Main Network Manager plugin for Redhat-like systems  
 /etc/sysconfig/network-scripts/ifcfg-<interfase_name> - this file describes 
 	how network interface works, every interface has its own file.
 	Settings of the interface are stored in here
@@ -3652,11 +4536,66 @@ server {
 	NETWORKING=yes
 	HOSTNAME=centos7
 	GATEWAY=10.0.0.1
-/etc/resolv.conf - something like 'hosts' in Windows, it seems, store default DNS here
-	 Example:
-	nameserver 8.8.8.8   - default google's DNS
+
+### ifupdown:
+Main Network Manager plugin for Debian-like systems  
+
+`/etc/resolv.conf` - store default DNS here
+Also has list of domains(`search`) to look for when 'incomplete' hostname is used - i.e. 'seasc' from seasc.usa.int would work if 'usa.int' is in resolv.conf  
+If `127.0.0.1` is in resolv.conf it means that local machine has Name Server cache set up (see dnsmasq ) 
+	 Example:  
+  ```
+  search usa.int
+	nameserver 8.8.8.8
+  ```
  see this for details on resolving Networking issue on VMWare:
  https://superuser.com/questions/901672/centos-7-ping-8-8-8-8-connect-network-is-unreachable/901677
+
+`/etc/nsswitch.conf` - Name Server Switch.  
+- `hosts` - entry is for Hostnames resolution
+  - `files` is set first - to check /etc/hosts first
+  - `dns` is set afterwards to setup dns check (resolv.conf)
+
+## ping:
+uses `Internet Control Message Protocol (ICMP)` and `Domain Name Service (DNS)` system.  
+`ICMP` i.e. it's required to correct MTU (maximum transmission unit) from default 1500 if network requires less MTU. If `ICMP` is disable MTU adjustment need to be done manually through `iptables` __mangle__ table, [read more](https://serverfault.com/questions/467756/what-is-the-mangle-table-in-iptables):  
+```
+iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1452
+```
+
+ping sends `ICMP` echo packet(56 bytes) to a Host, asking it to return the echo packet. If remote Host gets echo and configured to return echo packets it will send it back to `ping` issuer, packet would be 56+8 bytes by default (`64`)
+
+Example:
+```
+$ ping 192.168.1.1
+PING 192.168.1.1 (192.168.1.1) 56(84) bytes of data.
+64 bytes from 192.168.1.1: icmp_seq=1 ttl=64 time=0.340 ms
+64 bytes from 192.168.1.1: icmp_seq=2 ttl=64 time=0.373 ms
+64 bytes from 192.168.1.1: icmp_seq=3 ttl=64 time=0.375 ms
+^C
+--- 192.168.1.1 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2050ms
+rtt min/avg/max/mdev = 0.340/0.362/0.375/0.027 ms
+```
+`icmp_seq` incremented sequence number (should numbered correctly, incorrect numberig is a sigh of bad connection - lost or slow )  
+`time` roundtrip time (from when packet leaves and until packet returns). `host unreachable` ICMP packet returned if can't reach the destinatino  
+`64` bytes are `56` sent and `56+8` returned
+
+## traceroute:
+also `ICMP` based(Windoes) or UDP(others) based, sends 1 or bunch of packets in parallel to every `hop` on the way to target host
+
+Could show Several IP addresses for 1 Hop -  if 2+ routers could server the path to next Hop.
+```
+ 7  google.cr-2.g50.kiev.volia.net (82.144.192.137)  7.522 ms  7.389 ms  7.354 ms
+ 8  108.170.248.130 (108.170.248.130)  17.181 ms 108.170.248.146 (108.170.248.146)  7.683 ms 108.170.248.130 (108.170.248.130)  9.053 ms
+```
+
+Use Case Example:
+```
+# send only 1 packet - kinda single-threaded, with 0.5 second delay
+# so less hops will ignore or filter out the packet
+traceroute -N 1 -z 0.5
+```
 
 ## tcptraceroute:
   traceroute to port 
@@ -3664,7 +4603,9 @@ server {
   sudo tcptraceroute teamcity.tideworks.com 443
 
 ## ip: 
-  link - creates network interface with name and type:
+  modern substitution for `ifconfig`, `route`, `arp` etc
+  ### ip link:
+  creates network interface with name and type:
 	also could be used if 'ifconfig' is absent
 	Example:
      ip link add br10 type bridge - will create network interface with 
@@ -3674,7 +4615,8 @@ server {
 	ip link set br10 up - will enable network interface br10
 
 
-  addr - manages ip addresses. 
+  ### ip addr:
+  manages ip addresses. 
 	in case 'ifconfig' is not available this comes handy
    add - adds gateway ip and subnet mask for device with a name
 	Example:
@@ -3692,17 +4634,51 @@ server {
 		bridge_stp off
 		bridge fd 0 		#frame 0
 
-## f5fpc:
- F5 Linux CLI (command line interface ) Edge Client Installer
- work machine: D:\devops\BigIP
- home machine: somewhere in 'vpn'
- Install:
- 1. chmod +x Install.sh
- 2. bash Install.sh
- Aliases:
- alias vpn-go="sudo f5fpc -s -t seapop.tideworks.com -u 'usa\twuser' -x"
- alias vpn-info="sudo f5fpc -i"
- alias vpn-stop="sudo f5fpc -o"
+  ### ip route:
+    substitution for `route`
+    shows Kernel IP routing table - where packet should go whether to Gateway or inside the subnet, or to other subnet
+
+
+## Routing work:
+when Kernel need to send traffic via Internet it goes into `Kernel Routing Table`  
+It matches the Subnet  Mask(Genmask) to the IP address of recepient  
+If IP Address matched by more than 1 Subnet Mask then the one with longer destination prefix - bigger CIDR, since CIDR is 0-32 bytes long, the bigger is the one matched
+Example:
+```
+  0.0.0.0         _gateway        0.0.0.0         UG    100    0        0 enp5s0
+  192.168.0.0      0.0.0.0         255.255.0.0     U     0      0        0 docker0
+  192.168.1.0     0.0.0.0         255.255.255.0   U     100    0        0 enp5s0
+```
+255.255.0.0 - is CIDR /16 and in binary it's sixteen bits `11111111 11111111`  
+255.255.255.0 - is CIDR /24 and in binary it's twentyfour bits `11111111 11111111 11111111`  
+
+### Default Gateway
+If Kernel need to send package to 192.168.1.15 both networks would be matched, but 192.168.1.0/24 has longer prefix(24 ones) than 192.168.0.0/16 which is only 16. so Traffic will go to __enp5s0__ network interface, which will be caufchg by `__gateway`
+
+>Default gateway is the address under `Gateway` column of `route -n`  output.
+All traffic _not matched_ by other `Routing Rules` in the `Kernel Routing Table` will go to the `Default Gateway`
+
+## route:
+  show and manipulate routing table
+   Example:
+  ```
+  $ route
+  Kernel IP routing table
+  Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+  default         _gateway        0.0.0.0         UG    100    0        0 enp5s0
+  link-local      0.0.0.0         255.255.0.0     U     1000   0        0 enp5s0
+  172.17.0.0      0.0.0.0         255.255.0.0     U     0      0        0 docker0
+  192.168.1.0     0.0.0.0         255.255.255.0   U     100    0        0 enp5s0
+  ```
+  `U` in Flags means __UP__  
+  `G` in Flags means __Gateway__  
+  __Params:__
+  - -n - show numerical instead of symbolic names
+  ```
+  Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+  0.0.0.0         192.168.1.1     0.0.0.0         UG    100    0        0 enp5s0
+  169.254.0.0     0.0.0.0         255.255.0.0     U     1000   0        0 enp5s0
+  ```
 
 
 ## Ports checks
@@ -3710,23 +4686,59 @@ server {
  https://www.cyberciti.biz/faq/how-do-i-find-out-what-ports-are-listeningopen-on-my-linuxfreebsd-server/
  https://www.maketecheasier.com/check-open-ports-linux/
 
+## /etc/services:
+local list of Well Known Ports on linux system  
+Online registry and List of ports, as well as Standartization document is located at iana.org, RFC6335
+
+## Ephemeral Ports
+## Dynamic Ports
+list of ports which are generated for 1 session and used by TCP protocol.  
+__Internet Assigned Numbers Authority(IANA):__  
+- 0-1023 - Well Known Ports (0 is reserved so from 1)
+  > Ports well known for all, to start Applicatoin or service listening on Well Known port `sudo` is required  
+- 1024-49151 - Registered Ports 
+  > List of ports that are used by custom software to work on
+- 49152-65535 - Ephemeral or Dynamic Ports
+  > Ports used by TCP protocol to establish the connection - Adopted by BSD, Windows
+
+__Linux Kernel:__
+- 1-1023 - only Superuser can start application to listen on those ports
+- 32768-60999 - Ephemeral or Dynamic ports
+  > Linux uses different set of Dynamic ports than IANA standard
+
 ## netstat:
-  find open ports
+  find open ports  
   Find port on machine:  https://www.tecmint.com/find-open-ports-in-linux/
-   Params:
-  -l / --listen - displays ports that are in LISTEN state (lots of)
-  -vatn - opened ports and established TCP connections
-   - v - ?
+  Use Case Example:
+  ```
+  # show opened ports - On which someone listening
+  netstat -tulpn
+  ```
+  Use Case Example:
+  ```
+  # Check ports 9211, 8685 opened on local machine for #tcp\udp for IPv4 and IPv6:
+   netstat -lntu | egrep "9211|8685"
+  ```
+  __Params:__
+  - -l / --listen - displays ports that are in LISTEN state (lots of)  
+  ```
+  # opened ports and established TCP connections 
+  netstat -vatn
+  ```
+   - v - verbose
    - a - All - show all sockets
    - t - TCP connections
    - u - UDP connections
-   - n - short DNS hostname. will display dns names/ports w/o it
+   - n - numbers instead of DNS hostnames. Does not try to resolve DNS
    - p - show related PID and Program Name
   Example:
-   netstat -vat - display used porta and established connections
-   sudo netstat -tulw - will display all ports for local machine
-  Check ports 9211, 8685 opened on local machine for tcp\udp for IPv4 and IPv6:
-   netstat -lntu | egrep "9211|8685"
+  ```
+   #display used porta and established connections
+   netstat -vat 
+   #will display all ports for local machine
+   sudo netstat -tulw 
+  ```
+  
 
 ## ss:
   netstat could be outdated on some systems, use it instead
@@ -3736,15 +4748,42 @@ server {
 ## netcat:
   check, send network packets, port monitor etc
 
+## fuser:
+ identify processes using files or sockets
+similar to lsof | grep /loced/file/path
+
+Example:  
+```
+sudo fuser -v /var/cache/debconf/config.dat
+```
+
+
+
 ## lsof:
+  List Opened Files, lots of them.
+  Use `sudo` or become 
+  Columns:
+  - __COMMAND__ - command name of for the process that holds the file
+  - __FD__ - Purpose of the file or File Descriptor  
+    >__File Descriptor__ - Number that Process uses together with the system libraries and kernel to identify and manipulate a file.
+  - __TYPE__ - Type of file REGular file, directory, socket etc.
+  - __DEVICE__ - Major and minor number of the device that holds the file
+  - __NODE__ - file's inode number
   also checks ports, could display processes that are using
-   port, and files used by the process
+   port, and files used by the process  
+
+  Example:  
+  ```
+  sudo lsof | grep /var/cache/debconf/config.dat
+  ```
 
    Params:
-  -i - displays processes and ports used, and connection
+  - /path/to/file - lists everyone who uses file or DIrectory
+  - -p <PID> - list open files for PID
+  - -i - displays processes and ports used, and connection
  	with friendly names
-   - 4 - ipv4
-   - tcp - display tcp (cant use 4 and tcp in the same time, it seems)
+    - 4 - ipv4
+    - tcp - display tcp (cant use 4 and tcp in the same time, it seems)
 
 ## telnet:
   check ports open
@@ -3789,6 +4828,9 @@ server {
    Example:
   noslookup $(hostname -I)   - dns entry if only 1 if
 
+## host:
+could resolve `hostname` into `IP` and sometimes other way around  
+IP>hostname resolution requires 'reverse lookup' set manually on DNS - wut da fock is that?
 
 # Security
 
@@ -4013,3 +5055,268 @@ yum groupinstall "GNOME Desktop" "Graphical Administration Tools"
 
 ## dos2unix:
   line ending converter
+
+
+# Kernel
+
+## Out Of Memory handling
+## Kernel OOM Killer
+## Linux OOM Killer
+
+https://www.kernel.org/doc/gorman/html/understand/understand016.html  
+https://lwn.net/Articles/317814/
+
+Flow:
+
+1. When Heap expanding (`brk()`)or memory is reallocated (`mremap()`) first System verifies that there is enough Memory available - `vm_enough_memory()` is called.  
+- `vm_enough_memory()` accepts param on number of memory Pages Required.  
+- Free pages; Cached pages; Various Swap pages are summed up and considered Available pages - `vm_enough_memory()` returns `true`
+- When Available pages are less than Pages Required function retuns `false` - so caller will know that there is no memory, and usually returns `-ENOMEM` which is [System Error](https://www-numi.fnal.gov/offline_software/srt_public_context/WebDocs/Errors/unix_system_errors.html)
+
+2. System tries to cleanup. GC probably is launched and old pages are being reclaimed.  
+If system is unable to free required Pages it calls `out_of_memory()`
+
+3. When called `out_of_memory()` it ensures that there is in fact no memory available.  
+It also makes various checks, all to ensure that memory potentially will not be available in near future.  
+At last stand it kills a process.  
+Following checks are made before look for a kill:  
+    - Is there enough swap space left (nr_swap_pages > 0) ? If yes, not OOM
+    - Has it been more than 5 seconds since the last failure? If yes, not OOM
+    - Have we failed within the last second? If no, not OOM
+    - If there hasn't been 10 failures at least in the last 5 seconds, we're not OOM
+    - Has a process been killed within the last 5 seconds? If yes, not OOM 
+
+4. `oom_kill()` is called to select process to kill  
+it calls `select_bad_process()` which calculates `badness` with `badness()` function:
+- Check amount of memory used (memory)
+- Checks how many CPU time it uses - cpu time in seconds (cpu_time)
+- Checks how long process lived - cpu time in minutes (life_lengh)  
+
+Simplified example of `badness`:  
+`badness = memory / (cpu_time * life_length)`
+It will try  **to select a process that is using a large amount of memory but is not that long lived.**
+
+>Processes which have been running a long time are unlikely to be the cause of memory shortage so this calculation is likely to select a process that uses a lot of memory but has not been running long. If the process is a root process or has CAP_SYS_ADMIN capabilities, the points are divided by four as it is assumed that root privilege processes are well behaved. Similarly, if it has CAP_SYS_RAWIO capabilities (access to raw devices) privileges, the points are further divided by 4 as it is undesirable to kill a process that has direct access to hardware.
+
+5. Killing the process  
+When task is selected(to be killed), list of processes is walked again to check who else shares same memory as selected process(task) - which means a thread(processes could be divided into threads): 
+   - If process(thread) is using RAWIO it receives `SIGTERM`to try gracefully release all raw input\output.  
+   - If process(thread) is not using RAWIO it receives `SIGKILL`.
+
+### find which process killed by Kernel OOM Killer
+
+https://stackoverflow.com/questions/624857/finding-which-process-was-killed-by-linux-oom-killer  
+grep -i 'killed process' /var/log/messages
+
+# cgroups
+control groups  
+limits and isolates accounts for resource usage (CPU, RAM, disk I/O, network etc.)
+
+Also controls Swapping of memory, which is , seems like, essential for docker capability to limit memory and CPU cores for container usage.
+
+## Add cgroups options:
+to allow `docker` use `--cpus` and `--memory` CGROUPS SWAPPING should be enabled. Otherwise docker will generate error:
+> docker run --cpus 1 -m 200m --rm -it busybox  
+WARNING: Your kernel does not support swap limit capabilities or the cgroup is not mounted. Memory limited without swap.
+
+=====================
+> NOTE: ALWAYS BACKUB `GRUB` file before editing  
+
+=====================  
+change `grub` configuration  
+```
+vim /etc/default/grub
+# add follosing into the variable:
+GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"
+
+# update grub
+sudo upgate-grub
+
+# restart the Docker Host:
+sudo reboot
+```
+
+now `docker` would work with CPU and Memory limitations. To check on host machine execute:
+```
+docker run --cpus 1 -m 200m --rm -it busybox   
+
+# to check CPU used by a limited by CPU or Memory container
+cat /sys/fs/cgroup/cpu/docker/534c...3a6/cpu.{shares,cfs_*}
+>1024    # cpu shares (default value)
+>100000  # cfs_period_us (100ms period length) - _us is Microseconds(aka ms)
+>100000  # cfs_quota_us (total CPU time consumable per cfs_period) - THIS IS AMOUNT OF CPU from --cpus
+
+
+# to check memory used
+cat /sys/fs/cgroup/memory/docker/534c...3a6/memory.limit_in_bytes 
+> 209715200
+
+```
+
+## LKM
+Loadable Kernel Modules  
+Could be FOSS or proprietary, 3rd party, or closed sources(pre-compiled) modules also exists.
+
+Linux Kernel is monolithic, but with loadable modules it could be totally changed w/o performing the reboot.
+
+Kernel Modules loads:  
+- devices (like drivers and stuff)
+- system calls (like API for stuff)
+- filesystems (fs support could be loaded at runtime)
+
+Live ISO CD disks could work because of the LKM - Kernel loads required stuff (drivers, syscalls and fs support) at runtime.
+
+### LKM and GRUB(Boot Loaders)
+`/boot/config` file contains list of modules to load or NOT load  
+Example:  
+`/boot/config-4.15.0-117-generic`
+
+### modprobe:
+loads and unloads Linux Kernel Modules
+
+## Memory Management
+Kernel manages memory, take care of it and keepin it clean
+
+### Types of memory:  
+- __Physical Memory__  
+is the RAM
+
+- __Swap__  
+parts of Hard Drive which are used as the Memory by Kernel. There are many various Swap stuff, like /dev/shm partition used by Oracle DB , which sould be same or above than SGA (which is sum of two other types of ORacle memory. i hate Oracle.)
+
+- __Virtual Memory__  
+Abstration. Virtual representation of real memory (RAM and\or Swap) given to a Process so it sees it as a real memory.  
+Similar to CPU units having some amount of own RAM to have Memory Table pointing to real memory to fool a Process that it owns whole Computer's RAM.
+
+
+## Kernel Network Stack
+it has 7 layers (not to be confused with 7 TCP\IP Network Layers):  
+- 1th is in _User Space_: Application layer (i.e. Web Browser)
+- 2-6th are in _Kernel Space_: System Call Interface
+- 2-6th are in _Kernel Space_: Protocol Agnostic Interface 
+- 2-6th are in _Kernel Space_: Network Protocol
+- 2-6th are in _Kernel Space_: Device Agnostic Interface
+- 2-6th are in _Kernel Space_: Device Driver
+- 7th: Physical Hardware (i.e. Physical Network Device)
+
+## Process management
+There are two types of processes around:  
+- Foreground Processes or Interactive Processes.  
+  processes started by a User connected to the System, which did not started automatically as some Service
+- Background Processes or Non-Interactive Processes.  
+  processes started by the System as a Service or something similar.  
+  such processes does not expect any User input.
+  usually started by Init system (i.e. systemd), User can control such processes via Init system configuration or [command line] interfaces
+
+Processes could have Parents and Children.  
+All the processes are the children(or anscestors) of process with ID `1`. which is usually an `init` process (except Docker, it is complicated there).
+
+### Process States
+- __Running__ - running or ready to be run
+- __Waiting__ - waiting for an Event or a Resource
+- __Stopped__ - usually stopped by SIGnal 
+- __Zombie__ - the process is Dead, but not completely (further research required)
+
+### Threads
+Processes could be divided to Threads.  
+Threads scheduled and run similar to processes by the Kernel. Threads has own ID - TID - Thread ID  
+ALl `Threads` inside of a single Process sharetheir system resources and memory
+Due to shared resources and memory inside the Process the Threads could work faster, it also faster to spawn new Thread when some new input or output stream appears than to spaws new Process.
+
+## Virtual FileSystem
+Consists of:
+- System Call Interface
+  - Virtual File System (VFS)  
+  abstract layer over the Physical device (i.e. Hard Drive)
+    - various filesystems support (ext4, ntfs u name it)
+  - Buffer Cache  
+  filesystem agnostic cache storage for data before it is written\read to-from disk
+- Device Drivers  
+  which are the Interface for particular Physical Device (since those are all has it's own interface unknown to Kernel until Driver comes to rescue)
+
+## System Call Interface
+Well defined and safe implementation to give access for User Space Processes to perform variety of tasks - such as work with storage and networking devices, CPI, Memory and all th eother stuff around
+Interface for POSIX Compliang and Linux Specific Applications to access Kernel functions
+
+# User Space
+
+## PAM
+__Pluggable Authentication Modules__  
+made by Sun Microsystems to extend Authentication and stuff  
+Configuration: `/etc/pam.d/` and `/etc/pam.conf`  
+Configurations consist of Rules (could `@include` other configs)  
+Rules in config files __stack__
+
+Example:
+```
+auth       required   pam_shells.so
+```
+- __Function Type__ - i.e. `auth` function that user app asks PAM to perform. _Global Goal_
+- __Control Argument__ - i.e. `required` controls what PAM does _after_ success or failure of the `Action` for current line
+- __Module__ - the module to run on the line
+
+### Function Types
+`Function Type` and `Module` forms the `Action`.
+Is a _high-end_ gol - what user application wants PAM to do.  
+Action is a specific step that PAM takes in order to reach that goal.  
+Function is executed first, than Action is made by PAM.
+
+PAM has 4 functions:
+- __auth__ - Auth the user (see if the user is who they say they are)
+- __account__ - check user acc status (i.e. is authorized to do something)
+- __session__ - perform something for current user's session only
+- __password__ - change password or other creds
+
+Module behavior could differ with different actions.  
+Example:  
+_pam_unix.so_ checks for password with __auth__ Function Type  
+_pam_unix.so_ sets password with __password__ Function Type  
+
+## Control Arguments
+Rules in configuration files stack, so all the rules in config file would run one-after-another.  
+Control Arguments decide _how_ the Rules run.
+
+### Simple Control Arguments
+
+3 major simple Control Arguments:
+- __sufficient__ - On __Success__ exits skipping other rules. On __Failure__ proceeds to other rules.
+- __requisite__ - On __Success__ proceeds to other rules. On __Failure__ exits skipping other rules.
+- __required__ - On __Success__ proceeds to other rules. On __Failure__ proceeds to other rules, but will return `FAIL` at the end anyway.
+
+Example:
+```
+# cheks if current shell is in /etc/shells, if not - fail anyway
+auth        required    pam_shells.so
+# checks if user is root - if yes exit immediately with success
+auth        sufficient  pam_rootok.so
+# include other files from /etc/pam.d directory
+@include common-auth
+@include common-account
+@include common-session
+```
+
+### Advanced Control Arguments
+there are some.
+
+## Modules
+Module stores the code which is getting executed according to `Function Type` specified.  
+
+List of known modules:
+- _pam_unix.so_ - checks(__auth__) or sets(__password__) password
+  - _nullok_ - return `success` if password is null
+  - _obscure_ - check if password to set is obscure enough(not simple, no tlike old passwors, etc)
+  - _sha512_ - algorythm to encrypt new password  
+  Example:
+    ```     
+    password  sufficient  pam_unix.so obscure sha512
+    ```
+- _pam_rootok.so_ - checks if user is `root`
+- _pam_shells.so_ - checks if current shell in `/etc/shells`
+- _pam_deny.so_ - always return `failure`
+
+Modules could take parameters.  
+Example:
+```
+# do not Fail if user password is null
+auth  sufficitnt  pam_unix.so nullok
+```

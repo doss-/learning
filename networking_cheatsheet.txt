@@ -22,6 +22,17 @@ Computer sends requests every time it uses a domain address (example.com).
 This happens every time domain name is used.  
 For any reason - web surfing, email, internet radio, API calls etc.
 
+### Simplex
+One way communication from `Sender` to `Receiver`  
+
+### Half-Duplex
+Two way communication from `Sender` to `Receiver`  
+But only __one at a time__
+
+### Full-Duplex
+Two way communication from `Sender` to `Receiver`  
+__At the same time__
+
 ### Steps: In depth look for query
 
 1. Local DNS cache. 
@@ -59,16 +70,20 @@ recursive servers save request result from Name Server in its cache for amount o
 
 A record is returned back to the original asking computer by the Recursive server, answer is stored in local cache, reads IP address and passes it to browser. Browser opens the connection to receive the website.
 
-# MAC addresses:
+# Physicall Addressing(MAC addresses):
 
 https://www.howtogeek.com/169540/what-exactly-is-a-mac-address-used-for/
 http://www.linfo.org/mac_address.html
 https://www.youtube.com/watch?v=V2SpN-OePzc
 
 MAC is the uniq address of Network Interface Card.  
+- 48 bit long
+- 12 hexadecimal characters long
+- first 6 are Manufacturer's uniq numbers given by IEEE (institute of electricity and engineers and another E..)
+- last 6 are NIC's uniq numbers
+- uniq 6 + 6 is to decrease the chance of having two same MAC addresses
 
 MAC is lowest level in networking, below IP protocil.  
-
 MAC is used to send network packages, it is located in package header.  
 
 NIC will accept only those packages whose header contains NIC's MAC(matches).  
@@ -77,7 +92,7 @@ Routing is done on IP level.
 
 With MAC packages only could go inside the same network, if need to go through the Router the IP need to be used, wrapping package with MAC address.
 
-##Steps:
+## Steps:
 
 WHen computer wants to send a packet he checks whether target IP is in the same network. seems like ARP is used here, allows to ask all the computers in network (via Broadcast MAC ff:ff:ff:ff...) who has the IP address, only the computer with the IP will answer.   
 Answer will also contain the MAC address. This MAC will be written in the package and sent to that IP address (next hop). Info will be cached (as in DNS resolvers, seems like)
@@ -87,28 +102,279 @@ If IP is out of network, router receives the package with router's MAC in header
 Router receives packets for its own MAC, and for different(not router's) IP.  
 Then checks whether he can directly reach the target IP, if not - passes to another router(hop)
 
-# NAT  (Network Address Translation)
+# Network Protocol
+Network protocol `Internet Protocol`, second layer of socalled 'TCP/IP' stack. Or one of(which?) OSI networking model  
+Other Network protocols are:
+- IPX - Deprecated. Used by Novell back in 80s up till ~93 in `Netware` to communicate to other novell's machines, moved to `IP`
+- APPLETALK - Deprecated. Macintosh used this protocol to other macs until moved to `IP`
+- NETBIOS - IBM's and adopted by Windows network protocol, which is used for file-sharing
+
+## NAT  (Network Address Translation)
 
 http://www.internet-computer-security.com/Firewall/NAT.html
 
 There are only 32 bits of addresses or 4 billions in IPv4.  
 To workaround it NAT is created, it introduces Private IP addresses.  
 
+## IP Address
+Network protocol which allows computers on the Network to address each other.  
+Consists of 4 Octets - Oct == 8, which number of `bits` in each octet  
+```
+192.168.1.10 == 11000000.10101000.00000001.00001010
+NOTE: use 'bc' and 'obase=2; 192' to convert decimal to binary
+```
+
+### Logical Address and Host Address
+`IP Address` is paired with `Subnet Mask`.
+- __Logical Address__ is the similar to all hosts in the __Subnet__
+  - __Subnet mask__ determines the __Logical Address__
+- __Host Address__ is unique to each host  
+  - What is left after __Subnet Mask__ is the __Host Address__
+
+__Ranges:__
+0-255 but `0` is reserved for networks and `255` for broadcast; so:  
+1-254, which is 254 addresses (since it already includes 1)
+
+Example:  
+```
+IP: 192.168.1.10
+Subnet Mask: 255.255.255.0    <-- only last Octet could be for Host Address
+CIDR: 192.168.1.0/24         <-- CIDR Notation - 24 binary ones before the first 0
+Network Address: 192.168.1.0  <-- CIDR Network Address always ends on 0 (i.e. 192.168.0.0)
+[192.168.1] - Logical Address
+[.10] - Host Address          <-- there could be only 254 hosts on this subnet
+
+```
+
+`ARP`(`Address Resolution Protocol`) protocol used to get MAC for given IP address  
+
+
 ## Private IP addresses
 
-there are 3 classes:
+there are 3 classes of Network Masks: https://www.youtube.com/watch?v=WX5GaH5ootc&list=PLdFppKg4UodjGN8nAhojxWyncoEdwTfqf&index=8
 
-Class A: 10.0.0.0 - 10.255.255.255
+> Only Class A; B and C can be Divided into Sub Networks - Subnetted.
 
-Class B: 172.16.0.0 - 172.31.255.255
-
-Class C: 192.168.0.0 - 192.168.255.255 (or CIDR block [192.168.0.0/16](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks) )
+- __Class A:__  Mask: `255.0.0.0`; CIDR Notation: `/8`; 10.0.0.0/8; Range up to - 10.255.255.255
+  - First bit of First octet must be `0`. 
+  - so the decimal range of first Octet is between `0 to 126`:
+    - 0 is `00000000`, 126 is `01111110`; where as 127 is `01111111`... seemsdue to inability to use decimal `0` as first Octet?
+- __Loopback:__ Anything within 127.0.0.0 - 127.255.255.254 - i can ping it, it would reply.
+- __Class B:__ First Octet: 128-191;172.16.0.0 - 172.31.255.255
+  - First bit of First octet must be `1`
+  - so the decimal range of first octet is between `128 to 191`:
+    - 128 is `10000000`, 191 is `10111111`
+- __Class C:__ First Octet: 192-223; 192.168.0.0 - 192.168.255.255 (or CIDR block [192.168.0.0/16](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#IPv4_CIDR_blocks) )
+  - First bit of First octet myst be `11`
+  - so the decimal range of first octet is between `192 to 223`
+    - 192 is `11000000`, 223 is `11011111`, whereas 224 is `11100000`
+- __Class D:__  [Special] Multicast
+  - First octet: 224-239
+- __Class E:__  [Special] Experimental
+  - Fist octet: 240-255 - up to 255.255.255.254; Since 255.255.255.255 is Broadcast on All networks
+```
+#Calculate binary from decimal
+$ bc
+bc 1.07.1
+Copyright 1991-1994, 1997, 1998, 2000, 2004, 2006, 2008, 2012-2017 Free Software Foundation, Inc.
+This is free software with ABSOLUTELY NO WARRANTY.
+For details type `warranty'. 
+obase=2; 192
+11000000
+```
 
 Within the private network - behind the Router(hop) the IP addresses would be unique. In another private network those addresses also would be unique, but could be the same in two different private networks.  
 However as long as they stay private no conflicts appears.  
 
 Routers are the Gateways with real IP address purchased from the ISP (internet service provider). And this purchased address would be Public and unique.  
 Routers are the 'real' sources for other services in the internet, and those services would address their packets only to Router, and Router will then translate (using routing tables) and substitute info in the package to send it to original sender inside the private network.
+
+## Subnetting
+[VIDEO: Subnetting playlist](https://www.youtube.com/watch?v=BWZ-MHIhqjM&list=PLIFyRwBY_4bQUE4IB5c4VPRyDoLgOdExE&index=1)  
+Subnetting is dividing network into Subnetworks  
+
+> Not any Numbers in 4 Octets could be a Subnet Mask!
+Only ones that are consecutive ones:
+Correct subnet masks:
+- 11111111.11111111.11111110.00000000 - /23 - 255.255.254.0
+- 11111111.11111111.11000000.00000000 - /18 - 255.255.192.0
+- 11111111.11110000.00000000.00000000 - /12 - 255.240.0.0
+
+Any mask that have some 1 after any 0 is incorrect:
+- 11111111.11111111.11111110.00000100 - Incorrect
+- 11111111.11111111.11000100.00000000 - Incorrect
+- 11111111.11110100.00000000.00000001 - Incorrect
+
+__10.0.0.x__  
+
+> !!!NETWORKS CAN NOT BE PARTED IN SUBNETS OF DIFFERENT SIZE!!!
+It seems.  
+
+```
+_____  
+0     |  Net ID: 10.0.0.0
+.     |  
+.     |
+. /24 |
+.     |  SubnetMask: 255.255.255.128
+.     |  IPs: 128(effective 126)
+_____ |  Broadcast IP: 10.0.0.127
+______
+.     | Net ID: 10.0.0.128
+.     | 
+. /27 | SubnetMask: 255.255.255.224
+.     | IPs: 32 (effective 30)
+. ____| Broadcast IP: 10.0.0.159
+.
+. /27
+______
+.     | Net ID: 10.0.0.173
+.     |
+.     |
+. /26 |
+.     | SubnetMask: 255.255.255.191
+.     | IPs: 64 (effective 62)
+255___| Broadcast IP: 10.0.0.255
+
+```  
+
+
+### Seven attributes of subnetting:  
+- __Network ID__ - First IP Address of a Subnet
+  - Used to identify the Subnetwork 
+  - IP is reserved
+- __Broadcast IP__ - Last IP Address of a Subnet
+  - Used to Broadcast to all machines in this Subnetwork
+  - IP is reserved
+- __First Host IP__ - first usable IP from Subnet
+  - IP Address _AFTER_ Network ID 
+- __Last Host IP__ - last usable IP from Subnet
+  - IP Address _BEFORE_ Broadcast IP
+- __Next Network__ - Network ID of Next sub-network in current network (yeah..)
+  - IP Address _AFTER_ Broadcast IP
+- __Number of IPs__ -  number of IP Addresses in Subnetwork
+- __CIDR/Subnet__ - Range from which Number of IPs is calculated
+  - __10.0.0.128/27__ would be .128 -.159 range of IPs with First and Last Host IP .129 and .158. SUbnet mask would be __255.255.255.224__
+
+### Octet calculation:
+Octet is 8 bits, which are 0 or 1 - means Off and On
+```
+/25   /26   /27   /28 /29  /30 /31 /32 <--- CIDR
+
+
+128   64    32    16    8   4   2   1  <--- This is also Group Size
+i.e. 127.11.56.254 would be:    
+0     1     1     1     1   1   1   1  = 127 (64+32+16+8+4+2+1)  
+0     0     0     0     1   0   1   1  = 11 (8+2+1)  
+0     0     1     1     1   0   0   0  = 56 (32+16+8)
+1     1     1     1     1   1   1   0  = 254 (128+64+32+16+8+4+2)
+
+127.11.56.254 = 01111111.00001011.00111000.11111110
+
+```
+
+### CheatSheet:
+> CIDR - Classless Inter Domain Routing
+[Calc to train on cheatsheet](https://subnetipv4.com/)
+
+
+How to get Network ID and other Attributes from IP + SUbnetMask\CIDR
+
+Use __Octet Calculation__ from above.
+
+CIDR is bunch of CONSECUTIVE Turned On Bits - Ones (1)  
+IP is 32 bits long, so there are 32 CIDRs  
+Every valid Subnet mask possible could be converted into CIDR.  
+
+i.e. __176.46.117.174/28__
+
+1. Find in which Octet all 1s ending. I.e. in /28 Ones will end in 4th Octet.  
+WHich means that all Octets on the Left are from __Network ID__.  
+
+2. Write down the last Network ID Octet in Binary:  
+for /28 it would be 11111111.11111111.11111111.11110000 - `11110000 is Last octet`
+
+3. Write down the Decimal number from that Octet in Binary. All Bits from that Octet which are __turned on__ in Subnet Mask would be Network ID:  
+174     = `1 0 1 0 1 1 1 0`  
+Subnet  = `1 1 1 1 0 0 0 0`   - last 4 bits in the Octet are left for Host addresses; First 4 bits are for Subnet Mask  
+Net ID  = `1 0 1 0 0 0 0 0`  or 160 in Decimal since First 4 bits of Octet is for Subnet Mask  
+SInce first 4 Bits are enabled (1s) and first 4 bits of number 174 is 1010 in 10101110   
+
+__Network ID__ `176.46.117.160`
+
+4. Last 1 in Last Subnet Octet would be Group Size:  
+`11110000` last 1 is `10000` = `16` Decimal  
+__NUmber of IPs in SUbnetwork__ is `16`
+
+5. __Next Subnet__ is NetID + Group SIze  
+Nest SUbnet is `176.46.117.176`
+
+6. Broadcast IP is Next Subnet -1  
+BroadcastIP is `176.46.117.175`
+
+7. First Host IP is Network ID +1  
+`176.46.117.161`  
+
+8. Last Host IP is Broadcast IP -1  
+`176.46.117.174`
+
+9. SUbnet Mask is Decimal representation of CIDR:  
+/28 is 28 ones , so 8 ones + 8 ones + 8 ones + 4 ones 4 zeros  
+`11110000` is 240
+__Subnet Mask__ is `255.255.255.240`
+
+
+
+## VLAN
+[VIDEO: Native VLAN definitive illustration](https://www.youtube.com/watch?v=Fmq1E1Qr2W4)  
+[VIDEO: What is a VLAN?](https://youtu.be/oo-hejIq3iQ)
+[VIDEO: MicroNugget: VLANs Explained CBT Nuggets](https://www.youtube.com/watch?v=fRuBHSf3Hac)
+
+[VIDEO: IPv4 Addressing Lesson 1](https://www.youtube.com/watch?v=ddM9AcreVqY) <--- THIS IS IT
+
+[TEXT: VLAN and Native VLAN](https://www.practicalnetworking.net/stand-alone/vlans/)
+[TEXT: 4 functions of Switch](https://www.practicalnetworking.net/series/packet-traveling/host-to-host-through-a-switch/#switch-functions)
+- Learning - when Switch receivese Layer2 Frame it writes down Source MAC into Switcing Table next to Switch Port number(from which the Frame came)
+- Flooding - if Switch does not know where to send Frame it will send to all ports - Device received the Frame will answer, and Switch will `Learn` it
+- Forwarding - Switch uses what it `Learned` to forward Frames to its destination, probably will `Flood` if can't `Forward`
+  - Store And Forward - Frame is checked for erros, stored into Memory and sent - slowest but most reliable way. Due to modern high speed the Most Common method
+  - Cut-Through - dont check just send  - fastest and most unreliable
+  - Fragment Free - only 64 bytes of Frame is checked for erros, usually enough - mix of Speed and Reliability, good enough.
+- Filtering - do not send Frame back the sender's Switch Port. Usually when `Flooding` the Frame will go to all the Switch ports except the sender's one.
+
+Virtual Local Area Network  
+LAN but could contain machines from different switches, or some machines from a switch  
+
+__Ports:__
+- Access Port(Untagged Port) - port on Switch which belongs to ONLY 1 VLAN  
+  - Traffic leaves from those ports `Untagged`
+  - Traffic comes on such ports (from Access devices i.e. PC) and become `Tagged`
+  - does not scale well (10 vlans on 24 port switch would require 10 ports used to connect every VLAN to other switches )
+- Trunk Port - Switch Port that could belong to Many different VLANs
+  - scalable - 1 port to connect switches no matter how many VLANs are there 
+  - Traffic leaves from those ports With Tags (`Tagged`)
+  - Traffic comes on such ports (i.e. from other Switches) as already `Tagged`
+
+> see Frame captured in Wireshark of when:  
+- Frame arrives to Switch from Access Port from Source PC
+- Frame leaves the Switch through Trunk Port to Destination Trunk Switch
+- Frame arrives to Switch from Trunk Port of Destinatino Trunk Switch
+- Frame leaves the Switch fhrough Access Port to Source PC
+
+__Native VLAN:__  
+Default VLAN , usually ID 1. 
+The Native VLAN is the answer to how a switch processes traffic it receives on a Trunk port which does not contain a VLAN Tag.
+
+Without the tag, the switch will not know what VLAN the traffic belongs to, therefore the switch associates the untagged traffic with what is configured as the Native VLAN. Essentially, the Native VLAN is the VLAN that any received untagged traffic gets assigned to on a Trunk port.
+
+- Comes from Native Vlan into Trunk Port Switch - Native VLAN ID by default is 1, so all ports w/o VLANS goes to Native VLAN.
+- Leaves the Trunk Port  thowards other Switch - Sent w/o Tag, Destination Switch receives, looks into its Native VLAN default ID and sends traffick there. Should have Same Native VLAN ID  (i.t. also default 1) - IF VLANs ARE DIFFERENT TRAFFIC WILL BE SENT TO WRONG VLAN with Destination absent at all.
+
+`Access\Untagged Ports` for end-host devices connections (pc, printer etc).  
+`Trunk\Tagged Ports` for inter-switch connection.
+
+Most __end-host devices do not understand__ the concepts of VLANs. In fact, if they received __frames with a VLAN tag inserted__ in the middle of the Ethernet header, they are likely __to drop them__ under the assumption that they were malformed frames.
+
 
 ## NAT types:
 
@@ -285,3 +551,632 @@ Additionally to add 1 ir 0 times processing, time of message invisibility should
 
 
 
+# Wifi security
+Snorting - like sniffing but wireless
+
+## Encryption
+BY default data could be broadcasted into radio vawes unencrypted  
+- WEP
+   Downsides
+   - places part of the key in header unencrypted - could be snorted
+   - newer changes keys, so the key could be snorted and security compromised
+- WPA
+  - rotates keys
+  - does not puth parts of the key unencrypted
+
+## Disable DHCP
+
+W/o getting knowledge about:
+- IP Scheme (octets in network addr part of IP address)
+- Subnet Mask (size of host addr part of IP address)
+- Gateway address (which is x.x.x.1 only by default)
+
+## Change SSID
+name of the network - __SSID is required to connect to network in first place__  
+Default SSID could be easely known from Manufacturer open info
+
+## Disable SSID broadcasting
+SSID will not be shown to everyone, but need to be entered manually - if known  
+If it is changed - default will not work
+
+## MAC Address filtering
+allow access for only devices(NIC) which MAC is in the 'allowed' list
+
+## Change default credentials to WAP (wifi router)
+
+## Enable WAP firewall
+Wireless Access POint could prevent someone to getting from wireless network into wired network where WAP is connected as a gateway
+
+## Update WAP Firmware
+download if trom official website and install on the WIfi Router
+
+# OSI Model
+Open Systems Interconnection model  
+Videos:  
+[Video: Lection 'OSI and TCP IP Models - Best Explanation'](https://www.youtube.com/watch?v=3b_TAYtzuho)  
+[Video: F5 Networks 'OSI and TCP/IP Model Overview'](https://www.youtube.com/watch?v=i9RL5jD9cTI)  
+[Text: Cisco 'Troubleshooting TCP/IP'](https://www.cisco.com/en/US/docs/internetworking/troubleshooting/guide/tr1907.html)  
+[VIDE: Encapsulation](https://www.youtube.com/watch?v=g_-vbdv-wT4)
+
+
+7 layers of moving data from User viewabale state to Network transportable state and send it out - Encapsulating  
+getting data from network and presenting to the User in viewable state is called Decapsulating  
+
+| OSI  | TCP\IP  | Protocols Used | Addresses<br>Uniq ID | PDU  | Devices Used | Diagnose Tools  |
+|---|---|---|---|---|---|---|
+| Application   | Application     | DNS<br> BOOTP; DHCP<br> SMTP; POP; IMAP<br> HTTP; HTTPS<br> FTP; TFP|   | Data  | AppFirewall; SSL-VPN; Proxies; AppDeliveryControllers  |   |
+| Presentation  | ---             |   |   | ---  |   |   |
+| Session       | ---             |   |   | ---  |   |   |
+| Transport     | Transport       |TCP; UDP   | Port  | Segment  | LoadBalancers; NetworkFirewalls  |   |
+| Network       | Internetwork    | IP; NAT<br> ARP <br> ICMP<br> Routing: RIP; OSPF; EIGRP; BGP   | IP  | Packet  | Routers  | ping; traceroute  |
+| Data Link     | Network Access  | ARP; PPP; Ethernet<br> Interface Drivers | MAC  | Frame  | Switches; Bridges  |   |
+| Physical      | ---             |   | RJ45 etc.  | Bitstream  | Interfaces; Cables<br> Optical stuff<br> Antennas  |   |
+
+> All layers produce some units - `PDU`, but each layer call unit differently.  
+`PDU` - `Protocol Data Unit` - which is in __binary form__ - 000101010011  
+`PDU` could be huge on one layer, and then sliced in lesser `PDU` on another layer.
+
+Example: Network Layer produce a `Packet` which is broke down in several `Frames` on Data Link Layer, which are become some `Bitstream` in Physical Layer - and then those are _reassembled_ on the other side
+
+7.__Application__  
+
+6.__Presentation__  
+
+5.__Session__   
+
+----
+>__TCP/IP calls 7,6,5 layers as `Application` layer__  
+It produces `Protocol Data Units` or `PDU`  
+
+4.__Transport__  
+`Applications` make requests; `Services` receive them.  
+`Port addresses` are used to identify and distinguish __Applications__ and __Services__ one from another:  
+__Source__  and __Destination__  ports  
+All layers above (`Application`, `Presentation`, and `Session`) convert data to `PDU` (or vice versa - from `PDU`)  
+Each `PDU` has `Source` and `Destination` ports stamped on it  
+__Protocol Data Unit__ on TCP layer is called `Segment` (`Datagrams` for UDP) - because of:
+    - Security(chunk stolen is not readable)
+    - Performance(kinda can re-send those? dunno)
+    - Multiplexing(multythreading on 1 physical wire)  
+    ----
+    __Protocols:__
+    - __TCP__   -
+  Sacrifices TIME over Reliability - it ensures that Packet(`Segment`) get transferred and received by re-asking the receiver about it.
+    - __UDP__  -
+  goes fast (THIS IS WHY DNS USE IT CARL), but does not care whether it was received by another end.
+
+    __Ports:__
+    - 0-65535  - 0 is reserved
+    - 1-1023 - _well known_ ports (require `sudo` to run)
+    - 1024-40~~~ - 
+
+-----
+> __TCP/IP calls level 4 as `Transport` layer__  
+It produces `Segments` (or `Datagrams` for UDP)  
+
+3.__Network__    
+`PDU` on this Layer called `Packet`  
+ __IP addresses__ are used to identify one host from another  
+__Source__ and __Destination__ addresses are stamped on each Packet too.  
+  __Protocols__
+    - __IP__  
+
+-----
+> __TCP/IP calls level 3 as `Internet` layer__  
+It produces `Packets`  
+    
+
+2.__Data Link__  
+`PDU` on this Layer is called a `Frame`  
+`Frame` has __Header__ and __Trailer__
+
+    Uses `Ethernet` protocol.  
+    __Source__ and __Destination__ addresses are burned into the NIC.
+
+`Ethernet Type II Frame` structure:  
+Payload size could be up to 1500 bytes, whole `Frame` is from 64 up to 1518 bytes:
+- 14 bytes Header(service info of `Data Link` layer):
+  - Destination MAC address - 6 bytes (FF FF FF FF FF FF)
+  - Source MAC address - 6 bytes (FF FF FF FF FF FF)
+  - 802.1q tag - 4 bytes (32 bits)
+    - TPID Tag Protocol Identifier - 16 bits
+    - TCI Tag Control Information - 16 bits
+      - PCP Priority Control Point - 3 bits - 802.1p - traffic priority mark
+      - DEI Drop Eligible Identificator- 1 bit - marker to drop frames if load too high
+      - VDI `VLAN ID` - 12 bits 
+        - so max VLAN id is 4094 since first(hex: 0x000) and last(hex: 0xFFF) are reserved
+          - 0x000 - is a _Priority_ tag
+          - 0x001 - is Default VLAN ID (since Native VLAN by default)
+          - 0xFFF - reserved for implementation use (kind of wildcard match..)
+  - EtherType - 2 bytes (for IPv4: 08 00)
+- Payload (46-1500 bytes)  
+  This is incapsulated package of `Network`(Internetwork in TCP\IP) layer (ARP, IP, etc.)
+- CRC Checksum - 4 bytes (FF FF FF FF)
+
+1.__Physical__  
+This layer converts virtual stuff from all other layers above into a `real` stuff which person could Hear, Feel, Taste, Touch.  
+This layer converts `digital bits 10101001` into a `Signal` - eletricity, light etc.
+WiFi operates on 2.4 GHz frequency and could be heard (except human ear does not hear it - which is GOOD)
+    >Bunch of devices works on different frequencies of Sound, Light, Electricity etc.  
+    All those are the `Network Medium`    
+    Physical and Data Link layers negate the differences and bring it to a standard (since are using standards for different Network Mediums)
+
+-----
+> __TCP/IP calls level 2 and 1 as `Physical` or `Network Access` layer__  
+It produces `Frames` on `Data Link` layer 
+It produces `Bitstream` on `Physical` layer of OCI model
+
+# Cisco
+[TEXT: Сети для самых маленьких](https://habr.com/ru/post/136056/)
+
+
+## Cisco Packet Tracker:
+To download https://www.netacad.com/portal/node/488 use pass_cisco.com for auth
+
+
+## Command Prompt
+- `Router>` is regular user prompt  
+- `Router#` is privileged user prompt  
+  - use `enable` to get into this regime
+- `Router(config)#` is global configurationsl regime
+
+## Hot Keys:
+Same to `Terminal` navigation (ctrl+P - previous command, ctrl+A to line start, ctrl+K delete from cursor to end line)  
+- CTRL+C - exit current regime
+- CTRL+Z - apply current command end exite regime
+
+
+----------
+
+
+# Privilege Level
+`16` levels in total numbering 0-15  
+- `0` - basic level with commands which will work in any Mode
+  - `disable`, `enable`, `exit`, `help` and `logout`
+- `1` - Unprivileged user (`Router>` prompt)
+- `2-14` - custom and unconfigured levels
+- `15` - `root`-level permission level
+
+> The commands from particular custom `2-14` Priv Levels are added to the list of unprivileged (`1`) user commands
+
+
+## Configure Privilege levels
+
+ Assign default privilege level for line Virtual Terminal(`vty`) 0-4 Priv lvl of 15(`root`)
+```
+Router>enable
+Router#configure terminal 
+Router(config)#line vty 0 4
+Router(config-line)privilege level 15
+......
+Router#show running-config  | section level
+ privilege level 15
+```
+
+Create user with privilege level and create that privilege level:  
+```
+# Create user with 'pooruser' name , priv lvl2 and encrypted pass 'poorpass'
+Router(config)#username pooruser privilege 2 secret poorpass
+
+# Allow lvl2 priv execute 'show running-config' command
+#Router(config)#priv
+#Router(config)#privilege exe
+Router(config)#privilege exec level 2 show running-config
+
+# Enable encrypted password for Priv lvl2 'l2poorpass'
+#Router(config)#enabl
+#Router(config)#enable sec
+#Router(config)#enable secret lev
+Router(config)#enable secret level 2 l2poorpass
+```
+
+# Cisco Commands usecases:
+
+## Change Hostname:
+```
+Switch(config)#hostname msk-arbat-asw3
+```
+
+## Add description to Port:
+```
+msk-arbat-asw3(config)#interface FastEthernet 0/1
+msk-arbat-asw3(config-if)#description PTO
+```
+OR
+```
+msk-arbat-asw3(config)#interface range fastEthernet 0/6 — 10
+msk-arbat-asw3(config-if-range)#description FEO
+msk-arbat-asw3(config-if-range)#switchport mode access 
+msk-arbat-asw3(config-if-range)#switchport access vlan 102
+```
+
+## Set port as Access and add it to VLAN:
+```
+msk-arbat-asw3(config-if)#switchport mode access 
+msk-arbat-asw3(config-if)#switchport access vlan 101
+```
+
+## Create Virtual Interface with VLAN and IP address:
+to create use `interface vlan N` where N is VLAN (w/o `interface` VLAN will be created instead of the VInterface)  
+Used for:
+- The interface will be member of given VLAN
+- The interface could be Gateway (if L3-Switch is used only?)
+```
+msk-arbat-asw3(config)#interface vlan 2
+msk-arbat-asw3(config-if)#description Management
+msk-arbat-asw3(config-if)#ip address 172.16.1.5 255.255.255.0
+```
+
+
+## Create VLAN with Name:
+to create use `vlan N` where N is VLAN (using `interface` Virtual Interface will be created, see above)
+```
+msk-arbat-asw3(config)#vlan 101
+msk-arbat-asw3(config-vlan)#name PTO
+```
+
+## Set port as Trunk and pass VLANs through:
+> `switchport mode trunk` will allow ALL vlans through the Trunk port  
+`switchport trunk allowed vlan 101` will allow ONLY vlan 101 and will drop others!
+```
+msk-arbat-asw3(config)#interface GigabitEthernet 0/1
+msk-arbat-asw3(config-if)#description msk-arbat-dsw1
+msk-arbat-asw3(config-if)#switchport trunk allowed vlan 2,101-104
+msk-arbat-asw3(config-if)#switchport mode trunk
+# Port will got rebooted (down>up)
+```
+
+## Add VLANs to Trunk port:
+```
+msk-arbat-dsw1(config-if)#switchport trunk allowed vlan add 105
+```
+
+## Save:
+```
+Switch#copy running-config startup-config 
+```
+
+
+----------
+
+
+# Cisco Commands:
+All commands could be shortened until Short version is unique.  
+Example:  
+`sh run` - same to `show running-config`  
+`s run` - will error out due t ambiguous `s` due to `ssh` and `show`.
+
+
+## Filter output aka grep:
+add Pipe `|` after the command and add one of the filters:
+- begin - show all lines after the matched line
+- section - show only Sections with matched lines
+- include - show only lines with matched string
+- exclude - show all lines except ones with matched string  
+Example:  
+```
+Router#show r | include ip
+ip cef
+no ipv6 cef
+ no ip address
+ no ip address
+ no ip address
+ip classless
+ip flow-export version 9
+```
+
+## Enable interface
+> ALWAYS ENABLE PHYSICAL PORT
+
+``
+msk-arbat-gw1(config-if)#do show running-config | section 0/0
+interface FastEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ shutdown  <--------- THIS MEANS TURNED OFF
+
+msk-arbat-gw1(config-if)#no shutdown 
+``
+
+
+## ?:
+displays all commands available to current user
+
+## >enable:
+enables Privileged regime  
+
+## (config)# enable:
+sets password for `enable` command if used from remote session - `vty`  
+- `secret` - store encrypted password (unline `password` which is plain text)
+- `cisco` is a password
+Example:  
+```
+Router(config)#enable secret cisco
+```
+
+## #show:
+shows something, use `?` for options  
+Example:  
+`show ?` - will return list of available commands
+
+## #show running-config:
+shows whole Router configuration
+```
+show running config | secion FastEthernet 0/0
+```
+
+## #show ip route:
+[VIDEO: IP Routing Explained](https://www.youtube.com/watch?v=8qtKpZGoNdI)  
+[VIDEO: Routing Process](https://www.youtube.com/watch?v=C5YfkR8LGm0)
+shows routing table on the Router
+```
+show ip route
+```
+
+Narrow output for single network:
+```
+show ip route 172.16.17.0
+```
+Or single IP Address - next Hop is shown
+```
+msk-arbat-gw1#show ip route 172.16.17.20
+Routing entry for 172.16.16.0/21
+Known via "static", distance 1, metric 0
+  Routing Descriptor Blocks:
+  * 172.16.2.2
+      Route metric is 0, traffic share count is 1
+```
+
+## show ip interface brief:
+shows all the interfaces, their statuses and IP addresses assigned
+
+## show ip arp:
+shows router ARP table
+
+## ping:
+
+>Ping will NOT WORK between Networks if ANY from the two machines DOES NOT HAVE `Default Gateway` set.  
+Presumably `echo request` or `echo reply` will not be able to sent packet OUT of own network.
+
+Either regular ping, or Interactive ping `sender IP could be changed` To another IP on the router's Interfaces (other RJ-45 connected, or virtual Interfaces - either on that RF45s or VLANs?)
+```
+# Router has address '172.16.2.6` but uses 17.1 which is gateway on its other port. ALSO COULD BE DIFFERENT ADDRESS FROM BEHIND THE ROUTER
+spb-ozerki-gw1#ping
+Protocol [ip]:
+Target IP address: 172.16.3.1
+Repeat count [5]:
+Datagram size [100]:
+Timeout in seconds [2]:
+Extended commands [n]: y                   <---- Extended commands
+Source address or interface: 172.16.17.1   <---- NEW SOURCE ADDRESS
+Type of service [0]:
+Set DF bit in IP header? [no]:
+Validate reply data? [no]:
+Data pattern [0xABCD]:
+Loose, Strict, Record, Timestamp, Verbose[none]:
+Sweep range of sizes [n]:
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 172.16.3.1, timeout is 2 seconds:
+Packet sent with a source address of 172.16.17.1
+```
+
+
+## traceroute:
+regular traceroute with less params  
+see params with `?`  
+
+Escape sequence: `CTRL+SHIFT+6` - Interrupts traceroute(like if ctrl+c is not enough)
+
+> TO WORK WELL ROUTING MUST BE SET ON ALL ROUTERS  
+ROUTE MUST BE SET IN BOTH WAYS:  
+   so Echo requests will know where to go  
+   and Echo Replies will know where to go BACK  
+
+```
+traceroute 172.16.3.3
+```
+
+## #configure terminal:
+Available only in `Privileged` mode.  
+Some commands doesn't work, like `show running-config` or `ping`.  
+`do` adds the ability to use those.  
+Example:  
+```
+Router(config)#do show r | section ip
+ip cef
+no ipv6 cef
+ no ip address
+ no ip address
+ no ip address
+ip classless
+ip flow-export version 9
+```
+`no` inverts the command  
+Example:  
+```
+Router(config-if)#no shutdown 
+
+Router(config-if)#
+%LINK-5-CHANGED: Interface FastEthernet0/0, changed state to up
+```
+
+
+## interface:
+configuration of given interface  
+Example:  
+Configure FastEthernet 0/0 Port:  
+```
+Router(config)#interface fa0/0
+Router(config-if)#
+```
+
+## subinterface:
+ROUTER is VLAN Terminator - Frames going through VLAN will die here:
+- Frame comes to Router to get onto another Subnet
+- Frame headers are thrown away, IP Packet is taken
+- Dest IP is analized and Route decision is made from Routing table
+- New Frame is created with that IP Packet and sent into new Network
+- If SubInterface exists all particular VLAN traffic will go to and from it.
+- this way Tagged packages are moved through the routers and keep their VLAN
+Routers don't use Trunk ports, only Access ports.  
+TO GET TRAFFIC TAGGED use Sub-Interfaces:  
+```
+# create Subinterface `2` on physical interface FastEthernet 0/0
+msk-arbat-gw1(config)#interface FastEthernet 0/0.2
+msk-arbat-gw1(config-if)#description Management
+# Encapsulate Layer 3(IP) into Level 2(Frames) using 802.1q headers
+# mark VLAN ID as 2
+msk-arbat-gw1(config-if)#encapsulation dot1Q 2 
+# Set IP Address and mask for this SUB-Interface - it is Gateway for VLAN 2 now
+msk-arbat-gw1(config-if)#ip address 172.16.1.1 255.255.255.0
+```
+
+For Every VLAN separate SUB Interface need to be created.  
+For consistency SUB Interface number is equal to VLAN ID.  
+
+## shutdown:
+shuts interface down  
+Example:
+Enable interface:  
+```
+```
+
+## ip address:
+set IP address of the port geing configured (see `interface` above)
+```
+ip address 192.168.1.1 255.255.255.0
+```
+
+
+## ip routing:
+enable Routing (i.e. on L3-Switch)
+> on L3-Switches if Point-to-POint network is required (255.255.255.252 or cidr /4) the port connected to that network need to be in Routing mode - `no switchport`, and then be appointed with IP and /4 cidr.
+
+## #(config)ip route:
+
+Set Route into 172.16.16.0 Network with 255.255.255.0 Subnet Mask, through Hop(Router) with address 172.16.2.2 - which also should be routed(or Directly Connected - which is shown in `show ip route` command)
+```
+ip route 172.16.16.0 255.255.255.0 172.16.2.2
+```
+REMOVE Route:
+```
+enable
+configure terminal
+no ip route 172.16.16.0 255.255.255.0 172.16.2.2
+```
+
+### Gateway of last resort 
+### Default Gateway
+```
+ip route 0.0.0.0 0.0.0.0 172.16.2.1
+```
+WHere:
+- first 0.0.0.0 is Network ID
+- second 0.0.0.0 is Subnet Mask
+- 172.16.2.1 is where to route the traffic - to which Hop(Router)
+
+
+## line:
+sets up line connections? kind of..
+
+Sets up(Enable) Virtual Terminal for `telnet` and `ssh` connections:  
+- using `?` to get more help for command groups and command parameters
+- `0-4` - setup first 5 Virtual terminals
+- `password` sets plain password
+- `login` - does something important..
+```
+Router(config)#line ?
+  <2-499>  First Line number
+  aux      Auxiliary line
+  console  Primary terminal line
+  tty      Terminal controller
+  vty      Virtual terminal
+  x/y/z    Slot/Subslot/Port for Modems
+Router(config)#line v
+Router(config)#line vty ?
+  <0-15>  First Line number
+Router(config)#line vty 0 4
+Router(config-line)#
+Router(config-line)#password cisco
+Router(config-line)#login
+```
+
+Configure SSH connection with a Encrypted key:
+```
+# Change hostname on DIFFERENT FROM `Router` MUST HAVE FOR SECURITY:
+Router(config)#hostname R0
+
+# Something important
+R0(config)#ip domain-name cisco-dmn
+
+# Generate encryption key of RSA hashing, with bit-length of at least 768 to get SSHv2
+R0(config)# crypto key generate rsa
+The name for the keys will be: R0.cisco-dmn
+Choose the size of the key modulus in the range of 360 to 2048 for your
+  General Purpose Keys. Choosing a key modulus greater than 512 may take
+  a few minutes.
+How many bits in the modulus [512]: 768
+
+# Enable SSH for `vty` 0 4 line of connection
+R0(config)#line vty 0 4
+*Mar 1 0:14:39.551: %SSH-5-ENABLED: SSH 1.99 has been enabled
+#R0(config-line)#tran
+#R0(config-line)#transport inp
+
+# Allow only SSH remote connections 
+R0(config-line)#transport input ssh
+
+# SAVE CHANGES!
+# Exit into enabled priveleged mode
+R0(config-line)#exit
+R0(config)#exit
+
+# Write into memory
+R0#write memory 
+Building configuration...
+[OK]
+
+```
+
+
+## password:
+sets password
+
+## secret:
+sets secret, which is encrypted password:  
+```
+Router#show running-config | section enable
+enable secret 5 $1$mERr$hx5rVt7rPNoS4wqbXKX7m0
+```
+
+## login:
+TBD
+
+## username:
+Creates new Username;  With AAA model enabled, but no RADIUS server Auth, it will use local database.
+> NOTE: Local database is preffered over `vty` setup with `password` and `login` command. REQUIRE USERS CREATED   
+
+Example:  
+Enable AAA Model and Create user with plain password
+```
+Router#configure terminal 
+Enter configuration commands, one per line.  End with CNTL/Z.
+Router(config)#aaa new-model 
+Router(config)#username admin password 1234
+```
+Use secret encrypted password:  
+This is unsecure, better to use `secret`:
+```
+Router#show run | section username
+username admin password 0 1234
+...
+Router(config)#no username admin password 1234
+Router(config)#username admin secret 1234
+...
+Router#show running-config | section username
+username admin secret 5 $1$mERr$4dpRATIgxQacPVK0CfNV4/
+```
+
+## hostname:
+change Router's hostname - default is `Router`

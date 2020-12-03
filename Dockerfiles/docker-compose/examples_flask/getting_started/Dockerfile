@@ -1,6 +1,0 @@
-FROM python:3.4-alpine
-COPY . /code
-WORKDIR /code
-RUN pip install --requirement requirements.txt
-CMD ["python", "app.py"]
-

@@ -133,7 +133,7 @@ config:
   -l - list all params
   -e - open editor to edit config file (.git/config)
   --add - add key value pair: key value
-   Example:
+    Example:
    git config --global --add user.name doss-
    will add to Global config key 'user.name', with value 'doss-'
   --global / system / local - use different config file, locacl for repo
@@ -142,15 +142,19 @@ config:
   user.email - users email, these two fields are used to identify user
    in github
   core.editor - default editor to use
-   Example:
-  git config core.editor vim
+    Example:
+   git config core.editor vim
    will add vim for current repo as a 'vim' (full path from PATH prob)
   credential.helper - use credential manager, useful for HTTPS with login\pwd
-   Example:
-  git config --global credential.helper cache
+     Example:
+   git config --global credential.helper cache
    will use login\pass cached for few minutes, to not ask user everytime
   remote.pushDefault origin
    default push repository, set as origin
+  merge.conflictstyle diff3
+   default is 'merge'; accepts 'diff3', see 'checkout:'
+    Example:
+   $ git config --global merge.conflictstyle diff3
 
    Email setup: for
   format-patch:
@@ -364,8 +368,10 @@ reset:
     changes in Working Directory are destroyed
       Example:
      git reset --hard HEAD~
+      Example:
+      Abort Merge
+     git reset --hard HEAD
    Doesn't work with FilePATHs.
-  
 
   With files:
   1. --soft: skips HEAD move since HEAD is pointer to whole commit\refspec
@@ -441,6 +447,45 @@ gc:
 revert:
   creates new commit which will be added to the history
 	_after_ the commit to which user want to revert
+  -m to which parent of merge commit to revert
+   Revert Merge Commit:
+   revert to first parrent of merge commit
+     ```
+     git revert -m 1 HEAD
+     [master 2h1z6h] Revert "Merge Branch 'topic'" 
+    C2 -- C5 -- C6 -- M -- ^M  <--HEAD / master
+         \          /
+          C3 -- C4 <--topic
+     ```
+   Takes C6 commit and puts it in ^M, as if merge never happen.
+   EXCEPT: C3 and C4 will be in 'master', and consequental merge of 'topic'
+           would return 'Already up-to-date.'.
+           If commit more into 'topic'(C7) and merge branch then - only C7
+           would be visible in 'master'
+    Merge reverted branch:
+    ```
+     git checkout topic
+     vim Commit.txt
+     git add Commit.txt \ git commit -m 'This is C7'
+     git checkout master
+     git merge topic     # This is C8
+    C2 -- C5 -- C6 -- M -- ^M -- C8  <--HEAD / master
+         \          /           / 
+          C3 -- C4 -- C7 -------
+                 ^topic
+     ```
+    Unrevert aka Revert revert:
+    ```
+     git revert ^M
+    C2 -- C5 -- C6 -- M -- ^M  -- ^^M -- C8  <--HEAD / master
+         \          /                   / 
+          C3 -- C4 -- C7 ---------------
+                 ^topic
+     ```
+      M and ^M canceled out. ^^M merges in C3 and C4
+      C8 merges in C7. now 'topic' agan is fully merged into 'master'
+    
+
   Generally:
   DESIGNED FOR UNDO PUBLIC COMMITS
     Read More:
@@ -503,12 +548,14 @@ think i need to commit it first? weird
 
 diff:
   compares changed files with latest snapshot(commit)  
+  Also shows only conflicting merges. SInce merge adds merged files to Index
    Changes consist oh hunks:
     https://stackoverflow.com/questions/17995092/what-does-a-hunk-mean-in-relation-to-pushes-on-sourcetree/47431804
   By default compares Working Tree with Staging area
-  --staged - compares staged area to latest commit(snapshot)
-  --cached - same as --staged
-  --check - cheks whitespace issues
+  --staged  - compares staged area to latest commit(snapshot)
+  --cached  - same as --staged
+  --check  - cheks whitespace issues
+  -b  - ignore whitespace differences, at line end too
 
    Example:  
   git diff  
@@ -540,6 +587,33 @@ diff:
     git checkout topic-branch
     git diff master
      WILL LOOK LIKE ON MERGE WILL DELETE EVERYTHING UNIQ TO MASTER
+
+  Merge diff:
+   --ours  - display my changes left after merge conflict fix
+   --theirs  - display MERGE_HEAD (the branche i'm merging into) changes
+   --base  - sum of ours and theirs changes compared to merge-base commit
+
+  Combined diff:
+  After merge conflict 'diff' would show following:
+   It will show 2 columns one for OURS one for THEIRS
+    After conflict:
+    git diff
+      def hello           
+    ++<<<<<<< HEAD          #`++` means Neither in Theirs or Ours
+     + puts 'hola world'    #right column ` +` means in Ours
+    ++=======
+    +  puts 'hello mundo'    #left column `+ ` means in Theris
+    ++>>>>>>> mundo
+      end
+  After merge conflict RESOLVED diff would show following:
+   It shows same two columns, and 'merge-resolved' changes are ++
+   def hello
+   -  puts 'hola world'    # was ours (Note `-` in 1st column)
+    - puts 'hello mundo'   # was theirs (Note `-` in 2nd column)
+   ++ puts 'hola mundo'    # only in WD - resolved conflict
+   end
+  Same  output as above for log:
+   git log --cc --patch
 
 difftool:
   same as 'git diff' but executes External diff program
@@ -617,6 +691,13 @@ log:
     Example:
    git log --oneline --patch master..topic
     patch of commits that are not in master but present in topic branch
+   git log --oneline --patch --left-right --merge
+    show only diffs that resulted in merge conflict when merge unresolved
+  -c 
+   show Theirs and Ours in log output for Merge commits
+  --cc
+   show how conflict was resolved, could be combined with --patch
+   implies -c shows only hunks where conflicts were (edits)
   -N  - N - number of commits to show
    Example:
   -S <string>  - show commits only where <string> were changed
@@ -709,12 +790,18 @@ wolves in unrelated incidents on the same night.
              \       :
               c--d   feature is Branch2
          master...feature [F, E, D, C]
-    --left-right
+  --left-right
      Example from above:
     < F
     < E
     > D
     > C
+  --merge
+    Show only conflicting commits when 'merge conflict'
+     Example:
+    git log --oneline --left-right --merge
+    < 93df3d Change line 10 to 'tenth line'
+    > fj459w Change line 10 to '10nth line'
  Search:
   git log   could be used    for:
    for finding specific commits by the content of their messages 
@@ -812,6 +899,7 @@ remote:
   lists remote handles of the current repo
    Params:
   -v  - verbose, shows URLs for every remote
+        SHOW ALL REMOTES
  add:
   adds a new remote
    Sinopsys:
@@ -959,6 +1047,10 @@ tag:
    Example:
    git tag -a <tag_name> -m 'comment_here' [hash, if not latest commit]
   tags are not Pushed automatically
+   To push tag:
+  git push origin refs/tags/pre-k8s:refs/tags/pre-k8s
+   left from `:` is local tag path in .git dir
+   right from `:` is path where to push in `origin`
   -l/--list  - lists existing tags - reqiored when passing wildcarded mask
   git show <tag_name> - will show detailed info about tag and commit
    Example:
@@ -1081,7 +1173,7 @@ stash:
    git stash branch MY-NEW-BRANCH
 
 clean:
-  it seems removes only Untracked files
+  Removes Untracked files
   Or Untracked + Ignored.
   DOes not touch Edited files, so stash is simply better
    Except the case of need to remove bunch of garbage(or generated) files
@@ -1158,8 +1250,26 @@ checkout:
     will also create a tracking, shorthand for --track, if:
     - branch for checkout does not exist locally
     - exactly matches the name on only one remote
-   Vice-versa (when need to point local branch to track some remote one):
-   git branch -u origin/another-branch
+    Vice-versa (when need to point local branch to track some remote one):
+     git branch -u origin/another-branch
+  --conflict[=merge|diff3]  - merge is default and re-checkouts merge conflict
+        with conflict markers for Ours and Theirs  
+        diff3 recheckouts the conflict and adds Base diff as 3rd diff 
+     Example:
+    $ git checkout --conflict=diff3 hello.rb
+    > def hello
+    > <<<<<<< ours
+    > puts 'hola world'
+    > ||||||| base
+    > puts 'hello world'
+    > =======
+    > puts 'hello mundo'
+    > >>>>>>> theirs
+    > end
+      Set this format as default: config merge.conflictstyle diff3
+  --theirs  - 'accept theirs' discarding Ours changes in conflict
+              either for file or snapshot, i assume
+  --ours  - discard all theirs changes , vice versa to --theirs
 
 branch:
   shows branches, creates branches
@@ -1221,24 +1331,63 @@ merge vs rebase:
  But still suck.
 
 merge:
-   merges branches
-   if can Fast Forward (where there is just consequental commits w/o divergent)
-   will NOT create merge commit
-  If automerged then it will merge and create mergecommit with resulting work
-  When conflicts, manual merge required, resulting in merge commit
-  does 3 way merge of two branches:
+  merges branches
+  - If can Fast Forward (where there is just consequental commits w/o divergent)
+    will NOT create merge commit
+  - If automerged then it will merge and create mergecommit with resulting work
+  - When conflicts, manual merge required, resulting in merge commit
+
+  Note: successfully merged files are added to Index.
+        conflicting files are left in Work Dir
+
+  Conflict looks like:
+   <<<<<<< HEAD         OURS changes from 'HEAD', conflict start
+   puts 'hola world'    OURS conflicting code
+   =======              SEPARATOR
+   puts 'hello mundo'   THEIRS conflicting code
+   >>>>>>> mundo        THEIRS changes from 'mundo' branch, conflict end
+
+  BEFORE:
+   - Working Directory clean (so can Undo Anything)
+     Either Stash or Commit to temp branch
+      `git merge --abort` could fail if WD is not clean
+
+  Does 3 way merge of two branches:
    two latest commits of each branch
    creates new commit based on merge of those commits
    new commit goes into main branch(where other branch was merging)
   <branch_to_merge_into_current> - merges given branch into current
     will be executed after fetch in pull, when it will merge fetched
     branch origin/<current_tracked> into current branch
-   Example:
+    Example:
    git merge topic   - will merge topic into current branch
   --abort - aborts started merge that ended with conflicts
+            ALSO if something still WRONG, another way to Abort:
+            `git reset --hard HEAD`
+  -Xignore-all-space  - ignores whitespaces _completely_ when comparing lines
+  -Xignore-space-change  - threats sequences of 1+ whitespace characters(\s)
+                           as equal
+  -Xours  - merges everything that has no conflicts
+  -Xtheirs  if there are conflicts takes either Ours or Theirs changes
+            does so Automaticalle instead of marking change(hunk) as conflict
+  -s  - Strategy (default: Recursive)
+     recursive  - goes recursively through each change
+                  if Ours merged by recursive strategy non conflicting
+                  changes would be merged in, and Ours from conflicts
+     ours  - takes only ours changes it seems?
+             at least if Theirs have 1 conflicting and 1 non-conflicting 
+             change it will take only Ours changes from file, ignoring Theirs
+     theirs  - probably vice versa as Ours
+    IT SEEMS -s [strt] is less usefull(natively understood) than -Xours|theirs
+    `-s ours` is used when Theris changed are already merged?
   --verify-signatures - reject commits signed with not Truested GPG 
     Will fail to merge commits Not Signed or Signature is Not Valid
    -S  - sign the resulting merge commit too
+
+merge-file:
+  manually merge specific files
+  --ours  - take Ours changes when conflict
+  --theirs  - take Theirs changes when conflict
 
 merge-base:
   finds the original? base of branch, returns hash of the base commit

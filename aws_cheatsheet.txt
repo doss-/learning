@@ -938,3 +938,22 @@ ecs-cli:
  
 aws developer associate exam notes:
 https://github.com/mostafa-abdo/certified-aws-developer-associate-notes 
+
+
+# ec2:
+[VIDEO:AWS re:Invent 2018: Amazon EC2 T Instances – Burstable, Cost-Effective Performance (CMP209)](https://www.youtube.com/watch?v=OzVpynd_2GM)  
+
+
+## Burstable:
+`Credit score` Bucket size is CPU creds/h * 24 == BUcket size.  
+Example:  
+`t3.2xlarge` has CPU credits/h 192, Bucket size is 192*24==4608  
+For full Bucket (i.e. 4608 for t3.2xlarge) instance could run on all its vCPUs (i.e. 8 vCPU) for 9 hours.  
+In other words 24 hours of it working at 40% workload will result in 100% workload for 9 hours.
+Having such instance work all the time at 100% load (with Unlimited Credits enabled, by default actually) instead of regular 40% the price of the instance would be +60% (which is 5 cents regular price multiplied by 60%)  
+If instance works at 50% the price will be higher for 10% (50-40=10). which is $0.05+($0.05*0.1)  
+If there are CPU credits available such extra spikes could be covered and will be free(credits used) until all bucket is gone and then it will be $$.
+BUcket fills up faster the more CPU usage is below Baseline(i.e. 40% for 'large' and '2xlarge' instances)
+With lesser load T3 instances are cheaper than M5 instances.  
+With High load T3 instances could be up to 1.5x higher in price than M5 instances.  
+see `aws_t3-vs-m5_difference_price_calc.jpg` in cheatsheets/docs/img.

@@ -234,6 +234,16 @@ run:
   --ip - assigns Static IP for a container, will only work with Custom network
 	assigned using --net param
   --dns=[] - set custom DNS for a container
+  --cpus n  - `n` is number of CPU available to use for container  
+  -m\--memory n  - amount of `memory` available for container. Hard limit  
+   Example:
+   `docker run -d -p 8081:80 --memory="256m" nginx`
+  --memory-reservation  - amount of `memory` available. SOft limit - could be overused  
+   Example:
+   `docker run -d -p 8081:80 --memory-reservation="256m" nginx`
+  > NOTE: `swapping` should be enabled in `cgroups` to allow use either `--cpus` or `--memory` params.  
+
+  see: https://www.serverlab.ca/tutorials/containers/docker/how-to-limit-memory-and-cpu-for-docker-containers/ for details
   --rm - deletes anonymous volumes of the container
   -P - auto publishing. of all exposed Container's ports. Assigning random port
 	number (range defined by /proc/sys/net/ipv4/ip_local_port_range) for
@@ -958,11 +968,15 @@ VOLUME
 	https://docs.docker.com/storage/volumes/
 
 prune:
-  docker volume prune - delete all volumes that are not currently used by
-	running containers  
+  docker volume prune - delete all volumes that are not currently used by running containers  
+    Params:  
+   - -a  - All 
     Free space:  
-    /var/lib/docker/overlay2 contains all the images info, it could grow out of control  
+    `/var/lib/docker/overlay2` contains all the images info, it could grow out of control  
     to clean it up use the following:
+  - `volume prune` - delete all volumes that are not currently used by running containers  
+  - `image prune` - delete all unused volumes
+  - `system prune` - delete all unused stuff
   ```
   docker system df
   docker system prune -a

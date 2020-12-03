@@ -48,7 +48,7 @@ Note: 'read' command need to be used.
     /home/dos/test.txt  
 	
 
-##Debugging:
+## Debugging:
     #!/bin/bash -x  
 will start debugging tracert - with display of all values expanded and
   lines as bash sees them and will execute them
@@ -60,7 +60,7 @@ will start debugging tracert - with display of all values expanded and
 will enable debugging tracert only between set -/+ x displaying only
  commands in between with such debug info
 
-##shell variables:
+## shell variables:
 $FUNCNAME - contains name of the function being executed(like reflection)  
 
 $PS4 env var, is Promt String for debugging tracert  
@@ -71,7 +71,7 @@ $OLDPWD - contains previous workind directory
 $RANDOM - contains random number from 1 to 32 767  
 $$ - current PID of the programs\script being executed  
 
-##Defensive programming:  
+## Defensive programming:  
 
 Make sure everything is expanded and is executed in right place:  
  Instead of:  
@@ -91,7 +91,7 @@ where:
   - echo rm * - will echo expanded by bash shell wildcard, displaying what  
 	exactly is going to happen with actual 'rm *'  
 
-##Naming Coventions:
+## Naming Coventions:
 - Variable Names:  
  Lower-case, with underscores to separate words.  
  Ex: my_variable_name  
@@ -141,7 +141,7 @@ this seems to be <current dir>/scriptname (so basically full path, which is also
   by wildcard, 'cp' will never see * itself  
   to check what * will return, execute __echo *__  
 
-##variables expansion:
+## variables expansion:
   Expansion starts when $ is encountered.  
   Escape sequences:  
   \ - will escape 1 symbol to treat it as literal and not meta symbol  
@@ -229,17 +229,25 @@ this seems to be <current dir>/scriptname (so basically full path, which is also
     in script >> echo basename $0
     will return 'some_script.sh'
 
-##dirname:
+## dirname:
   returns directory name (everything except latest nodein the path)  
-  antipod of `basename`
-   Example:
+  antipod of `basename`  
+   Use Case Example:
+    ```
+    # Get to Workdir in the script, so relative paths work
+    #!/bin/bash
+    cd "$(dirname "$0")"
+    ```
 
+   Example:  
+   ```
     cd /home/dos/directory/filename
     dirname $PWD
     > /home/dos/directory
-  
+   ```
+   
 
-##variables:
+## variables:
   AKA Global Variables - are visible everywhere in shell environment
    if 'export'ed - will be visible in subshells created from the shell  
    'local' variables are local for funcions - see below  
@@ -280,7 +288,7 @@ this seems to be <current dir>/scriptname (so basically full path, which is also
     echo "stuff is: $my_str_var"   # stuff is: string w/ spa.....
     echo 'stuff is: $my_str_var'   # stuff is: $my_str_var
 
-##arrays:
+## arrays:
   also variables, indexed from 0,   
   could have empty indexes.  
    Example declaration:  
@@ -804,6 +812,20 @@ if:
     <other commands>
   fi
 
+```
+  if TEST-COMMANDS; then
+  
+  CONSEQUENT-COMMANDS;
+  
+  elif MORE-TEST-COMMANDS; then
+  
+  MORE-CONSEQUENT-COMMANDS;
+  
+  else ALTERNATE-CONSEQUENT-COMMANDS;
+  
+  fi 
+```
+
   lots info here:
   https://ryanstutorials.net/bash-scripting-tutorial/bash-if-statements.php
 
@@ -845,6 +867,9 @@ test:
 
   CHECK YOUR VARIABLES BEFORE USE
 
+  Check if string empty:
+  https://www.cyberciti.biz/faq/unix-linux-bash-script-check-if-variable-is-empty/
+
    Test Strings\Ints:
   Operator 	Description
   ! <expr> 	The EXPRESSION is false.
@@ -861,25 +886,31 @@ test:
   INTEGER1 -lt INTEGER2 	INTEGER1 is numerically less than INTEGER2
    
    Test Files:
-  FILE -ef FILE1 - both files are hard links (point to same inode)
-  FILE -nt FILE1 - FILE newer than FILE1
-  FILE -ot FILE1 - FILE older than FILE1
-  -e FILE 	FILE exists.
-  -f FILE 	FILE exists and is file
-  -s FILE 	FILE exists and its size greater than 0
-  -L FILE 	exists and is soft symblic link
-  -d FILE 	FILE exists and is a directory.
+  - FILE -ef FILE1 - both files are hard links (point to same inode)
+  - FILE -nt FILE1 - FILE newer than FILE1
+  - FILE -ot FILE1 - FILE older than FILE1
+  - -e FILE 	FILE exists.
+  - -f FILE 	FILE exists and is file. USE WITH QUOTES IF VARIABLE:  
+    ```
+    [ -f $1 ] && echo "TR"   <--  will return TR if $1 is empty(first param not given)
+    [ -f "$1" ] && echo "TR" <-- will return TR as expected
+    ```
+  - -s FILE 	FILE exists and its size greater than 0
+  - -L FILE 	exists and is soft symblic link
+  - -d FILE 	FILE exists and is a directory.  
     Example:
-   if [ -d "$1" ]; then       # $1 is 1st param of script and contains Path
-     echo "this is directory"
-  -b FILE	exists and is Block device (i.e /dev/sda1)
-  -c FILE 	exists and char device
-  -r FILE 	FILE exists and the read permission is granted.
-  -s FILE 	FILE exists and it's size is greater than zero (ie. not empty).
-  -w FILE 	FILE exists and the write permission is granted.
-  -x FILE 	FILE exists and the execute permission is granted.
-  -G FILE 	exists and file belongs to existing group
-  -O FILE 	exists and belongs to existing user
+    ```
+    if [ -d "$1" ]; then       # $1 is 1st param of script and contains Path
+      echo "this is directory"
+    ```
+  - -b FILE	exists and is Block device (i.e /dev/sda1)
+  - -c FILE 	exists and char device
+  - -r FILE 	FILE exists and the read permission is granted.
+  - -s FILE 	FILE exists and it's size is greater than zero (ie. not empty).
+  - -w FILE 	FILE exists and the write permission is granted.
+  - -x FILE 	FILE exists and the execute permission is granted.
+  - -G FILE 	exists and file belongs to existing group
+  - -O FILE 	exists and belongs to existing user
   
    NOTE:
   == - does a string comparision
@@ -932,6 +963,13 @@ test:
     Note that 'false' and 'true' are not commands, commands return 1 and 0
    and behavios incorrectly
 
+##  let:
+  pretty same to (( ))
+   https://linuxize.com/post/bash-increment-decrement-variable/
+  let 'i=i+1'
+  let 'i+=1'
+  let 'i++'
+  !!!NOT let '$i++'!!!
 
 (( )):
   Permits Arithmetic expansion and Evaluation for 
@@ -949,7 +987,9 @@ test:
    (( --var ))  - same manner decrement
    (( var-- ))  - display then decrement
    Assignment:
-   $((b+=a)) - add 'a' to 'b' and assign result to 'b' - b=$a+$b
+   ((var1+=var2)) - add 'a' to 'b' and assign result to 'b' - b=$a+$b
+  !!!NOT $((var1++))!!!   <- bash will try execute '$var1' afterwards
+
 
    Evaluation:
    if ((10>=5)); then echo "10 greater or equal 5"; fi
@@ -1063,6 +1103,7 @@ while:
 
 exit status:  
 exit code:
+   $?
   bash scripts ALWAYS returns exit code. 'exit' is optional
   commands ALWAYS return exit code too. 
   Functions ALWAYS return exit code too. 'return' is optional
@@ -1093,25 +1134,27 @@ case:
   check whether one of condition matches the 'word' in case, if so it
  executes code in particular case and terminates
   Syntax:
- case $word in		# value of $word will be compared against
-  <ptrn1>|<ptrn2>) cmd1 # the <pattern> and if tru command1
-	     cmd2   # and command2 will be executed
-	     ;;		# this ends particular case block
-  *) 	     exit 1     # * match anything, last case 'catch'
-     	     ;;		# ends 'catch' block values of '$word' either
-			#+ matched by previous cases or this one
-			#+ nothing is left 'case' block unmatched this way
- esac			# this ends whole case, after 1 of the cases 
-			#+ matched, or none matched
-  Example:
- while [[ -n $1 ]]; do 		#while param is not null
-  case $1 in			#check param
-	-f | --file) 	shift   #take $2 as $1 , if -f, 
-				#to get file path given with -f option
-			filename=$1
-				#save file path to $filename
-			;;
-  esac
+```
+case EXPRESSION in
+
+  PATTERN_1 | PATTERN_11)
+    STATEMENTS
+    ;;
+
+  PATTERN_2)
+    STATEMENTS
+    ;;
+
+  PATTERN_N)
+    STATEMENTS
+    ;;
+
+  *)
+    STATEMENTS
+    ;;
+esac
+```
+
  Case uses wildcards as pattern:
  ? - one character
  * - anything of any length
@@ -1186,7 +1229,7 @@ shell types
     will mean that is IS login shell
  
  Example for each type:
-## Interactive, non-login shell. Regular terminal
+##  Interactive, non-login shell. Regular terminal
 $ echo $-; shopt login_shell
 himBHs
 login_shell     off
@@ -1208,7 +1251,7 @@ Pseudo-terminal will not be allocated because stdin is not a terminal.
 hBs
 login_shell     on    
 
-functions:
+## functions:
   shell could have functions, funcions MUST BE declared before its call,
   otherwise shell will interpret funcion names as regular commands
    Functions could be executed and calld from shell, added to scripts or 
@@ -1223,6 +1266,62 @@ functions:
   global variables.
    $0 in fuction contains name of the script being executed
    $FUNCNAME - contains name of the function being executed
+
+There are two typical ways of declaring a function. I prefer the second approach.
+
+Params: https://unix.stackexchange.com/questions/298706/how-to-pass-parameters-to-function-in-a-bash-script
+        https://stackoverflow.com/questions/6212219/passing-parameters-to-a-bash-function
+
+```
+function function_name {
+   command...
+} 
+```
+
+or
+
+```
+function_name () {
+   command...
+} 
+```
+
+To call a function with arguments:
+
+```
+function_name "$arg1" "$arg2"
+```
+
+The function refers to passed arguments by their position (not by name), that is $1, $2, and so forth. $0 is the name of the script itself.
+
+Example:
+
+```
+function_name () {
+   echo "Parameter #1 is $1"
+}
+```
+
+Also, you need to call your function after it is declared.
+
+```
+#!/usr/bin/env sh
+
+foo 1  # this will fail because foo has not been declared yet.
+
+foo() {
+    echo "Parameter #1 is $1"
+}
+
+foo 2 # this will work.
+```
+
+Output:
+
+```
+./myScript.sh: line 2: foo: command not found
+Parameter #1 is 2
+```
 
    Syntax:
   function name {
@@ -1286,6 +1385,11 @@ read:
   By default saves entered value into $REPLY global variable
    Synopsis:
   read [-params] [variable1 variable2 variable3 ...]
+
+Example:
+```
+read -p "Delete?:" line 
+```
 
   Accepts more than 1 variable to save keyboard input
    Default separator is space or tab or new line(\n)

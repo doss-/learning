@@ -2343,6 +2343,27 @@ NOTE: this file must be edited through 'visudo' command, this will ensure safe
 ## root access:
   should be disabled for remote login in sshd for security reasons
 
+## sudo
+super user do  
+assumes super user privileges for execution particular command  
+requires Password 
+
+Disable passord - passwordless sudo:  
+https://serverfault.com/questions/160581/how-to-setup-passwordless-sudo-on-linux  
+```
+# edit /etc/sudoers with `visudo`
+# add group to have passwordless sudo:
+%wheel         ALL = (ALL) NOPASSWD: ALL
+
+OR
+
+# create an user_alias(i.e. name NUPASSSUDO) in sudoers , add users there
+# allow passwordless sudo for the user_alias group:
+User_Alias     NOPASSSUDO = dzdorik
+NOPASSSUDO      ALL=(ALL)       NOPASSWD: ALL
+
+```
+
 ## su:
   su - [<username>] - creates new session for a user, i.e.:
      su - user - log in under 'user' user
@@ -2963,7 +2984,9 @@ gpgkey=https://....    - location of the key
 
 =======Uninstallation
   yum remove <pkg> - removes the package, doesn't remove its dependencies
-!   yum autoremove <pkg> - also removes package, probably its deps too..
+!   yum autoremove <pkg> - also removes package, probably its deps too..  
+    yum clean packages - will clearn /var/cache/yum   
+    [Read More](https://www.thegeekdiary.com/how-to-clean-yum-cache-in-centos-rhel/)
   To remove dependencies there are several ways:
   Option1: [probably should do this as standard]
   yum autoremove - removes orphaned dependencies, similar to 'apt-get utoremove'
@@ -3735,6 +3758,11 @@ server {
 
 ## netcat:
   check, send network packets, port monitor etc
+  Use Case Example:
+  ```
+  # check if port open on remote machine
+  nc -z o-pe-kafka-04.twlab.int 2181 && echo connected
+  ```
 
 ## lsof:
   also checks ports, could display processes that are using

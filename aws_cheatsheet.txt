@@ -938,3 +938,12 @@ ecs-cli:
  
 aws developer associate exam notes:
 https://github.com/mostafa-abdo/certified-aws-developer-associate-notes 
+
+## Tags
+- Maximum tags for resource - 50 (except 'aws:' prefixed tags which are system's)
+- Tag Name length 1-128 Unicode characters in UTF-8
+- Tag Value length 0-256 Unicode characters in UTF-8
+  - Some services don't permit tags with an empty value (length of 0).
+-  In general, allowed characters in tags are letters, numbers, spaces representable in UTF-8, and the following characters:`_ . : / = + - @` . 
+  - Allowed characters can vary by AWS service. (See particular service docs for details)
+- tag's Names and Values are CASE SENSITIVE

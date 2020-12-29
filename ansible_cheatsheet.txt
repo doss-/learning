@@ -929,6 +929,8 @@ Use Case Example:
 # Encrypt 'my_hosts.txt' file  into 'my_hosts.txt.encr'
 ansible-vault encrypt --output my_hosts.txt.encr my_hosts.txt
 # Decrypt the file 
+ansible-vault view vars/keycloak_vault.yml 
+OR
 ansible-vault decrypt --output my_hosts.txt.decr my_hosts.txt.encr
 ```
 

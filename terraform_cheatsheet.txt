@@ -1,5 +1,7 @@
 hashicorp webinar about Terraform in AWS:
-https://www.youtube.com/watch?v=TFLQcgZr0no
+https://www.youtube.com/watch?v=TFLQcgZr0no  
+
+[VIDEO: 5 Lessons Learned From Writing Over 300,000 Lines of Infrastructure Code](https://www.youtube.com/watch?v=RTEgE2lcyk4)  
 
 introdution blogs about:
 https://aws.amazon.com/blogs/apn/terraform-beyond-the-basics-with-aws/

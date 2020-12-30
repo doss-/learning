@@ -323,6 +323,95 @@ BroadcastIP is `176.46.117.175`
 `11110000` is 240
 __Subnet Mask__ is `255.255.255.240`
 
+## Switch:
+Device for switching traffic on LVL2 of OSI
+[TEXT: 4 functions of Switch](https://www.practicalnetworking.net/series/packet-traveling/host-to-host-through-a-switch/#switch-functions):
+- Learning - when Switch receivese Layer2 Frame it writes down Source MAC into Switcing Table(or CAM-table - Content Addressable Memory Table) next to Switch Port number(from which the Frame came)  
+Record in the table stored for 300 seconds by default  
+- Flooding - if Switch does not know where to send Frame it will send to all ports - Device received the Frame will answer, and Switch will `Learn` it
+- Forwarding - Switch uses what it `Learned` to forward Frames to its destination, probably will `Flood` if can't `Forward`
+  - Store And Forward - Frame is checked for erros, stored into Memory and sent - slowest but most reliable way. Due to modern high speed the Most Common method
+  - Cut-Through - dont check just send  - fastest and most unreliable
+  - Fragment Free - only 64 bytes of Frame is checked for erros, usually enough - mix of Speed and Reliability, good enough.
+- Filtering - do not send Frame back the sender's Switch Port. Usually when `Flooding` the Frame will go to all the Switch ports except the sender's one.
+
+### Broadcast storm
+looping L2 packets over the network. With every loop number of packets is increased since Switch `Flooding` packets back.  
+Happens when there are Loops in network (redundant links) which are required for Network Redundancy having n+1 links between devices in case Physical cable or port or device would malfunction.
+
+Broadcast storm Example:
+- Switch1 is connected to other Switch2 with 2 connections(redundant links), and receives Broadcast package (i.e. ARP request) from an other connected device.
+  - i.e. connection 1 Fa0/1
+  - i.e. connection 2 Fa0/24
+- Switch1 `Floods` ARP packages in all the ports except the one if got received to
+  - package goes into Fa0/1 and Fa0/24 to Switch2 (same ports)
+- Switch2 receives Broadcast ARP request and floods it in all connected ports except the one whet it received
+  - ARP is received on Fa0/1 and Fa0/24 ports of Switch2
+  - ARP received on Fa0/1 of Switch2 is Broadcasted also in Fa0/24 of Switch2
+  - ARP received on Fa0/24 of Switch2 is Broadcasted also in Fa0/1 of Switch2
+- Switch1 receives the broadcasts(the ones it originally sent) and sends those back to Switch2
+  - both switches generates tons of requests which could overwhelm the network 
+
+### STP Protocol
+`Spanning Tree Protocol` - to prevent Broadcast storms  
+>30 seconds required by default for Reconfiguration of network (switch turn on/off)  
+
+STP uses `STA`(`Spanning Tree Algorithm`) which represents given Netowkr as a mathematical Graph  
+STP makes sure:
+-  that Graph does not have Simple Loops  (Edges and Highs of Graph are uniq)
+![Simple Loop](img/Graphs_Simple_and_Elementary.jpg)
+- Graph is Connected 
+  - Connectivity asks for the minimum number of elements (nodes or edges) that need to be removed to separate the remaining nodes into isolated subgraphs.
+
+__BPDU__  
+Bridge Protocol Data Unit
+Types:
+ - Configuration BPDU - regularly sent by Root switch to span the tree  
+   Fields:  
+    - Bridge ID - 8 bytes, consists of:
+      - Bridge Priority - 0-65535 - default: 32768+vlan or instance of MSTP
+      - Switch MAC Address
+    - Root Bridge ID
+    - Port ID
+    - Root Path Cost
+ - TCN BPDU - Topology Change Notification - sent when new switch appears (switch turn on\off)
+
+ __Elections__  
+ 1. Every switch is Root, sends its Configuration BPDU out of all Ports
+ 2. If receives BPDU from other switch with lesser BPDU, starts to propagate that Switch.
+ 3. Switch with lesser Bridge ID becomes Root
+ 4. Other switches find theirs `Root port` - 1 port which leads to Root
+ 5. Other end of cable from Root port ends in `Designated port`
+ 6. Ports that could lead to Loops become `Alternate Port` and is set to `Blocking` mode
+
+__Modes of a Port__  
+To prevent Loops ports are blocked at first and listen BPDU. Then start setding BPDU, if become a Root\Designated port - starts Forward packages.
+1. Blocking - does not send packets, listens to BPDU
+2. Listening - `blocking` + sends BPDU (`15s` by default)
+3. Learning - `listening` + changes `CAM`(Content Addressable Memory table) table (MAC table for switch's ports) (`15s` by default)
+4. Forwarding - Working state. `Portfast` sets it immediately
+5. Disabled
+
+__Portfast:__  
+Sets port into 'Forwarding' mode immediately.  
+Also sets `Access` port mode.  
+Used for end devices like PC, IP-Phones, Printers etc.
+```
+switchport host
+```
+
+__Types of STP:__  
+- STP - 1985 invented, 1990 into IEEE `802.1d` - DOES NOT WORK WITH VLANs
+  - CST - `Common Spanning Tree` - STP for `native VLAN`
+- PVST \ PVST+ - `Per-VLAN Spanning Tree` Cisco made realizations of STP - WORKS WITH VLANS
+- RSTP (PVRST on Cisco) - Rapid STP - 2001 invented as IEEE `802.1w` handles Topology changes in seconds
+
+__RSTP__:  
+Additionally has Ports Types:
+- `Alternate Port` - second `Root` port - does not forward traffic
+- `Backup Port` - second `Designated` port - does not forward traffic  
+If link brokes RSTP does not calculate topology again, it backs to alternate/backup paths  
+Clears cache on switches after 3 consequtive `Hello` messages from Root (2s*3 by default). STP would wait for `Max Age` period (20s by default)
 
 
 ## VLAN
@@ -333,14 +422,7 @@ __Subnet Mask__ is `255.255.255.240`
 [VIDEO: IPv4 Addressing Lesson 1](https://www.youtube.com/watch?v=ddM9AcreVqY) <--- THIS IS IT
 
 [TEXT: VLAN and Native VLAN](https://www.practicalnetworking.net/stand-alone/vlans/)
-[TEXT: 4 functions of Switch](https://www.practicalnetworking.net/series/packet-traveling/host-to-host-through-a-switch/#switch-functions)
-- Learning - when Switch receivese Layer2 Frame it writes down Source MAC into Switcing Table next to Switch Port number(from which the Frame came)
-- Flooding - if Switch does not know where to send Frame it will send to all ports - Device received the Frame will answer, and Switch will `Learn` it
-- Forwarding - Switch uses what it `Learned` to forward Frames to its destination, probably will `Flood` if can't `Forward`
-  - Store And Forward - Frame is checked for erros, stored into Memory and sent - slowest but most reliable way. Due to modern high speed the Most Common method
-  - Cut-Through - dont check just send  - fastest and most unreliable
-  - Fragment Free - only 64 bytes of Frame is checked for erros, usually enough - mix of Speed and Reliability, good enough.
-- Filtering - do not send Frame back the sender's Switch Port. Usually when `Flooding` the Frame will go to all the Switch ports except the sender's one.
+
 
 Virtual Local Area Network  
 LAN but could contain machines from different switches, or some machines from a switch  
@@ -418,7 +500,7 @@ calculator http://jodies.de/ipcalc
 
 https://www.youtube.com/watch?v=0OukrSld3sY
 
-![image](cheatsheets/docs/img/forward_proxy_vs_reverse_proxy.jpg)
+![image](img/forward_proxy_vs_reverse_proxy.jpg)
 
 ## Forward Proxy
 
@@ -795,6 +877,10 @@ msk-arbat-asw3(config-if-range)#switchport access vlan 102
 msk-arbat-asw3(config-if)#switchport mode access 
 msk-arbat-asw3(config-if)#switchport access vlan 101
 ```
+OR instead of `mode access` use to enable Portfast and switch to Access Port 
+```
+switchport host
+```
 
 ## Create Virtual Interface with VLAN and IP address:
 to create use `interface vlan N` where N is VLAN (w/o `interface` VLAN will be created instead of the VInterface)  
@@ -905,6 +991,25 @@ shows whole Router configuration
 ```
 show running config | secion FastEthernet 0/0
 ```
+
+## show mac address-table
+shows CAM-table   
+Example:  
+```
+msk-arbat-dsw1#show mac address-table 
+          Mac Address Table
+-------------------------------------------
+
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+
+   2    00d0.ba05.dd18    DYNAMIC     Fa0/1
+   3    00d0.bc97.6b19    DYNAMIC     Gig0/1
+ 101    00d0.ba05.dd18    DYNAMIC     Fa0/1
+ 102    000a.f346.d219    DYNAMIC     Gig0/2
+ 103    000a.f346.d219    DYNAMIC     Gig0/2
+ 104    00d0.ba05.dd18    DYNAMIC     Fa0/1
+ ```
 
 ## #show ip route:
 [VIDEO: IP Routing Explained](https://www.youtube.com/watch?v=8qtKpZGoNdI)  

@@ -235,6 +235,22 @@ dos:temp$ /usr/bin/time ls
   __system__ - seconds spent by Kernel to do the process work (i.e. read the filesystem)  
   __elapsed__ - total number of time for process from start to finish including waiting for resources
 
+## timedatectl:
+  check \ set time and date  
+  Check current time zone:
+```
+timedatectl
+```
+  Check available time zones:
+``` 
+timedatectl list-timezones  | grep Kiev
+```
+  Set new time zone:
+```
+sudo timedatectl set-timezone Europe/Kiev
+```
+
+
 ## date:
   returns current date - weekday, day, month, year, time, time-zone
    Could be formatted like:
@@ -1883,13 +1899,18 @@ how to get block device name, partition, mount it and unmount after:
    Usage:
   fdisk <block device name>
    Commands:
-  m - manual/help
-  p - show all partitions
-  l - list all known filesystems (use one in mkfs )
-   Example:
+  - m - manual/help
+  - p - show all partitions
+  - n - New partition (`Primary` as main Physical partitions, and `Extended` as logical from primary ones)
+    - p - Primary partition - only 4 could exist, then one of 4 could be devided in Extended partition
+    - e - Extended partition - sub-partition of Primary partition.
+  - l - list all known filesystems (use one in mkfs )  
+   Example:  
+  ```
   fdisk /dev/sda
   > m 	- see what could do
   > p 	- see all partitions of the device 
+  ```
 
 ## mkfs:
   create new filesystem
@@ -1900,14 +1921,60 @@ how to get block device name, partition, mount it and unmount after:
 
 ## lvm:
  Logical Volume Manager
-  How to install:
- https://help.ubuntu.com/community/UbuntuDesktopLVM
-  Ubuntu docs:
- https://wiki.ubuntu.com/Lvm
-  How to extend Logical volume:
- https://www.youtube.com/watch?v=hugEkh50Ynk
-  How to extend logical volume in text 
- https://www.howtogeek.com/howto/40702/how-to-manage-and-use-lvm-logical-volume-management-in-ubuntu/
+  [How to install](https://help.ubuntu.com/community/UbuntuDesktopLVM)
+  [Ubuntu docs](https://wiki.ubuntu.com/Lvm)
+  [How to extend Logical volume](https://www.youtube.com/watch?v=hugEkh50Ynk)
+  BEST  - [How to extend, manage, Snapshots etc.](https://www.howtogeek.com/howto/40702/how-to-manage-and-use-lvm-logical-volume-management-in-ubuntu/)
+
+### Add new HDD to PC:
+[TEXT: fdisk /dev/sdX](https://www.crucial.com.au/blog/2009/11/18/how-to-create-a-new-partition-on-a-linux-server/)
+
+### Add new HDD to VM (virtualbox)
+Find the device:
+```
+# List all devices like sda, sdb, sdc etc.
+fdisk -l /dev/sd*
+```
+Create new partition:
+- `fdisk /dev/sdc`  - Open particular Disk found by udevd
+- `n` - create New partition
+- `p` - make it Primary partition
+- `1` - make it first partition (sdc1)
+- `Enter` - for default First cylinder
+- `Enter` - for default Last cylinder (so whole /dev/sdc would be 1 partition)
+
+Change partition type:
+Set type to be LVM, so lvm could utilize the disk
+- `t` - change Type of partition
+- `8e` - Linux LVM type
+- `p` - verify Partition changes
+- `w` - WRITE to disk, this will be Permanent. Fdisk will exit into shell afterwards
+
+Notify the OS about the changes:
+`partprobe`
+
+Create LVM Physical volume:
+- `pvcreate /dev/sdc1` - create new physical volume from newly formatted disk partition
+- `pvs` - list existing PVs and to which Volume Group they belong
+
+Extend Volume Group:
+- `vgextend centos /dev/sdc1` - extend VG with name `centos` using newly added PV
+- `vgs` - display volume groups, sizes and Free space (to check `extents` run `vgdisplay`)
+
+Extend Logical Volume:
+- `vgdisplay` - note number from `Free  PE / Size` - which is the number of `extents` 
+- `lvdisplay` - note LV Path of the volume to extend from extended VG 
+- `lvextend -l+2047 /dev/centos/root` - 2047 here is `extents` followed by LV path
+
+Format disk volume:  
+- `df -h` - note  Mountpoint path or Filesystem (mounted disk like /dev/sda1 if no LVM used)
+for `ext4` use:
+- `resize2fs /dev/mapper/centos-root` - where last argument is path to Mountpoint 
+for `xfs` use:
+- `xfs_growfs /dev/mapper/centos-root` 
+  - use `-n` param to Dry Run (barely readable..)
+- `df -h` - to recheck
+
 
 ## fsck:
   filesystem check and repair (lost+found dir will have repaired files)
@@ -4746,7 +4813,14 @@ __Linux Kernel:__
   sudo ss -tulwn - display all opened ports on local machine
 
 ## netcat:
+## ncat:
   check, send network packets, port monitor etc
+
+  Listen on port Example:
+  will listen 9211 TCP port so could check connectivity by `telnet` from other machine
+  ```  
+  ncat -l 9211
+  ```
 
 ## fuser:
  identify processes using files or sockets
@@ -4789,7 +4863,9 @@ sudo fuser -v /var/cache/debconf/config.dat
   check ports open
   telnet <hostname/ip> <port>
    Example:
+  ```
   telnet lwpeartifabld.tideworks.com 5000
+  ```
   
 ## nmap:
   Network Mapped, detects open ports on my system

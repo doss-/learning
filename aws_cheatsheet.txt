@@ -941,6 +941,7 @@ https://github.com/mostafa-abdo/certified-aws-developer-associate-notes
 
 
 # ec2:
+[VIDEO: AWS re:Invent 2015: Amazon Elastic Block Store (EBS) Deep Dive (STG402)](https://www.youtube.com/watch?v=OuyUbvtgfDk)
 [VIDEO:AWS re:Invent 2018: Amazon EC2 T Instances – Burstable, Cost-Effective Performance (CMP209)](https://www.youtube.com/watch?v=OzVpynd_2GM)  
 
 

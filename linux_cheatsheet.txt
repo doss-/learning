@@ -916,7 +916,51 @@ Plugins:
 - ifcfg-rh - Redhat-like network plugin
 - ifcfg-suse - SuSE-like network plugins
 - keyfile - native configuration plugin support
-  - stores System-known connections under `/etc/NetworkManager/system-connections`
+  - stores System-known connections under `/etc/NetworkManager/system-connections` (chmod 600 - only root can view\change)
+    - Also passwords in plain text!
+
+#### Ignore Network Interfaces (Unmanaged by NetworkManager)
+Usually you want to ignore at least `lo` interface, since it better be configured earlier  
+Unmanaged interfaes are configured earlier and then NetworkManager could ignore them
+if controlled by `ifupdown`(Debian\Ubuntu):
+```
+# /etc/network/interfaces:
+# configure interface here
+
+# NetworkManager.conf:
+[ifupdown]
+managed=false
+```
+if controlled by `ifcfg-rh`(Red Hat):
+```
+# /etc/sysconfig/network-scripts
+# find required ifcfg-* interface file
+# make sure there is no line
+# NM_CONTROLLED=yes (delete it or set `no`)
+
+# --OR--
+# Add Hardware address:
+HWADDR=10:78:af:b1:00:61
+```
+
+Or ignore the IF by it's MAC address
+with `keyfile` plugin:
+```
+# NetworkManager.conf:
+[keyfile]
+unmanaged-device=mac:<MAC>;mac:<another_MAC>
+
+```
+
+### Configuration runners
+`/etc/NetworkManager/dispatch.d`  
+NetworkManager would use 2 params `$1=iface` and `$2=up|down`
+contains scripts to be run on UP or DOWN actions (including vpn-up\vpn-down)  
+Systems like Ubuntu could bypass this UP\DOWN params into own scripts:  
+`dispatch.d\03-ifupdown` will call `/etc/network/` appropriate dir   
+  i.e. `if-up.d` using Ubuntu's `run-parts` which will run all executables in a dir  
+
+
 
 
 ### nmcli:
@@ -4618,6 +4662,7 @@ If `127.0.0.1` is in resolv.conf it means that local machine has Name Server cac
  see this for details on resolving Networking issue on VMWare:
  https://superuser.com/questions/901672/centos-7-ping-8-8-8-8-connect-network-is-unreachable/901677
 
+glibc is called to make ns lookup, it has config here:
 `/etc/nsswitch.conf` - Name Server Switch.  
 - `hosts` - entry is for Hostnames resolution
   - `files` is set first - to check /etc/hosts first
@@ -4775,6 +4820,9 @@ __Linux Kernel:__
 
 ## netstat:
   find open ports  
+> List of Well Known Ports: /etc/services  
+> IANA list: https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml  
+> RFC6335
   Find port on machine:  https://www.tecmint.com/find-open-ports-in-linux/
   Use Case Example:
   ```

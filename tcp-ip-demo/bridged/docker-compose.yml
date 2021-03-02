@@ -1,0 +1,27 @@
+---
+version: "2.4"
+
+services:
+  server:
+    image: ubuntu:nc80
+    hostname: "server"
+    ports:
+      - "80:80"
+    networks:
+      - demo
+  client:
+    image: ubuntu:nc80
+    hostname: "client"
+    depends_on:
+      - "server"
+    networks:
+      - demo
+
+networks:
+  demo:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1

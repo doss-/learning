@@ -494,8 +494,12 @@ ansible-playbook:
  Also could be limited by ansible-playbook cli flag:
  This option overrides what defined in playbook
   Example:
+ ```
  ansible-playbook playbook.yml --limit webservers
  ansible-playbook playbook.yml --limit xyz.example.com
+ ansible-playbook playbooks/bootstrap_ansible_eng_buoy.yml -l 'i-bij-*:!i-bij-dv-db121.twlab.int' -u root --ask-pass
+ ```
+ limit playbook run on all `i-bij-*` machines except `i-boj-dv-db121.twlab.int`
  --list-hosts  To see what hosts would be affected by playbook run
   Example:
  ansible-playbook playbook.yml --list-hosts
@@ -926,3 +930,28 @@ role:
     append: true
   when: ansible_user_check.rc == 0
 ```
+
+
+
+## ansible-vault:
+### dectypt:
+decrypts stuff
+
+Use Case Example:
+```
+# dectypt file into stdout (-)
+ansible-vault decrypt --vault-password-file ~/.ansible_vault  --output - playbooks/roles/spinn_postgres11/vars/main.yml
+```
+--vault-password-file - is optional if `ansible.cfg` has `vault_password_file = ~/.ansible/vault.txt` value set.
+
+Use Case Example:
+```
+# Encrypt 'my_hosts.txt' file  into 'my_hosts.txt.encr'
+ansible-vault encrypt --output my_hosts.txt.encr my_hosts.txt
+# Decrypt the file 
+ansible-vault view vars/keycloak_vault.yml 
+OR
+ansible-vault decrypt --output my_hosts.txt.decr my_hosts.txt.encr
+```
+
+

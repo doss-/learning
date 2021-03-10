@@ -4,3 +4,18 @@ Example:
 ```
 Test-NetConnection -ComputerName 10.220.192.114 -Port 22 -InformationLevel "Detailed"
 ```
+
+## Search:
+### ls:
+Use Case Example:
+```
+# search for a directory on the disk
+ls c:\test 'My Directory' -Recurse -Directory
+# or
+Get-ChildItem C:\test -recurse | Where-Object {$_.PSIsContainer -eq $true -and $_.Name -match "keyword"}
+```
+
+## DNS
+### get-dnsserver:
+all related dns server cmdlets:
+https://docs.microsoft.com/en-us/powershell/module/dnsserver/get-dnsserver?view=win10-ps

@@ -2,3 +2,4 @@ docker-compose up -d
 docker-compose exec client bash
 # aim for brige, not veth
 wireshark &
+fallocate -l 2200 over_mtu.file

@@ -2,15 +2,17 @@
 version: "2.4"
 
 services:
+
   server:
-    image: ubuntu:nc80
+    image: httpd:latest
     hostname: "server"
-    ports:
-      - "80:80"
     networks:
       - demo
+    volumes:
+      - ./index.html:/usr/local/apache2/htdocs/index.html
+
   client:
-    image: ubuntu:nc80
+    build: .
     hostname: "client"
     depends_on:
       - "server"

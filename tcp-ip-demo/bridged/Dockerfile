@@ -5,5 +5,6 @@ RUN apt-get update && apt-get install -y net-tools \
     iputils-tracepath \
     traceroute \
     vim \
-    iproute2
+    iproute2 \
+    curl
 CMD ["netcat","-l","80"]

@@ -1,0 +1,19 @@
+1. Client Pings Server
+  - ARP on top of Ethernet
+  - ARP Table (no Gateway known yet)
+  - ICMP packet on top of Ethernet
+
+2. Client Curls Server (small index.html)
+  - No ARP (if fast enough)
+  - TCP Handshake
+  - HTTP GET and then OK withindex.html.
+  - TCP cession close
+
+3. Client Curls Server (over-MTU index.html
+  - Max Transmission Unit, topped by Ethernet being about ~1600 bytes
+  - with Exception in local docker network with 65536 bytes size
+  - same as #2 but multiple TCP before HTTP OK
+
+4. Client pings Google
+  - DNS request on top of UDP
+  - ICMP afterwards

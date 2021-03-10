@@ -603,6 +603,7 @@ cat < file.txt
 
 
 ## update-alternatives:
+  > NOTE: `editor`(visudo) is not editable? on Ubuntu ; but `vim.basic` is linked by `vim`, so use `vim.basic`
   manages symbolic links i.e.:
    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.5 1 - python3.5 as first list item
    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 2 - python3.6 as second list item
@@ -924,7 +925,51 @@ Plugins:
 - ifcfg-rh - Redhat-like network plugin
 - ifcfg-suse - SuSE-like network plugins
 - keyfile - native configuration plugin support
-  - stores System-known connections under `/etc/NetworkManager/system-connections`
+  - stores System-known connections under `/etc/NetworkManager/system-connections` (chmod 600 - only root can view\change)
+    - Also passwords in plain text!
+
+#### Ignore Network Interfaces (Unmanaged by NetworkManager)
+Usually you want to ignore at least `lo` interface, since it better be configured earlier  
+Unmanaged interfaes are configured earlier and then NetworkManager could ignore them
+if controlled by `ifupdown`(Debian\Ubuntu):
+```
+# /etc/network/interfaces:
+# configure interface here
+
+# NetworkManager.conf:
+[ifupdown]
+managed=false
+```
+if controlled by `ifcfg-rh`(Red Hat):
+```
+# /etc/sysconfig/network-scripts
+# find required ifcfg-* interface file
+# make sure there is no line
+# NM_CONTROLLED=yes (delete it or set `no`)
+
+# --OR--
+# Add Hardware address:
+HWADDR=10:78:af:b1:00:61
+```
+
+Or ignore the IF by it's MAC address
+with `keyfile` plugin:
+```
+# NetworkManager.conf:
+[keyfile]
+unmanaged-device=mac:<MAC>;mac:<another_MAC>
+
+```
+
+### Configuration runners
+`/etc/NetworkManager/dispatch.d`  
+NetworkManager would use 2 params `$1=iface` and `$2=up|down`
+contains scripts to be run on UP or DOWN actions (including vpn-up\vpn-down)  
+Systems like Ubuntu could bypass this UP\DOWN params into own scripts:  
+`dispatch.d\03-ifupdown` will call `/etc/network/` appropriate dir   
+  i.e. `if-up.d` using Ubuntu's `run-parts` which will run all executables in a dir  
+
+
 
 
 ### nmcli:
@@ -950,11 +995,48 @@ Plugins:
    Example:
   nmcli device - will display all network devices
 
+## arp:
+Lists kernel's ARP Cache  
+__Params:__
+- `-n` - do not show DNS names
+- `-d` - Delete host: `apr -d <host>`
+- `-i` - show ARP cache for `if`: `apr -i interface`
+
+##iw:
+interface Wireless - Lists all wireless connections
+Could create Multiple (virt)Interfaces from Single interface
+Security is controlled by daemon `wpa_supplicant`
+location: `/etc/wpa_supplicant.conf`
+
+Check wireless connections for wireless interface:
+```
+sudo iw dev wlo1 scan | less
+# if interface is down, turn it up first
+ifconfig wlo1 up
+```
+
+Check current connected wireless netowrk:
+```
+sudo iw dev wlo1 link
+```
+MAC address is of Access point which you connected to
+
+Connect to unsecured network:
+```
+iw wlo1 connect network_name
+```
+
+
+
+
 ## ifconfig:
   displays current network interfaces
   part of the 'net-tools' package
    /etc/network/interfaces - for interfaces(5) changes
   -a - will display MAC also- 
+
+UP interface:
+`ifconfig wlo1 up`
 
 ### Setup netowrk connection old way:
 Need to perform steps:
@@ -1349,6 +1431,13 @@ mktemp -d
   wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb - will download .deb file in current directory w/o any output
 
 ## curl:
+  HTTP talker  
+   Work:  
+  `curl --trace-ascii trace_file http://www.wikipedia.org`  
+   will dump Received\Sent Headers and Data  
+   > In HTTP - Headers sent first, then empty line (2 byte size) then Data(HTML Document for instance)  
+     curl sends Headers message, 2 byte empty message and then Data messages  
+     HTTPS Server sends Headers messages, 2 byte empty message and then Data messages  
   web requests issuer - HTTP[S] requests( see --version protocol list).
    CAREFUL: binary download to stdout in terminal could exploit injections
    https://www.howtogeek.com/447033/how-to-use-curl-to-download-files-from-the-linux-command-line/
@@ -2099,12 +2188,28 @@ for `xfs` use:
   ```
 
 ## ssh:
-  remote connect via ssh protocol
+  remote connect via ssh protocol  
+  can also copy files  
+
+  sshD Generate SDA or DSA Key pair upon install\first start  
+  public key goes to client's machine `known_hosts`  
+  private is used to encrypt messaging
+  User's keys are also used to authenticate remote logon with ssh client
    
   -v - display debug info level1
   -vv  - debug level2
   -vvv - degut level3
-  Troubleshooting:
+
+  Can also copy files:
+  ```
+  tar zcvf - dir | ssh username@host zxvf -
+  ``` 
+  
+  __COnfig:__
+  - sshd: /etc/ssh/sshd_config  
+  - ssh client: /etc/ssh/ssh_config 
+
+__Troubleshooting:__
    if -vvv  shows everything ok:
      debug1: Server accepts key: pkalg ssh-rsa blen 535
      debug2: input_userauth_pk_ok: SHA1 fp 28:bc:1b:64:94:3a:6b:ec:b4:13:45:ca:79:80:be:7c:75:cc:82:48
@@ -4709,6 +4814,31 @@ https://www.youtube.com/watch?v=l0QGLMwR-lY Top 10 Linux Job Interview Questions
 
 ## Networking relies on configuration files:
 
+### dhclient:
+DHCP client 
+InterFace configuration:  
+`dhclient eth0`  
+Files:  
+- /var/run/dhclient.pid - file with PID of dhclient
+- /var/state/dhclient.lease - file with IP address lease information
+
+### DHCP Server
+Linux machine could be DHCP server aswell - assuming it is used as a Default Gateway by the clients    
+to enable forwarding (routes see in `route -n`):
+```
+sysctl -w #net.ipv4.ip_forward
+```
+To make it permanent save it into config file (not .bashrc lol):
+```
+# Add this to the main config file /etc/sysctl.conf:
+et.ipv4.ip_forward=1
+
+-OR-
+# inspect README in here, and add config line to a file in the dir
+/etc/sysctl.d/
+```
+
+
 ### ifcfg-rh:
 Main Network Manager plugin for Redhat-like systems  
 /etc/sysconfig/network-scripts/ifcfg-<interfase_name> - this file describes 
@@ -4743,6 +4873,7 @@ If `127.0.0.1` is in resolv.conf it means that local machine has Name Server cac
  see this for details on resolving Networking issue on VMWare:
  https://superuser.com/questions/901672/centos-7-ping-8-8-8-8-connect-network-is-unreachable/901677
 
+glibc is called to make ns lookup, it has config here:
 `/etc/nsswitch.conf` - Name Server Switch.  
 - `hosts` - entry is for Hostnames resolution
   - `files` is set first - to check /etc/hosts first
@@ -4900,6 +5031,9 @@ __Linux Kernel:__
 
 ## netstat:
   find open ports  
+> List of Well Known Ports: /etc/services  
+> IANA list: https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml  
+> RFC6335
   Find port on machine:  https://www.tecmint.com/find-open-ports-in-linux/
   Use Case Example:
   ```
@@ -4985,12 +5119,21 @@ sudo fuser -v /var/cache/debconf/config.dat
     - tcp - display tcp (cant use 4 and tcp in the same time, it seems)
 
 ## telnet:
-  check ports open
-  telnet <hostname/ip> <port>
-   Example:
+Secureless connection over the network  
+Works only on TCP. For other protocols look at `netcat` 
+  check ports open  
+  telnet <hostname/ip> <port>  
+   Example:  
   ```
   telnet lwpeartifabld.tideworks.com 5000
   ```
+
+Example of HTTPconnecton:
+```
+telnet www.wikipedia.org 80
+GET / HTTP/1.0
+```
+
   
 ## nmap:
   Network Mapped, detects open ports on my system

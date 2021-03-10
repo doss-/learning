@@ -1723,6 +1723,23 @@ sshd(openssh)
    open  /etc/ssh/ssh_config and set
   PermitRootLogin yes
 
+### Find fingerprints for all keys:
+```
+pushd ~/.ssh
+for i in $(ls)
+do
+  if [ $i == 'authorized_keys' ]  || [ $i == 'known_hosts' ]; then
+    echo "skipping authorized_keys"
+    continue
+  fi
+  echo $i
+  fingerprint=$(ssh-keygen -E md5 -lf $i)
+  echo $fingerprint
+done
+popd
+```
+
+
 ## ssh-keygen:
   generates keypair private\public
     Example:
@@ -1823,6 +1840,24 @@ sshd(openssh)
   crontab -u <username> -l
     will list all rules for a user
     need sudo
+ -e  - edit
+
+### Use Case Example:
+Create Job with formatted date:
+`date here` - subshell , same as $()
+% - is escaped by \
+```
+0 * * * * echo hello >> ~/cron-logs/hourly/test`date "+\%d"`.log
+```
+
+Another option is:
+```
+jobs.sh:
+echo hello >> ~/cron-logs/hourly/test`date "+%d"`.log
+
+cron:
+0 * * * * sh jobs.sh
+```
 
 ## cron:
  task scheduler
@@ -3268,6 +3303,9 @@ ctrl+o - execute current command from history
  alias <old name> - shows command
  alias - shows all aliases for current session
 
+ FIND ALIAS IN FILE:
+ `bash -ixlc : 2>&1 | less` - then `/` search for entry like 'll='
+
 ## sleep:
   just regular sleep, stops current thread for amount of given seconds
 
@@ -3347,6 +3385,12 @@ ctrl+o - execute current command from history
    change every occurance of old hostname to new one  in /etc/hosts
     If nothing is available in /etc/hostname first hostname with 127.0.0.1 
    address will be taken as hostanme
+
+## tput:
+Reset command history scrolling and return to output scroll. Could be caused by `tmux`
+```
+tput rmcup
+```
 
 ## history:
   lists history, dumps .bash_history file into STDOUT, lines numbered
@@ -3779,6 +3823,10 @@ server {
   telnet <hostname/ip> <port>
    Example:
   telnet lwpeartifabld.tideworks.com 5000
+   CHECK PORTS WITHOUT TELNET:
+  ```
+  echo -n > /dev/tcp/t-tcb-echo-01.tideworks.io/3000
+  ```
   
 ## nmap:
   Network Mapped, detects open ports on my system
@@ -4041,3 +4089,19 @@ yum groupinstall "GNOME Desktop" "Graphical Administration Tools"
 
 ## dos2unix:
   line ending converter
+
+
+# Jenkins (move me somewhere else)
+Correctly handle issues during jenkins job in Jenkinsfile:
+```
+                        script {
+                            try {
+                                sh "cd ansible && ANSIBLE_FORCE_COLOR=0 /usr/local/bin/ansible-playbook playbooks/a_playbook.yml -f 30 -i inventories/inventory.ini -i inventories/alive.ini  -l 'a_group:&alive' -e 'ansible_user=ansible' -e 'ansible_become=true' --private-key $SSH_KEY -e ANSIBLE_HOST_KEY_CHECKING=false --vault-password-file $VAULT_PW"
+                            } catch (err) {
+                                echo err
+                                echo err.getMessage() //Logging the error message
+                                echo err.toString() //Logging the error object in case there is more info that could help triage the issue
+                                throw err //We want to re-throw the error so that the job fails correctly
+                            }
+                        }
+```

@@ -1,3 +1,11 @@
+
+=============================================================
+===== IF YOU DO NOT KNOW - BETTER TO KEEP IT SIMPLE =========
+=============================================================
+
+
+
+
 Contents
 1. [General](#General)  
 [Env Vars / Environment variables:](#Env-Vars-/-Environment-variables:)
@@ -969,6 +977,8 @@ ifconfig <interface> [IP addres] mask [Net Mask]
  route add default gw <GateWay IP Address>
  ```
  GateWay IPAddress must be on the same network as the Interface - same Subnet mask and IP Address(of the network card) should match a subnet and Gateway I
+
+ 
 ## lshw:
   list hardware, displays all the hardware detected by kernel and its state
   and properties
@@ -981,6 +991,15 @@ ifconfig <interface> [IP addres] mask [Net Mask]
                     state, together with drivers and info related
    lshw -C display - graphics drivers
 
+## dmidecode:
+Check memory frequency:
+```
+# Will return info for every DIMM Slot on Motherboard
+dmidecode --type 17
+# Look for `Speed` for every Slot from M\b
+```
+
+
 ## hdparm:
   lists HDD info
   -I - get long list of HDD info
@@ -992,6 +1011,19 @@ ifconfig <interface> [IP addres] mask [Net Mask]
    search for network controllers, and this is drivers used by them:
     Kernel driver in use: rtl8821ae
     Kernel modules: rtl8821ae
+
+ Video graphical card
+ Read more: https://www.cyberciti.biz/faq/howto-find-linux-vga-video-card-ram/
+ ```
+ lspci | grep VGA
+ lsci -v -s 01:00.0
+
+ # MEMORY
+ # glxinfo:
+ glxinfo | grep 'memory'
+ # OR short output
+ glxinfo -B
+ ```
 
 ## uname:
   system and kernel information
@@ -1663,6 +1695,13 @@ xz:
 ## zgrep:
  grep for search in .gz compressed files
 
+## blkid:
+  UUID of hdd
+  ```
+  dos:~$ sudo blkid /dev/sda8
+  /dev/sda8: UUID="62ffffff-2f72-4ce1-cf19-d31fffe41cc8" TYPE="ext4" PARTUUID="ffffffff-ffff-ffff-ffff-ffffffffffff"
+  ```
+
 ## lsblk:
   NOTE: also all Block devices would be in `/sys/block` directory  
   NOTE2: also all devices (and Block too) __with drivers__ are in `/proc/devices`  
@@ -1890,6 +1929,20 @@ how to get block device name, partition, mount it and unmount after:
   `swap` partitions are not mounted since don't have mounpoint in `/etc/fstab` - it is `none`   
 
 
+
+## ntfsfix:
+  fix NTFS after WIndows - remove dirty bit
+  ```
+  sudo ntfsfix -d /dev/sdb1
+  ```
+
+  MOunt NTFS:
+  ```
+  #get UUID:
+  sudo blkid /dev/sdb1
+  #/etc/fstab:
+  UUID=yourUUID  /data  ntfs-3g  defaults,locale=en_US.utf8  0 0
+  ```
 
 ## ntfs-config:
   Enable/disable write support for any NTFS devices
@@ -2598,24 +2651,24 @@ NOTE: there are Primary group for a user and SUpplementary groups,
 ## useradd:
   old since any *nix creation. Almost everything need to be done manually bcs of
   compatibility - different *nix platforms handles users differently, their ~
-  directories could be different
-  useradd -<params> <username>
-  -d <~_path> - use if home name\path differs from default location, i.e.:
-		 
-	useradd -d /home/accounts/john testuser
+  directories could be different  
+  `useradd -<params> <username>`  
+
+  Example: 
+  ```
   useradd -c "John from Accounts" -m -s /bin/bash john
-   -c - adds a COMMENT in the /etc/passwd for this acc
-   -m - MAKEs the home directory for this user, like /home/john
-   -s - assigns the SHELL for the user
-   john - actual user name
-    user 'john' is the member of group 'john' and this is his PRIMARY group
+  ```
+  -d <~_path> - use if home name\path differs from default location, i.e.:
+  -  -c - adds a COMMENT in the /etc/passwd for this acc
+  -  -m - MAKEs the home directory for this user, like /home/john
+  -  -s - assigns the SHELL for the user
   also:
-   -u <UID> - user ID , first free picked (from range in config) id no specified
-   -g <GID\Name> - assign to already existing group. i.e. -g accounts
-   -G <GID\Name> - additional group. i.e. -G employees
-   -e <YYY-MM-DD> - EXPIRATION date of the account
-   -k </path> - sKELETON directory if differs from /etc/skel
-   -p <hashed_pwd> - encrypted password for acc, or use 'passwd' command later
+  -  -u <UID> - user ID , first free picked (from range in config) id no specified
+  -  -g <GID\Name> - assign to already existing group. i.e. -g accounts
+  -  -G <GID\Name> - additional group. i.e. -G employees
+  -  -e <YYY-MM-DD> - EXPIRATION date of the account
+  -  -k </path> - sKELETON directory if differs from /etc/skel
+  -  -p <hashed_pwd> - encrypted password for acc, or use 'passwd' command later
    
 NOTE: after user is created the password need to be added:
 passwd testuser
@@ -2650,24 +2703,32 @@ root# passwd username - create password for the user
 ## usermod:
   modify existing users
   usermod [<params>] [groups] <user>
-   -l - change LOGIN of the user. i.e.:
+   - -l - change LOGIN of the user. i.e.:
       usermod -l johnny john - change username john to johnny
-   -d - DIRECTORY path for New home directory of the user
-   -m - MOVE-home dir to new DIRECTORY path
+   - -d - DIRECTORY path for New home directory of the user
+   - -m - MOVE-home dir to new DIRECTORY path
       usermod -m -d /home/johnny johnny - creates new dir for the user and moves
-	everything from old dir to new dir
-   -g - change primary GROUP
-   -G - add to other GROUPs delimited , and no spaces adds, more groups for user
-	will overwrite other supplementary groups except primary
-   -a - APPEND groups, used with -G, to append existing supplementary groups:
-   Example:
-      usermod -a -G newgroup1,newgroup2 johnny - will add two groups to the
-	end of the list of a groups user johnny have
-   -L - LOCK user
-	after lock there will be exclamation mark in /etc/shadow file before
-	user passwod:
-	johnny:!$6$DQMYnvhr$xKMYZSorH2wePlAunWDBKYWYSK8bmnyKMbr9IAuMoykPl7....
-   -U - UNlock user, and remove exclamation mark '!' before user passwd hash
+      everything from old dir to new dir
+   - -g - change primary GROUP
+   - -G - add to other GROUPs delimited , and no spaces adds, more groups for user
+      will overwrite other supplementary groups except primary
+   - -a - APPEND groups, used with -G, to append existing supplementary groups:
+   Example:  
+   ```
+      # will add two groups to the end of the list of a groups user johnny have
+      usermod -a -G newgroup1,newgroup2 johnny
+   ```
+   Remove from group:  
+   ```
+   gpasswd -d user group
+   ```
+   - -L - LOCK user
+      after lock there will be exclamation mark in /etc/shadow file before
+      ```
+       user passwod:
+        johnny:!$6$DQMYnvhr$xKMYZSorH2wePlAunWDBKYWYSK8bmnyKMbr9IAuMoykPl7....
+      ```
+   - -U - UNlock user, and remove exclamation mark '!' before user passwd hash  
   More to read at:
    https://www.tecmint.com/usermod-command-examples/
 
@@ -3214,6 +3275,21 @@ pstree -l 2499
 
 ## ps:
   by default returns processes run by my current user and current terminal session  
+  Use Case Find Command line arguments of a process:
+  ```
+  dos:~$ my_PID=$(ps aux | grep '[p]ing ' | awk '{print $2}')
+  dos:~$ echo $my_PID
+  20902
+  dos:~$ cat /proc/$my_PID/cmdline | less
+  >> ping^@-D^@google.com^@
+  ```
+  Use Case: Check Processe's ENVIRONMENT on start:
+  ```
+  cat /proc/PID/environ | less 
+  ```
+
+
+
   Use Case 1 Example:
   ```
   #Return 'java' processes and show header of `ps` using subshell (or { head -1; grep 'java'; } also works using Groups)
@@ -3976,6 +4052,7 @@ __Iptables is a tool to work with Netilter Framework, kind of firewall__
 
 ## Packet Flow:
 [VIDEO: iptables: Packet Processing](https://www.youtube.com/watch?v=yE82upHCxfU)  
+[VIDEO: working with IPtables, adding rules](https://youtu.be/9rLVI2UUdoo?t=520)
 Expose Docker port w/o `-p` using only Iptables chains in tables - PREROUTING\FORWARD chains: 
 [VIDEO: How Linux processes your network packet - Elazar Leibovich](https://www.youtube.com/watch?v=3Ij0aZRsw9w&t=2s)  
 Packet from Network arrives (__INGRESS__):
@@ -4097,8 +4174,7 @@ __Linux Netfilter Packets Flow:__
   it is a tool to get daemon(service) install other app:   
    __Centos__ - iptables-services(firewalld)  
    __Ubuntu__ \ __Debian__ - ufw(probably goes with iptables pkg)  
-   __RHEL__ - iptables  
-   
+   __RHEL__ - iptables   
   
   - -L - list all rules currently installed on the system
   - -A CHAIN_NAME - Append Rule at the end of Chain  
@@ -4114,12 +4190,61 @@ __Linux Netfilter Packets Flow:__
     Example:  
     `iptables -P INPUT DROP` - drop everything by default(not matched by rules)
 
+
 Service uses loads default config file when starts, applying some 
 default rules, /etc/sysconfig/iptables for CentOS 7
   to manage a service:
    Debian/RHEL: sudo /etc/init.d/iptables start\stop\status
    Ubuntu: sudo service ufw start\stop\status
    Centos: servicectl start\stop\status iptables
+
+### working with iptables: 
+__Add rule to accept not-new connections packets:__
+```
+-A INPUT -m state --state RELATED, ESTABLISHED -j ACCEPT
+```
+- `-A` - `A`ppend a rule to End of INPUT chain
+- `-m` - Rule will `m`atch the state of the packet to be as in `--state`
+- `--state` - the packet's states to match i.e. `RELATED` or `ESTABLISHED`(connection)
+- `-j` - `j`ump to `ACCEPT` target  
+
+__Add rule to accept Protocol packets:__
+```
+-A INPUT -p icmp -j ACCEPT
+```
+- `-p` - match `p`rotocol of `icmp` type, and `j`ump to `ACCEPT` target
+
+__Add rule to accept packets from the Interface:__
+```
+-A INPUT -i lo -j ACCEPT
+```
+- `-i` - Accept packet from Network `i`nterface(`if`) name i.e. `loopback` interface or `lo`
+
+__Add rule to accept incoming SSH packets:__
+```
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+```
+- `--state NEW` - match only packets with state `NEW` - means not part of any existing connection(RELATED or ESTABLISHED)
+- `-m tcp` - match some TCP properties of the packet
+  - `--dport` - match for `d`estination `port`(`dport`) to be 22
+
+__Add rule to REJECT packets with an answer with Error message-packet:__
+>Rejecting packets with an error message complies with TCP protocol  
+However due to security reasons we could Not comply with the protocol and just Drop packet silently  
+Following will override the `Default target`:
+```
+-A INPUT -j REJECT --reject-with icmp-host-prohibited
+```
+- `--reject-with` - specify error message to answer with, i.e. icmp-host-prohibited error
+
+__Set Default policy(target):__
+```
+:INPUT ACCEPT [0:0]
+```
+- `:INPUT` - Chain name in a Table (i.e. `filter`)
+- `ACCEPT` - default target if no Rules got matched in a Chain
+> NOTE: with `-A INPUT -j REJECT` default target will Never be reached, 
+- `[0:0]` - default packet counter values for a chain - 0:0 usually auto-set on boot
 
 ## IP address ranges:
 CIDR blocks
@@ -4913,6 +5038,8 @@ IP>hostname resolution requires 'reverse lookup' set manually on DNS - wut da fo
 ## pass:
 password manager kind of
 https://www.passwordstore.org/#download - see docs here
+### Create GPG Key if reqiured
+`gpg --full-generate-key` - change keysize to 4096 bits
 ### Initialize simple store
  `pass init gpg-id@email.com`
 ### Initialize git store
@@ -4927,16 +5054,24 @@ https://www.passwordstore.org/#download - see docs here
  `pass find .com`  
  `pass search .com`  
  Find existing passwords that match .com
+### Edit password
+`pass edit dir/password_file`
 ### Add password
  `pass insert Directory_name/name_for_password` name could be website or something else  
 ### Add multiline password
- `pass insert -m Directory_name/name_for_password` - multiline, for detailed stuff
+ `pass insert -m Directory_name/name_for_password` - multiline, for detailed stuff:
+ - -m\--multiline
 ### Generate password
- `pass generate Dir_name/pass_name <pass_length_int>`
+ `pass generate Dir/generated-pass 32 --no-symbols`:
+ - 32 - length
+ - --no-symbols\-n - pass w/o special symbols generated
 ### Show password
  `pass Directory_name/name_for_password`
 ### Copy password into clipboard
- `pass -c Directory_name/name_for_password`
+ `pass -c Directory_name/name_for_password`:
+ - -c\--clip - put pass into Clipboard for 45 sec
+ ### Remove password
+ `pass rm dir/password_file`
 
 
 ## LSM: linux security module:

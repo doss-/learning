@@ -354,7 +354,11 @@ Broadcast storm Example:
 
 ### STP Protocol
 `Spanning Tree Protocol` - to prevent Broadcast storms  
->30 seconds required by default for Reconfiguration of network (switch turn on/off)  
+>30 seconds required by default for Reconfiguration of network (switch turn on/off)   
+
+[VIDEO: Spanning Tree Protocol Explained | Step by Step](https://www.youtube.com/watch?v=japdEY1UKe4)  
+[VIDEO: Сети для самых маленьких. Выпуск четвёртый. STP](https://www.youtube.com/watch?v=qktkRnIamqE&feature=emb_logo)
+
 
 STP uses `STA`(`Spanning Tree Algorithm`) which represents given Netowkr as a mathematical Graph  
 STP makes sure:

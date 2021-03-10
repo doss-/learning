@@ -908,3 +908,21 @@ role:
              - foo
 
       
+
+# Examples:
+
+```
+- name: determine if there is an "ansible" user
+  shell: id ansible > /dev/null 2>&1
+  changed_when: false
+  ignore_errors: true
+  register: ansible_user_check
+  tags: wild_tideworks_io
+
+- name: add ansible user to ssl-cert group
+  user:
+    name: ansible
+    groups: ssl-cert
+    append: true
+  when: ansible_user_check.rc == 0
+```

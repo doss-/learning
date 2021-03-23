@@ -732,6 +732,11 @@ sudo fallocate -l 1G /swapfile
   pager, upgraded version of 'more' command
   lists output in separate 'window' does not adding history in the console
   ALSO could be used like 'unzip' to view archives
+  ```
+  less zipfile
+  # OR
+  unzip -l zipfile
+  ```
 
 ## split:
   splits file into another files, like with collection variable
@@ -1599,7 +1604,15 @@ journalctl --vacuum-time=10d
   utility to unzip files. Unzips in the current folder by default
    Params:
   -d - specify folder where to extract
+  ```
+  unzip zipfile -d /opt
+  ```
   -l - lists archive contents, 'less' tool does the same
+  ```
+  unzip -l zipfile
+  # OR
+  less zipfile
+  ```
 
 ## zip: 
   creates zip archive, could also create encrypted archives(with password)

@@ -28,7 +28,7 @@ variable "dnsSupport" {
     description = "Enables Route 53 Resolver(169.254.169.253) which will server DNS names for Instances with Public IP"
 }
 
-# https://docs.aws.amazon.com/vpc/latest/userguide/vpc-ip-addressing.html#vpc-public-ipv4-addresses
+# Docs: https://docs.aws.amazon.com/vpc/latest/userguide/vpc-ip-addressing.html#vpc-public-ipv4-addresses
 variable "dnsHostNames" {
     default = true
     description = "Creates DNS names for Instances with Public IP. DNS Name resolve in Public\\Private IP from Outside\\Inside"
@@ -56,7 +56,7 @@ variable "vpcMainCIDRblock" {
 #    The allowed block size is between a /28 netmask and /16 netmask. 
 #    If you create more than one subnet in a VPC, the CIDR blocks of the subnets cannot overlap. 
 variable "subnetCIDRblock" {
-    default = "172.0.1.0/24"
+    default = "172.20.1.0/24"
     description = "Must be a subset of the VPC CIDR block"
 }
 
@@ -64,13 +64,24 @@ variable "subnetCIDRblock" {
 variable "destinationCIDRblock" {
     default = "0.0.0.0/0"
 }
+
+# TODO: add all the ISP ip ranges here
+# https://2ip.ua/ru/services/information-service/provider-ip
 variable "ingressCIDRblock" {
     type = list
-    default = [ "0.0.0.0/0" ]
+    default = [
+      "77.120.0.0/14",
+      "141.170.192.0/18",
+      "188.230.0.0/17",
+    ]
 }
 variable "egressCIDRblock" {
     type = list
-    default = [ "0.0.0.0/0" ]
+    default = [
+      "77.120.0.0/14",
+      "141.170.192.0/18",
+      "188.230.0.0/17",
+    ]
 }
 
 # TODO: add Virtual Private Gateway, and remove IGW

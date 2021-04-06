@@ -1,0 +1,10 @@
+---
+- name: Config Vim with Plugins
+  hosts: my_vms
+  become: no
+  gather_facts: yes
+
+  tasks:
+    - name: Configure VIM using role
+      import_role: 
+        name: vim_install

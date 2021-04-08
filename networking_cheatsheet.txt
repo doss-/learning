@@ -323,6 +323,11 @@ BroadcastIP is `176.46.117.175`
 `11110000` is 240
 __Subnet Mask__ is `255.255.255.240`
 
+
+## OSI Traffic\Packet Flow
+[Packet Traveling - How Packets Move Through a Network](https://www.youtube.com/watch?v=rYodcvhh7b8&t=15s)
+
+
 ## Switch:
 Device for switching traffic on LVL2 of OSI
 [TEXT: 4 functions of Switch](https://www.practicalnetworking.net/series/packet-traveling/host-to-host-through-a-switch/#switch-functions):
@@ -1289,3 +1294,55 @@ username admin secret 5 $1$mERr$4dpRATIgxQacPVK0CfNV4/
 
 ## hostname:
 change Router's hostname - default is `Router`
+
+
+# ACL
+Access Control List  
+Part of NAT i suppose
+Can route traffic FROM Network TO Specified next Hop (Routers only work with TO destination, for 1 next Hop)
+
+Types:
+- Standard
+- Extended
+- Dynamic
+- Reflexive
+
+## Standard ACL
+Filters by: 
+- Sender IP address  
+Better to place near Recipient(end-client host), to not filter too much IP addresses
+
+## Extended ACL
+Filters by:  
+- Sender IP  
+- Destination IP
+- Port 
+
+Better to place near to Sender (network gateway), to filter As Much and As Early as possible
+
+# VPN
+Types:
+- ISP managed:
+  - L2VPN (vlan)
+  - L3VPN (about IP it seems)
+- Internet:
+  - GRE
+  - IPSec
+
+## GRE
+Generic Routing Encapsulation
+
+Cisco setup:
+```
+interface tunnel 0                    # create new tunnel interface (`tunnel 0` are reserved words)
+ip address 10.2.2.1 255.255.255.253   # set own IP\mask of the interface
+tunnel source 100.0.0.1               # set Source address of Tunnel (Public IP of the source Router)
+tunnel destination 200.0.0.1          # set End address of Tunnel (public IP of destination Router)
+do show interface tunnel 0            # check status of interface (tunnel\line up, addresses, src\dest addr, MTU, encapsulation - GRE/IP)
+```
+
+>Tunnel `MUST BE CONFIGURED ON BOTH SIDES` (see above `interface 0` config on ONE side)
+
+
+## IPSec
+IPsec Site to Site VPN Tunnels Explained; CBT Nuggets https://www.youtube.com/watch?v=CuxyZiSCSfc

@@ -1,0 +1,13 @@
+# Overview
+[Podman: A Linux tool for working with containers and pods](https://www.youtube.com/watch?v=bJDI_QuXeCE)
+
+> Compatible with Docker  
+> `alias docker=podman`
+
+# Differences
+1. Daemonless
+  - Ingergates with Systemd 
+  - Contaners could be registered as Units and controlled via `systemctl`
+
+2. Could be run as NON Privileged user
+  - Much secure

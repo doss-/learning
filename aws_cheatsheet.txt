@@ -966,3 +966,22 @@ BUcket fills up faster the more CPU usage is below Baseline(i.e. 40% for 'large'
 With lesser load T3 instances are cheaper than M5 instances.  
 With High load T3 instances could be up to 1.5x higher in price than M5 instances.  
 see `aws_t3-vs-m5_difference_price_calc.jpg` in cheatsheets/docs/img.
+
+# Load Balancer (ELB)
+Load balancers [Documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/userguide/how-elastic-load-balancing-works.html):
+  - Application load balancer (ALB)
+    - Operates on Layer 7
+    - Smart decisions (`/foo` and `/bar` in URI redirected to different servers(target groups)
+    - Caching 
+  - Network load balancer (NLB)
+    - Layer 4  (uses NAT as referse-proxy)
+    - TCP\UDP traffic could be redirected to target groups
+    - Fast (no data checks only IP and Port - no decryption etc.)
+    - No caching (does not look at the data, dunno what to cache)
+    - No smart load balancing (decisions for Microservices `/foo` or `/bar`)
+  - Classic load balancer
+    - Deprecated
+    - Layer 4 and Layer 7
+
+[Application Load Balancer vs Network Load Balancer vs Classic Load Balancer | AWS CSAA | Whizlabs](https://www.youtube.com/watch?v=WqJDac1H81I)  
+[Load balancing in Layer 4 vs Layer 7 with HAPROXY Examples](https://www.youtube.com/watch?v=aKMLgFVxZYk)

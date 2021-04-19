@@ -738,6 +738,10 @@ sudo fallocate -l 1G /swapfile
   unzip -l zipfile
   ```
 
+  `less +F /var/log/syslog` - same as `tail -f` but as a pager:  
+  - SHIFT+F - attach to file (like `tail -f`)  
+  - CTRL+C - deattach from file  
+
 ## split:
   splits file into another files, like with collection variable
   split -l 2 <file name> -  will split the file by 2 Lines into new files named
@@ -1599,6 +1603,10 @@ journalctl --vacuum-time=10d
    also inverts pipe exit code
     ls | bogus_command; echo $? # exit code: 127
     ! ls | bogus_command; echo $? # exit code: 0
+
+## reset:
+resets terminal, if layout is broken or something
+keeps shell history, probably
 
 ## unzip:
   utility to unzip files. Unzips in the current folder by default
@@ -4456,20 +4464,25 @@ CIDR blocks
 
 # Bash
 ## Bash command line shortcuts
-ctrl+a - moves cursor on the beginning of the line
-ctrl+e - moved cursor on the End of the line
-ctrl+u - removes everything from cursor position to the beginning of line
-ctrl+k - removes everything from cursor position to the edn of the line
-ctrl+w - removes previous word(space separated)
-ctrl+l - cleares screen except of current command LINE
-ctrl+p - last executed command shown in command line, same as UP ARROW key 
-ctrl+c - terminate current process + exit\del current line by terminating it
-ctrl+z - pause program, adding it to backgroud job. 'bg'\'fg' to continue run
+- ctrl+a - moves cursor on the beginning of the line
+- ctrl+e - moved cursor on the End of the line
+- ctrl+u - removes everything from cursor position to the beginning of line
+- ctrl+k - removes everything from cursor position to the edn of the line
+- ctrl+y - Pastes previously removed text
+- ctrl+w - removes previous word(space separated)
+- alt-bckspc - removes previous word aswell
+- ctrl+l - cleares screen except of current command LINE
+- `reset` - resets the terminal keeping the session history
+- ctrl+p - last executed command shown in command line, same as UP ARROW key 
+- ctrl+c - terminate current process + exit\del current line by terminating it
+- ctrl+z - pause program, adding it to backgroud job. 'bg'\'fg' to continue run
+- ctrl+x+e - multiline command in text editor and execute on :wq!
 ## history:
-ctrl+r - bash history by typed command
-ctrl+r - again looks one matched line upwards
-ctrl+j - edit matched line
-ctrl+o - execute current command from history
+- ctrl+r - bash history by typed command
+- ctrl+r - again looks one matched line upwards
+- ctrl+j - edit matched line
+- ctrl+o - execute current command from history
+- alt+.  - paste arguments of previous Successfull command
 
 ## Bash Shell
 ## alias:

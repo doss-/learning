@@ -28,6 +28,7 @@ Shortcuts:
   ctrl+j - edit found command in search
   ctrl+p - previous command in history
   ctrl+n - next command in history
+  ctrl+x+e - type Multiline! command in editor and execute
 
 
 Bash Scripts accepts data from stdin and its direct redirection or pipe  

@@ -39,6 +39,7 @@ could be stored in separate directory, i.e. in root of project directory
  Venv for native python3:
   mkdir -p /path/to/venv/ansible
   pip3 install virtualenv --user
+   or `apt info python3-virtualenv -a` which would be LESS appropriate
   python3 -mvenv /path/to/venv/ansible
   source /path/to/venv/ansible/bin/activate
   pip3 install -U pip setuptools

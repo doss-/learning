@@ -296,6 +296,72 @@ terraform plan - will read main.tf and display what is gonna happen
 
 executes the .tf script creating stuff described in the file
 
+## Variables
+[documentation](https://www.terraform.io/docs/language/values/variables.html)  
+applied to:
+- Modules (child modules)
+- Roots (root modules)  
+
+### Module Variables
+are declared in `.tf` files  
+
+Declaration:  
+```
+# filename is variables.tf
+
+variable "image_id" {
+  type = string
+  description = "This is like a commends\documentation"
+}
+
+variable "availability_zone_names" {
+  type    = list(string)
+  default = ["us-west-1a"]
+}
+
+variable "docker_ports" {
+  type = list(object({
+    internal = number
+    external = number
+    protocol = string
+  }))
+  default = [
+    {
+      internal = 8300
+      external = 8300
+      protocol = "tcp"
+    }
+  ]
+}
+
+```
+
+Usage:  
+```
+# Terraform merges all *.tf files during execution, so main.tf and variables.tf will be One file
+module "the_module" {
+  source = "path/to/module/with/variables_tf"
+  image_id = "ami1234"
+  availability_zone_names = ["us-west-1a", "us-west-1b"]
+  # also could be = "us-west-1a, us-west-1b" or something, since list(strin) in variable declaration in variables.tf in module
+}
+```
+
+### Root variables
+Root module accepts variables as:
+- Environment Variables (overriden by anything else)
+- `.tfvars` files (overrides Env vars), `.tfvars.json` file (overrides `.tfvars`)
+- `.auto.tfvars` and `.auto.tfvars.json` (override `.tfvars.json` files) in lexical ordered
+- `-var` or `-var-file` (override everything else), in order they are provided  
+
+>In Terraform 0.12 and later, variables with map and object values behave the same way as 
+other variables: the last value found overrides the previous values. This is a change from 
+previous versions of Terraform, which would merge map values instead of overriding them.
+
+
+
+
+
 --------------
 Learn:
 

@@ -1,8 +1,9 @@
-==cloud concepts
-==VPC
-==aws
-==ecs-cli
+## cloud concepts
+## VPC
+## aws
+## ecs-cli
 
+[!!!!! jq and aws cheatsheet](https://medium.com/circuitpeople/aws-cli-with-jq-and-bash-9d54e2eabaf1)
 
   Main simplified concepts [ELI5]:
    https://www.youtube.com/watch?v=_V3dqC80FHU&list=PLv2a_5pNAko2Jl4Ks7V428ttvy-Fj4NKU&index=3
@@ -18,7 +19,7 @@
 	  Flask
 
 
-==cloud concepts
+## cloud concepts
   
   Main benefits\terms:
  High Availability - once in the cloud the data is available everywhere where
@@ -32,13 +33,13 @@
   which is istantiated and acts as Web Hosting server or such
 
 
-==VPC (Virtual Private Cloud)
+## VPC (Virtual Private Cloud)
   A VPC is an isolated portion of the AWS cloud.
   Private network where stuff like ec2 instances and RDS(database) is located.
   Like a page on a Facebook where each user can do what ever he wants and
   grant or restrict access to it for other users by friending them etc.
   
-====Internet Gateway (IGW)
+#### Internet Gateway (IGW)
    Analog of modem in local network
   IGW is the thing that allows communication of whole VPS and its resources
   and services to the outside World(Internet). 
@@ -50,7 +51,7 @@
   VPC could have only 1 IGW attached 
   If VPS have services running IGW can not be detached
 
-====Route Tables (RTs)
+#### Route Tables (RTs)
   See detailed documentation here:
 https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    Basically is analog of a router in local network, which is connected to
@@ -89,7 +90,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
     Destination: 172.31.0.0/16
     Target: local
 
-====Network Access Control Lists (NACLs)
+#### Network Access Control Lists (NACLs)
   Provides optional security on Subnet level.
    Works like firewall in the Router - in contrast to Security Groups that are
   like firewall on the particular Compoter inside network - SG should be
@@ -108,7 +109,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    For NEW rules Everything is DENIED by default
   SUbnet could only have one NACL attached to it
 
-====Subnets
+#### Subnets
   Sub section of network.
   So VPC has its own network, and inside that network there could be another 
   section (included in the overall VPC's network), and this will be subnet
@@ -137,7 +138,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
 
 
 
-====Availability Zones
+#### Availability Zones
   Geographically separate data centers inside the Region.
   Subnets are created inside AZ
   Every Subnet cannot cover more that 1 AZ, means that particular subnet
@@ -146,7 +147,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    Good practice are to have mirorred infrastructure on another Availability
   Zone, to increase Fault Tolerance and High Availability.
 
-==S3 (Simple Storage Service)
+## S3 (Simple Storage Service)
   Storage - like a harddrive, or DropBox(which is actually s3 lol)
    It is split into Buckets, like different repos in gitHub
 
@@ -160,58 +161,58 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
   S3 Objects
      File, basically, any type
 
-====Storage class
+### Storage class
   Represents 'classification' assigned to each Object in S3
 
-   Storage classes are:
-  Standard (default)
-   Most expensive
-   Maximum durable ('eleven nines' > 99.999999999%)
-   Very available - 99.99%
-  Reduced Redundancy Storage(RRS)
-   Less expensive
-   Very durable - 99.99%
-   Very available - 99.99%
-   Used for non critical objects that are reproducible
-  Infrequent Access(S3-IA)
-   Even more cheaper
-   Maximum durable - ('eleven nines')
-   Less available - 99.90%
-   Used for objects accessed infrequently, but when do it is immidiately 
-   available
-  Glacier
-   Cheapest
-   Maximum durable
-   Could takes hours to days to take object back when accessed, request need to 
+   __Storage classes are:__
+  - Standard (default)
+    - Most expensive
+    - Maximum durable ('eleven nines' > 99.999999999%)
+    - Very available - 99.99%
+  - Reduced Redundancy Storage(RRS)
+    - Less expensive
+    - Very durable - 99.99%
+    - Very available - 99.99%
+    - Used for non critical objects that are reproducible
+  - Infrequent Access(S3-IA)
+    - Even more cheaper
+    - Maximum durable - ('eleven nines')
+    - Less available - 99.90%
+    - Used for objects accessed infrequently, but when do it is immidiately available
+  - Glacier
+    - Cheapest
+    - Maximum durable
+    - Could takes hours to days to take object back when accessed, request need to 
    be filled for that
 
-  Object Durability:
+  __Object Durability:__  
    11 nines - 99.999999999% means that there is a 0.0000000001% chance that
-   file could be lost in a year
-    Example:
-   for 10k files there is chance to lose 1 in every 10 million years
+   file could be lost in a year  
+    Example:  
+   `for 10k files there is chance to lose 1 in every 10 million years`
 
-  Object Availability:
-   for 99.99% there is 0.01% chance to lose access to a file once a year
-    Example:
-   for 10k hours of usage, there is 1 houre of file being unavailable
+  __Object Availability:__  
+   for 99.99% there is 0.01% chance to lose access to a file once a year  
+    Example:  
+   `for 10k hours of usage, there is 1 houre of file being unavailable`
   
   Each storage class has various attributes, which is represented by:
-   Storage Cost $
-   Object availability
-   Object durability
-   Frequency of access to the object
+   - Storage Cost $
+   - Object availability
+   - Object durability
+   - Frequency of access to the object
 
   Each object myst be assigned a storage class (Standard is the default)
 
   Usually storage class could be changed
 
-====Lifecycle
+### Lifecycle
   Lifecycle of the object - is automated transition of object between different
   Storage classes determined by time period passed, which purpose is to reduce
-  cost of using the service
-  Lifecycle could be applied to whole Bucket, a Folder or a Object(File) 
+  cost of using the service  
+  Lifecycle could be applied to whole Bucket, a Folder or a Object(File)  
    Example:
+   ```
    File is used every day for first month
     It is in Standard Storage class for first 0-29 days
    After that period passes we expect file to be used once a week
@@ -222,24 +223,61 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    it for another 1000 days
     So after 90 days in total passes file's Storage class is changed to
     Glacier class and is deleted after 1090 days in total.
+  ```
 
    Thus cost for S3 usage is minimized for that file - because importance of the
    file and frequency of need to access it is taken into account and
    corresponding Storage Classes are used.
 
-====Permissions
+### Permissions
   Permissions for a user of S3:
-   View contents (List)
-   Edit contents (Write) - upload\delete
-   View permissions (Read bucket permissions) - view the permissions themselves
-   Edit permissions (Write bucket permissions) - change the permissions
+   - View contents (List)
+   - Edit contents (Write) - upload\delete
+   - View permissions (Read bucket permissions) - view the permissions themselves
+   - Edit permissions (Write bucket permissions) - change the permissions
  
   Files and Folders have only 3 permission
-   Read File\Folder (download too probably)
-   Read Permissions of File\Folder
-   Change Permissions of File\Folder
+   - Read File\Folder (download too probably)
+   - Read Permissions of File\Folder
+   - Change Permissions of File\Folder
   Files also could be made Public Available, need to read more about it
  
+  Bucket Read Access for IP:
+  Block public access  
+  Bucket policy  
+  ```
+  {
+    "Version": "2012-10-17",
+    "Id": "S3PolicyId1",
+    "Statement": [
+        {
+            "Sid": "IPAllow",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::wildrydes-drakytsk/*",
+            "Condition": {
+                "IpAddress": {
+                    "aws:SourceIp": "77.122.99.145"
+                }
+            }
+        }
+    ]
+  }
+  ```
+
+### Access Policies:
+[Amazon S3: Configuring Access Policies](https://www.youtube.com/watch?v=weBOwG9cuZ0)
+
+Two Types:
+- Resource Based Policies
+  - Access Control Lists
+    - Applies to `Buckets` and `Objects`
+  - Bucket Policies
+  - Time-limited URLs
+- User Policies
+
+
   NOTE:
    Even if regular user has IAM permission to access S3, this user will not be
    able to access Buckets created by other users.
@@ -247,7 +285,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    So additional 'Grantees' need to be added to that BUcket so that users will
    be able to List\Edit\Permissions in that particular Bucket\Folder\File
 
----Versioning
+### Versioning
   Stores all versions of an object
 
   Controlled at Bucket level
@@ -258,7 +296,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
   New versions COULD NOT INHERIT STORAGE CLASS from their anscestors, which 
   means that Standard storage class will be used (which is costly)
 
-==EC2 Elastic Compute Cloud
+## EC2 Elastic Compute Cloud
   simple virtual machine in the Amazon cloud, like VPS - virtual private server
    
    Purchasing options:
@@ -283,7 +321,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
    This is the way for AWS to utilize machine time that is not used at
    the moment of the machines that are used for EC2 stuff
    
-====AMI (Amazon Machine Instance)
+#### AMI (Amazon Machine Instance)
   Image of an machine including OS, software and settings for the particular
   hardware where AMI is spinned up
   
@@ -336,7 +374,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
   Snapshot could not be attached to an instance
   Cheaper than having an EBS volume 
 
-====Security Groups (SG)
+#### Security Groups (SG)
   Same to Network Access Control List(NACL) - firewall for particular EC2
   instances when NACL is a firewall for whole Subnet inside VPC
    It regulates traffic in and out of EC2 instance by
@@ -354,7 +392,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
     all Inbound traffic is DENIED (it has no rules basically)
     all Outbound traffic is ALLOWED
   
-====IP Addressing
+#### IP Addressing
   COuld be private and public
 
   by Default each EC2 instance have Private IP address
@@ -379,7 +417,7 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
   - Internet Gateway
 	should be attached to VPC
 
-==RDS (Relational Database Service)
+## RDS (Relational Database Service)
   SQL database service provided by Amazon
    Amazon Aurora
    MySQL
@@ -417,20 +455,20 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
   have it opened by default
   
 
-==DynamoDB 
+## DynamoDB 
   NoSQL database service provided by Amazon
    MongoDB
    Cassandra DB
    Oracle NoSQL
   
-==SSH Tunneling
+## SSH Tunneling
    Creation of a SSH tunnel into the machine in private Subnet(subnet with Route
   Table that has no specified Intenet Gate Way) using another machine located
   in the same VPC but in public Subnet(subnet with Rout Table that has IGW 
   specified). Thus machine in public subnet works as pass-through to the another
   one inside the private subnet, which is unavailable from internet directly
 
-==SNS (Simple Notification Service)
+## SNS (Simple Notification Service)
   Service to send email or text notification based on the Events happened in
   the AWS account.
    There are two groups of clients
@@ -455,13 +493,16 @@ https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html
     SNS which in turn triggered by CW Alarm, then sends the message into
    the topic to which particular users\services are subscribed
   
+## Lambda
+[Introduction to AWS Lambda & Serverless Applications](https://www.youtube.com/watch?v=EBSdyoO3goc)
 
-==Aws general Architecture
+## Aws general Architecture
   Regions include 1+ Availability Zones which are separate datacenters and 
   located some kilometers/tens of away from each other. All the Amazon 
   services work on those servers within the datacenters
 
-==aws
+## aws
+
 aws:
  Docs:
  https://docs.aws.amazon.com/cli/latest/reference/index.html#cli-aws
@@ -752,7 +793,7 @@ aws s3api create-bucket
    Params:
   --bucket <name>  - name of the bucket to be created(underscores _ not allowed)
 
-==ECS:
+## ECS:
  Amazon Elastic Container Service
   basically container management system, which manages its on its own
 
@@ -807,8 +848,8 @@ aws s3api create-bucket
 =   Amazon ECR - private registry (Amazon's docker hub)
 =   Amaxon ECS CLI - open source tool for managing ECS through console (like aws)
 
-====IAM
-====== User
+#### IAM
+###### User
  User that is not Root(which is the billing holder and stuff). 
   Different users can have different priveleges and acess to different modules.
  Access to resources is given to particular users through Policies
@@ -817,13 +858,13 @@ aws s3api create-bucket
  Another way is to add user to a Group which will have its own policies.
   Policy and Group could be created manually in addition to already 
   existing ones
-====== Policy
+###### Policy
  Permission to do something basically.
   Like change password, or see billing information, or use particular service
   for instance s3
  Policies could be Versioned (different version than one in JSON element, see below)
 
-========IAM Policy Variables and tags
+######## IAM Policy Variables and tags
   Variables are like dynamically interpolated username later on execution:
    ${aws:username} - will be expanded differently for each logged user
   Works in 2012 version of Policy langiage:
@@ -831,11 +872,11 @@ aws s3api create-bucket
   Version(JSON element) must be specified, default one is 2008, and is deprecated.
   
   
-====== Group
+###### Group
  Policies could be groupped into a Group for easier management and consistency
  Also users is attached to the group to get those access given by bunch of
  policies
-====== Role
+###### Role
  Roles are given for services, to act on behalf of a user
  Roles have Policies attached which grants some access
   Example:
@@ -846,7 +887,7 @@ aws s3api create-bucket
  a User or Users, but Roles are given to another services and stuff, not users
  
 
-==IoT iot IOT Internet of Things
+## IoT iot IOT Internet of Things
 representation of device in the cloud, its shadow is always there and keeps
 track of state, when real one comes online shadow delivers state
 also has rules , cerificates(uploaded on device) policies and stuff
@@ -854,13 +895,13 @@ also has rules , cerificates(uploaded on device) policies and stuff
 Guide link:
 https://docs.aws.amazon.com/iot/latest/developerguide/iot-gs.html
 
-===Device
+##=Device
 device need to be registered in the registry
 Device is key-value paired list of device properties
 it could have Type
 With type device could have up to 50 pairs
 
-===Certificate
+##=Certificate
 Certificate X.509 is used for secure connection
 it need to be first created then uploaded on the real device
 also together with certificate priv/pub key pair is created for same secure
@@ -870,7 +911,7 @@ Certificates need to be Activated.
 Certificate with Attached Policy then
  need to be attached to a Thing
 
-===AWS IoT Policies
+##=AWS IoT Policies
 similar to IAM Policies - those grants unhuman things privileges to do
 something for user , on user behalf
  Example:
@@ -902,7 +943,7 @@ Policy could have several Statements
   specified in the policy
  
 
-==ecs-cli
+## ecs-cli
 ecs-cli:
 
  install:

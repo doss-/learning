@@ -3,8 +3,21 @@ https://code.visualstudio.com/docs/editor/codebasics#_multiple-selections-multic
 
 Search and replace:
   Insert '## ' before any command in linux_cheatsheet 
-   ctrl+h
-   Search: 
+   `ctrl+h`
+   Search:  
+   ```
     (^\w[\w\s-]+?:)     # group 1
-   Replace:
+   ```
+   Replace:  
+   ```
     ## $1               # $1 is group1
+   ```
+  
+  Example2:  
+  ```
+  ##Header --add space--> ## Header
+  Find Regex:   (##)(\w)
+  Replace with: $1 $2
+  $1 - (##)
+  $2 - (\w)
+  ```

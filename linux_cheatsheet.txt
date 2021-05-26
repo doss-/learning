@@ -276,6 +276,13 @@ sudo timedatectl set-timezone Europe/Kiev
   Linux does not have extensions for files so this is 
  the sure way to acquire such info
 
+## jq:
+same as `grep`, `sed` but for JSON
+https://stedolan.github.io/jq/download/
+Install:
+`cp ~/Downloads/jq-linux64 ~/.local/bin/. && chmod 750 ~/.local/bin/jq-linux64 && ln -s ~/.local/bin/jq-linux64 ~/.local/bin/jq`
+
+
 ## grep:
   Global Regular Expression Print
   filters output using regular expressions
@@ -3106,10 +3113,14 @@ This could happen when program is run first time so many code not in the memory 
 The worst case is when low on memory - thus before loading new mages from the disk Kernel will store unused existing ones into _swap_ which is also on the slow storage(i.e. disk).
 
 ## Load Averages
+  [Что такое Load Average? Важная метрика в linux](https://www.youtube.com/watch?v=_6PkYxsVvxI)
+  [What's the load average ? -- 3 minutes to get it !](https://www.youtube.com/watch?v=-Ri_nqWr36Q)
+  [Demystifying Linux CPU Load Averages](https://www.youtube.com/watch?v=0LWgrHYsVhs)
 average number of processes in ready-to-run (including running) state in a given time - thus using CPU
 on System with 1 Core Load Average of 1 will mean that at given time 1 process was running all the time  
 on System with Multiple Cores the Load Average of 1 would mean that only 1 Core was running process constantly, 2 - two Cores  
 Load Average of 0.01 would mean that in Given time only 1% of 1 Core of CPU was used
+  View with: `uptime`, `top`, `htop` 
 
 ### Load Average is High:
 - Many processes are running simultaneously, this could be 'by design' so no worries
@@ -3380,6 +3391,10 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
   - for last 15 minutes 1.26 processes were running
 
 ## lscpu:
+  Count CPU cores:  
+  ```
+  cat /proc/cpuinfo  | grep processor | wc -l
+  ```  
   info about CPU
   Calculate number or CPU threads:
   `lscpu`
@@ -3658,6 +3673,7 @@ service is adequate for basic service management, while directly calling systemc
 
 # Systemd:
 configure units(services)
+  [How to Create a systemd Linux Service](https://www.youtube.com/watch?v=C4a7jxlMTfo)
  https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/sect-managing_services_with_systemd-unit_files
  Example:
  https://www.jetbrains.com/help/teamcity/setting-up-and-running-additional-build-agents.html#Automatic-Agent-Start-under-Linux
@@ -3734,6 +3750,39 @@ configure units(services)
 
 
 # Package management
+
+## asdf
+asdf:
+  https://asdf-vm.com/#/core-manage-asdf
+
+### Install:
+git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.8.0  
+~/.bashrc:
+. $HOME/.asdf/asdf.sh
+#### Autocompleton:
+. $HOME/.asdf/completions/asdf.bash
+
+#### Packages:
+`.tools-version controls Versions`
+all versions will apply to this Directory and Nested ones
+```
+  terraform 0.15.1
+  terragrunt 0.29.1
+```
+
+INstall plugins:
+```
+asdf install
+```
+
+ Plugins:
+https://asdf-vm.com/#/plugins-all
+```
+asdf plugin-add terraform https://github.com/asdf-community/asdf-hashicorp.git
+asdf plugin-add terragrunt https://github.com/lotia/asdf-terragrunt
+```
+
+
 ## Debian\Ubuntu
 
 .deb - packages format

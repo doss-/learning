@@ -511,7 +511,11 @@ git rm - removes files, adds to staging area
 git mv - rename/move files , adds to staging area
 
 
-.gitignore:
+.gitignore:  
+> Ignores only UNTRACKED files  
+> to Ignore tracked files use `git update-index --assume-unchanged iac/roots/wildrydes/s3/policy.json`  
+> Read more: https://stackoverflow.com/questions/28497104/how-to-ignore-any-changes-on-already-committed-file-to-git  
+
  Seems like it applies right after file save, why did i
 think i need to commit it first? weird
    Examples:

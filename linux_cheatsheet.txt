@@ -3,6 +3,11 @@
 ===== IF YOU DO NOT KNOW - BETTER TO KEEP IT SIMPLE =========
 =============================================================
 
+-----------------------------------------
+----- Life is about balance between 
+----- 'high risk high reward' and
+----- 'better safe than sorry'
+----------------------------------------
 
 
 
@@ -283,7 +288,12 @@ Install:
 `cp ~/Downloads/jq-linux64 ~/.local/bin/. && chmod 750 ~/.local/bin/jq-linux64 && ln -s ~/.local/bin/jq-linux64 ~/.local/bin/jq`
 
 
-## grep:
+## grep:  
+  Usecases:  
+  __search for insensitive 'ddos' in .txt files, exclude some dirs in pwd:__  
+  ```
+  grep -R --exclude-dir=jenkins-course --exclude-dir=devops_conf_2019/ --include='*.txt' -i 'ddos' .
+  ```
   Global Regular Expression Print
   filters output using regular expressions
   grep <params> <regex> <filepath>

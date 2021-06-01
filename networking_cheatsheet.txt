@@ -1351,3 +1351,49 @@ IPsec Site to Site VPN Tunnels Explained; CBT Nuggets https://www.youtube.com/wa
 
 ## ddos attacks
 [Defending from DDoS Attacks - Cloudflare](https://www.youtube.com/watch?v=kjs3KZtFeTM)
+
+2Mpps-3Mpps
+netmap:  
+http://info.iet.unipi.it/~luigi/netmap/  
+`netmap` can do `Partial Kernel Bypass` which basically ignores kernel's NetFilter and 
+can read Network Packets from some Queues on Network Card Interface - case when more 
+than `2 Million Packets Per Second(Mpps)`(`Interrupt Storm`) comes to Machine and even tuned with `BPF` 
+iptables rules can't handle those (since Kernel uses all 100% of all CPU on processing 
+packets with NetFilter).  
+`netmap` can handle 2M pps by reading packets from the NIC and filtering those.  
+It listens to IPTables statistics, and when detects that DDOS is attempted that can cause
+`Interrupt Storm` it takes ownership of the attacked IP  runs `BPF` very fast and efficiently
+using NIC hardware but bypassing Kernel. Using Single `CPU`. It can deflect up to 3Mpps
+
+__L4 DDOS attacks__  
+__ACK Flood:__  
+0.3Mpps is dangerous  
+
+It sends TCP packet with only 1 bit - ACK Flag and `random` sequence number  
+Everything goes into 1 datastructure in Kernel - decrease the performance drastically  
+
+conntrack:  
+Statefull firewall  
+
+Rule to drop all invalid packets that are not from a valid connection:  
+```
+iptables -A INPUT \
+  --dst 1.2.3.4 \
+  -m conntrack --ctstate INVALID \
+  -j DROP
+```
+
+This also requires `tcp_loose` setting to be `disabled` (`enabled` by default)  
+W/O FLAG REMOVED `conntrack` will WORSEN the situation by creating new State for every ACK packet
+instead of filtering it
+```
+sysctl -w net/netfilter/nf_conntrack_tcp_loose=0
+```
+To view the rule:  
+```
+dos:learning$ sudo sysctl --all | grep tcp_loose
+[sudo] password for dos: 
+net.netfilter.nf_conntrack_tcp_loose = 1
+```
+
+SEE `eu-15-Majkowski-Lessons-From-Defending-The-Indefensible.pdf` in `docs/images` for tons of examples

@@ -1346,3 +1346,8 @@ do show interface tunnel 0            # check status of interface (tunnel\line u
 
 ## IPSec
 IPsec Site to Site VPN Tunnels Explained; CBT Nuggets https://www.youtube.com/watch?v=CuxyZiSCSfc
+
+# Security
+
+## ddos attacks
+[Defending from DDoS Attacks - Cloudflare](https://www.youtube.com/watch?v=kjs3KZtFeTM)

@@ -1086,6 +1086,58 @@ ifconfig <interface> [IP addres] mask [Net Mask]
  ```
  GateWay IPAddress must be on the same network as the Interface - same Subnet mask and IP Address(of the network card) should match a subnet and Gateway I
 
+### Network device names:
+[Why is my ethernet interface called enp0s10 instead of eth0?](https://unix.stackexchange.com/questions/134483/why-is-my-ethernet-interface-called-enp0s10-instead-of-eth0)  
+`eth0` is old way of `udev` work with NIC, now it seems to work through systemd, and names got different now it uses `enp0s1`    
+ 
+names are constructed in Pericted way now, kind of:  
+```
+`enp0s10`:  
+| | |  
+v | |  
+`en`| |   --> ethernet  
+  v |  
+  `p0`|   --> bus number (0)  
+    v  
+    `s10` --> slot number (10)
+```
+
+>The classic naming scheme for network interfaces applied by the kernel is to simply assign names beginning with "eth" to all interfaces as they are probed by the drivers. As the driver probing is generally not predictable for modern technology this means that as soon as multiple network interfaces are available the assignment of the names is generally not fixed anymore and it might very well happen that "eth0" on one boot ends up being "eth1" on the next. This can have serious security implications...  
+
+__Predictable Interface Names:__  
+[freedesktop.org src code for systemd, which uses kernel's udev](https://cgit.freedesktop.org/systemd/systemd/tree/src/udev/udev-builtin-net_id.c#n20) 
+
+ * Predictable network interface device names based on:
+ *  - firmware/bios-provided index numbers for on-board devices
+ *  - firmware-provided pci-express hotplug slot index number
+ *  - physical/geographical location of the hardware
+ *  - the interface's MAC address
+
+```
+# Look for network devices detected by udev
+
+ls -l $(find /sys/devices/pci0000:00/ -type d -name 'net')
+
+'/sys/devices/pci0000:00/0000:00:1b.0/0000:02:00.0/net':
+total 0
+drwxr-xr-x 6 root root 0 Jun  7 22:34 wlp2s0
+
+'/sys/devices/pci0000:00/0000:00:1c.3/0000:05:00.0/net':
+total 0
+drwxr-xr-x 5 root root 0 Jun  7 22:33 enp5s0
+
+
+```
+
+
+__Disable:__  
+```
+ln -s /dev/null /etc/udev/rules.d/80-net-setup-link.rules
+#or if you use older versions:
+ln -s /dev/null /etc/udev/rules.d/80-net-name-slot.rules
+```
+
+
  
 ## lshw:
   list hardware, displays all the hardware detected by kernel and its state
@@ -4971,6 +5023,7 @@ InterFace configuration:
 Files:  
 - /var/run/dhclient.pid - file with PID of dhclient
 - /var/state/dhclient.lease - file with IP address lease information
+- /etc/dhcp/dhclient.conf - conf file on What to request; has own `man dhclient.conf` entry
 
 ### DHCP Server
 Linux machine could be DHCP server aswell - assuming it is used as a Default Gateway by the clients    
